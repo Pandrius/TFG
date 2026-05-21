@@ -1,0 +1,23 @@
+# Servicio de IA — dependencias.
+
+fastapi
+uvicorn[standard]
+python-multipart        # subida de archivos en FastAPI
+
+# Extracción de texto
+pypdf                   # .pdf
+python-docx             # .docx
+openpyxl                # .xlsx
+python-pptx             # .pptx
+charset-normalizer      # detección de codificación (.txt, .csv)
+
+# Pruebas
+pytest
+reportlab               # genera PDFs de prueba
+
+# --- Modelo real (Hito 9) — se fijarán versiones exactas al integrar el .pkl ---
+# transformers
+# torch
+# scikit-learn
+# joblib
+# numpy

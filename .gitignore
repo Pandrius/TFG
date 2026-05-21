@@ -9,3 +9,11 @@
 # Registro de prompts en bruto: puede contener texto pegado sin filtrar
 # (incluidos secretos). Se mantiene en local, no se versiona.
 prompts-log.md
+
+# Artefactos de Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Modelo entrenado (se entrega aparte; puede ser grande)
+servicio-ia/modelo/*.pkl

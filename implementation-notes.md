@@ -56,3 +56,45 @@ Leyenda de cada entrada:
 ---
 
 <!-- Las entradas nuevas se añaden debajo, en orden cronológico. -->
+
+## 2026-05-21 — Hitos 0 y 1: andamiaje del repo y servicio de IA
+
+**Pedido**
+- Extracción de texto en tiempo real de .pdf, .docx, .txt, .xlsx, .csv (más otros
+  formatos razonables) y una función que pase el texto al modelo de ML para clasificar
+  público/confidencial (puntos 1 y 2 del enunciado, objetivo O4).
+- Ejecución por hitos según el plan aprobado.
+
+**Decidido por Claude**
+- Estructura del repo: `ml/` (datos y modelo), `servicio-ia/` (FastAPI), `web/`
+  (pendiente) y `supabase/migrations/`. Los ficheros de ML existentes se movieron a `ml/`.
+- Formatos soportados: los 5 pedidos + `.pptx` (presentaciones, habituales en documentos
+  sensibles). `.odt`/`.rtf`/`.md` quedan como ampliables.
+- `.csv` se extrae con el módulo estándar `csv`, no con pandas (más ligero).
+- Clasificación en **modo placeholder**: heurística de datos sensibles (patrones de
+  DNI/IBAN/tarjeta/correo + raíces de palabras), robusta a acentos. NO es el modelo del
+  TFG; es un sustituto para poder construir el resto de la plataforma. El contrato de la
+  API (`/procesar`, `/clasificar`) no cambiará al integrar el modelo real (Hito 9).
+- Sin texto extraíble (p. ej. PDF escaneado) → se clasifica como confidencial por
+  precaución (criterio fail-safe).
+- El `.pkl` se cargará desde `servicio-ia/modelo/` (no `ml/modelo/` como sugería el
+  plan), para que el servicio sea desplegable de forma autónoma.
+- Límites: 10 MB por archivo, 100 000 caracteres de texto.
+
+**Cambios**
+- El andamiaje de Next.js (`web/`) se pospone al Hito 2: hacerlo en el Hito 0 no aportaba
+  nada y `create-next-app` es lento. En el Hito 0 solo se crea la estructura de carpetas.
+
+**Compromisos**
+- Las versiones de las librerías de ML (transformers, torch, scikit-learn, joblib) se
+  fijarán al integrar el `.pkl`, porque la versión de scikit-learn debe coincidir con la
+  usada al serializarlo. Hasta entonces quedan comentadas en `requirements.txt`.
+
+**A revisar**
+- El modo placeholder es provisional; las métricas de clasificación reales solo se
+  obtendrán con el modelo del TFG.
+- Prerrequisitos pendientes: el `.pkl` entrenado, los detalles de BETO (variante +
+  pooling) y las claves del proyecto Supabase.
+
+Verificación: 15 tests pasan (`pytest servicio-ia`) — extracción de los 6 formatos,
+formato no soportado, clasificador y los 3 endpoints de la API.
