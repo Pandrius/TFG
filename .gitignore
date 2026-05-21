@@ -2,3 +2,6 @@
 .env
 .env.*
 !.env.example
+
+# Configuracion local de Claude Code (no se comparte)
+.claude/settings.local.json
