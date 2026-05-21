@@ -1,0 +1,4 @@
+# Secretos y variables de entorno - NUNCA se suben al repositorio
+.env
+.env.*
+!.env.example
