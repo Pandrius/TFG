@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "bash .claude/log-prompt.sh",
+            "statusMessage": "Registrando prompt en la bitácora"
+          }
+        ]
+      }
+    ]
+  }
+}

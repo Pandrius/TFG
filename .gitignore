@@ -5,3 +5,7 @@
 
 # Configuracion local de Claude Code (no se comparte)
 .claude/settings.local.json
+
+# Registro de prompts en bruto: puede contener texto pegado sin filtrar
+# (incluidos secretos). Se mantiene en local, no se versiona.
+prompts-log.md
