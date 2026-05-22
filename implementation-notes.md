@@ -98,3 +98,40 @@ Leyenda de cada entrada:
 
 Verificación: 15 tests pasan (`pytest servicio-ia`) — extracción de los 6 formatos,
 formato no soportado, clasificador y los 3 endpoints de la API.
+
+## 2026-05-22 — Hito 2: autenticación y esquema base
+
+**Pedido**
+- Crear el registro/login de usuarios y el esquema base para la app web.
+
+**Decidido por Claude**
+- App generada con Next.js 16 (App Router, TypeScript, Tailwind v4) en `web/`.
+- Auth con Supabase: helpers `cliente.ts` (navegador), `servidor.ts` (servidor),
+  `admin.ts` (service_role) y acciones de servidor para registro/login/logout.
+- Protección de rutas con `proxy.ts`: en Next.js 16 la "middleware" se llama
+  "proxy" (`src/proxy.ts`, función `proxy`). Lo confirmé leyendo la documentación
+  incluida en el propio paquete antes de escribir el código.
+- Migración `profiles`: tabla de perfiles + trigger que la rellena al registrarse
+  un usuario; el `nombre_usuario` lleva un sufijo del id para ser único.
+  Migración `columnas_documentos`: 4 columnas nuevas en `Documentos`.
+- Se usan las claves "legacy" anon/service_role de Supabase (las nuevas
+  publishable/secret también existen, pero las legacy están mejor documentadas
+  con `@supabase/ssr`).
+- `.env` y `web/.env.local` rellenados con las claves reales obtenidas por la
+  Management API; ambos quedan fuera de git.
+
+**Cambios**
+- El andamiaje de Next.js, que el plan situaba en el Hito 0, se hizo en este hito.
+
+**Compromisos**
+- Las migraciones y el ajuste de Auth NO los aplica Claude: el clasificador de
+  seguridad bloquea cambios en infraestructura real sin autorización explícita.
+  Andrés los aplica él mismo en el panel de Supabase. Las migraciones quedan
+  versionadas igual en `supabase/migrations/`.
+
+**A revisar**
+- El flujo de registro/login no se ha probado de extremo a extremo todavía:
+  depende de que Andrés aplique las migraciones y desactive la confirmación de
+  email. Tras eso se verifica.
+
+Verificación: `npm run build` compila y pasa el chequeo de TypeScript.
