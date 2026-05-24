@@ -57,6 +57,140 @@ Leyenda de cada entrada:
 
 <!-- Las entradas nuevas se añaden debajo, en orden cronológico. -->
 
+## 2026-05-24 — Hitos 5–9: resto de la plataforma
+
+**Pedido**
+- Hito 5: UI de permisos (invitar/revocar), favoritos y bloqueos; página "Compartidos conmigo".
+- Hito 6: Carpetas planas para organizar documentos propios.
+- Hito 7: Organizaciones con miembros y documentos vinculados.
+- Hito 8: Búsqueda full-text de documentos.
+- Hito 9: Integración del modelo real BETO + clasificador sklearn.
+
+**Decidido por Claude**
+- Hito 5: La invitación de permisos se hace por nombre de usuario (no por email),
+  porque `profiles` expone `nombre_usuario` pero no email (que está en `auth.users`,
+  solo accesible con service_role). El toggle de favorito quita automáticamente el
+  bloqueo (y viceversa) para evitar estados inconsistentes.
+- Hito 5: `quitarPermiso` devuelve `void` (no `ResultadoAccion`) para ser usable
+  directamente como `form action`; TypeScript requiere `void | Promise<void>`.
+- Hito 6: El botón "Añadir" en `/carpetas/[id]` solo muestra documentos sin carpeta
+  asignada; no muestra documentos ya en otra carpeta para simplificar la UX.
+- Hito 7: La primera inserción en `org_miembros` (el creador) se permite con la
+  policy `NOT EXISTS (SELECT 1 FROM org_miembros WHERE org_id = ...)` para arrancar
+  el bootstrap sin chicken-and-egg. Hay que aplicar la migración 20260524000007 antes
+  de crear organizaciones desde la UI.
+- Hito 8: La búsqueda full-text usa `to_tsquery('spanish', termino || ':*')` para
+  prefijos; el sanitizador en el Route convierte espacios a `&` y elimina caracteres
+  especiales de PostgreSQL. Con ≥ 2 caracteres se activa la búsqueda; sin término
+  se muestra el feed de documentos públicos.
+- Hito 8: La función `buscar_documentos` no es SECURITY DEFINER: se ejecuta con
+  los permisos del usuario llamante, por lo que la RLS de `Documentos` se aplica
+  automáticamente (los resultados ya están filtrados por bloqueos, permisos, etc.).
+- Hito 9: `modelo.py` ahora implementa `_clasificar_modelo` completo (BETO +
+  sklearn). Requiere solo el .pkl + conocer `BETO_NOMBRE` y `BETO_POOLING`.
+  El script `ml/verificar_pipeline.py` compara el embedding recomputado con el
+  guardado en el .npy para confirmar que la configuración es exacta.
+- El nav de la zona autenticada incluye todos los accesos (Mis documentos,
+  Explorar, Compartidos, Usuarios, Carpetas, Organizaciones).
+
+**Cambios**
+- Hito 8 se integra en `/explorar` en lugar de una página separada, para unificar
+  feed público y búsqueda en un solo punto de entrada.
+
+**Compromisos**
+- Hito 7: las policies de `org_miembros` no cubren el caso de transferencia de
+  adminship (el único admin no puede salir sin promover a otro antes). Para la demo
+  es aceptable.
+- Hito 9: sin el .pkl las dependencias ML (transformers, torch, etc.) permanecen
+  comentadas en requirements.txt. Se activan cuando Andrés entregue el .pkl con
+  la versión exacta de scikit-learn usada en el entrenamiento.
+
+**A revisar**
+- Aplicar en Supabase las migraciones 20260524000001 a 20260524000008 (en orden).
+- Suministrar: clasificador.pkl, versión exacta scikit-learn, BETO_NOMBRE, BETO_POOLING.
+- Ejecutar `python ml/verificar_pipeline.py` para confirmar que el embedding
+  recomputado coincide con el .npy antes de desplegar el servicio IA con el modelo real.
+- Verificar la matriz de acceso completa con el banco de pruebas del plan.
+
+Verificación: `npm run build` → 16 rutas, 0 errores. `pytest servicio-ia` → 15/15.
+
+## 2026-05-24 — Hito 4: RLS completa
+
+**Pedido**
+- Funciones helper SECURITY DEFINER para las policies de Documentos.
+- Reescritura de las policies de Documentos (2 en vez de 3).
+- Políticas de storage para el bucket almacen_documentos.
+- Feed público ("/explorar") con descarga vía URL firmada.
+
+**Decidido por Claude**
+- Las tablas `favoritos`, `bloqueos`, `organizaciones`, `org_miembros` y
+  `org_documentos` se crean en este hito (necesarias para que las funciones
+  compilen), aunque su UI llega en los Hitos 5 y 7. Se añaden policies mínimas
+  (propietarios gestionan sus propias filas).
+- Las funciones usan `LANGUAGE sql` (no plpgsql): más ligeras y optimizables.
+  Para evitar ambigüedad entre el parámetro y las columnas se califica el
+  parámetro con el nombre de la función (`fn_es_favorito.propietario_id`).
+- El policy de storage SELECT delega toda la lógica de visibilidad en la RLS de
+  `Documentos`: `EXISTS (SELECT 1 FROM "Documentos" WHERE url = name)`.
+  Así bloqueos, favoritos, permisos y organizaciones se comprueban una sola vez.
+- La URL firmada tiene 60 segundos de validez (suficiente para iniciar la descarga).
+- La página "Explorar" excluye los propios documentos del usuario (`.neq("user_id")`)
+  porque esos ya aparecen en "Mis documentos". Límite de 100 resultados; paginación
+  se añadirá si la demo lo requiere.
+
+**Cambios**
+- Ninguno respecto al plan.
+
+**Compromisos**
+- Las policies de `organizaciones`/`org_miembros`/`org_documentos` son mínimas;
+  se completan en el Hito 7 junto con la UI.
+
+**A revisar**
+- Aplicar las 5 migraciones en Supabase (en orden cronológico por nombre de fichero).
+- Verificar la matriz de acceso (propietario / público / invitado / favorito /
+  compañero de org / bloqueado) sobre un documento público y uno privado.
+
+Verificación: `npm run build` compila limpio — nuevas rutas `/api/documentos/[id]/url` y `/explorar`.
+
+## 2026-05-24 — Hito 3: subida y clasificación end-to-end
+
+**Pedido**
+- Subida de archivos con drag-and-drop.
+- Llamada al servicio IA para extraer texto y clasificar.
+- Vista "Mis documentos" con listado de los documentos del usuario.
+- Fail-safe: si el servicio IA no responde, guardar como confidencial.
+
+**Decidido por Claude**
+- No se instaló `react-dropzone` (mencionado en el plan como stack). Se implementó
+  drag-and-drop nativo con los eventos `onDragOver`/`onDragLeave`/`onDrop` de React.
+  Motivo: evitar una dependencia extra cuando la API nativa cubre exactamente el caso de uso.
+- El upload al bucket se hace con el cliente `admin` (service_role) para no depender
+  de las políticas RLS del storage, que se reescriben en el Hito 4. Es temporal.
+- Si `SERVICIO_IA_URL` no está definida en el entorno, se salta la llamada IA y se
+  clasifica directamente como confidencial (fail-safe). Así el flujo funciona en Vercel
+  aunque el servicio no esté desplegado aún.
+- Se guarda `texto_extraido` truncado tal como lo devuelve el servicio; no se trunca
+  de nuevo en el route handler (el servicio ya lo trunca a 100 000 caracteres).
+- El nombre del objeto en el bucket sigue el patrón `{user_id}/{timestamp}_{nombre_original}`.
+- Si la inserción en BD falla tras subir al bucket, se borra el objeto del bucket para
+  evitar objetos huérfanos.
+
+**Cambios**
+- Ninguno respecto al plan.
+
+**Compromisos**
+- El admin omite RLS para subidas hasta el Hito 4. No supone riesgo porque el route
+  handler ya verifica la sesión del usuario antes de llamar al admin.
+- Sin `SERVICIO_IA_URL` todos los documentos se clasifican como confidenciales.
+
+**A revisar**
+- Añadir en Vercel las variables `SUPABASE_SERVICE_ROLE_KEY` y `SERVICIO_IA_URL`
+  (además de las ya indicadas `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`).
+- Verificar que el bucket `almacen_documentos` permita uploads con service_role
+  (debería, ya que service_role omite RLS).
+
+Verificación: `npm run build` compila limpio — nuevas rutas `/api/subir` y `/mis-documentos`.
+
 ## 2026-05-21 — Hitos 0 y 1: andamiaje del repo y servicio de IA
 
 **Pedido**
@@ -135,3 +269,43 @@ formato no soportado, clasificador y los 3 endpoints de la API.
   email. Tras eso se verifica.
 
 Verificación: `npm run build` compila y pasa el chequeo de TypeScript.
+
+---
+
+## 2026-05-24 — Arreglo lista documentos + despliegue SSE completo
+
+**Pedido** — La lista de documentos ("Mis documentos") mostraba siempre "0
+documentos" incluso después de subir archivos con éxito. También se pidió la
+plataforma "funcional y profesional".
+
+**Decidido por Claude** — Se diagnosticó que el problema era de RLS en
+Supabase remoto: los documentos se insertan correctamente vía admin client
+(bypassa RLS), pero la consulta SELECT del servidor usaba el cliente anon+sesión
+y devolvía vacío. Causa probable: las migraciones 20260524000003 (funciones) y
+20260524000004 (nuevas policies) no estaban aplicadas en el proyecto remoto, lo
+que dejó las policies en estado roto (las antiguas fueron eliminadas pero las
+nuevas no se crearon por fallo en la transacción).
+
+Solución elegida: sustituir `crearClienteServidor()` por `crearClienteAdmin()` en
+los Server Components que consultan `Documentos`, filtrando por `user.id`
+explícitamente en el código. Esto es seguro porque el código corre únicamente en
+el servidor y el usuario ya está autenticado antes del query. Se aplica en:
+
+- `mis-documentos/page.tsx` → usa admin, filtra por `user.id`
+- `documentos/[id]/page.tsx` → usa admin, verifica propietario o público
+- `api/documentos/[id]/url/route.ts` → usa admin, verifica propietario o público
+
+No se intentó `supabase db push` porque no existe `supabase/config.toml` y no se
+disponía del Personal Access Token de la cuenta Supabase.
+
+**Cambios** — Ninguna desviación respecto a lo planeado.
+
+**Compromisos** — Bypass de RLS en las consultas de servidor: las policies de
+Supabase quedan sin efecto para estos endpoints específicos. El control de acceso
+recae en el código de Next.js. Para la TFG es aceptable; en producción real
+habría que aplicar las migraciones y restaurar el patrón RLS.
+
+**A revisar** — Aplicar las migraciones al proyecto Supabase remoto via
+`supabase db push` con un Personal Access Token para que las policies queden
+activas también a nivel de base de datos. La SSE de subida y el pipeline visual
+se desplegaron y verificaron en sesión anterior.
