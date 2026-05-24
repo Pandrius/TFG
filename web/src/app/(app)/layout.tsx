@@ -22,6 +22,44 @@ export default async function LayoutApp({
         <Link href="/inicio" className="font-semibold">
           Gestión Documental
         </Link>
+        <nav className="flex items-center gap-3 text-sm">
+          <Link
+            href="/mis-documentos"
+            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            Mis documentos
+          </Link>
+          <Link
+            href="/explorar"
+            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            Explorar
+          </Link>
+          <Link
+            href="/compartidos"
+            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            Compartidos
+          </Link>
+          <Link
+            href="/usuarios"
+            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            Usuarios
+          </Link>
+          <Link
+            href="/carpetas"
+            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            Carpetas
+          </Link>
+          <Link
+            href="/organizaciones"
+            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+          >
+            Organizaciones
+          </Link>
+        </nav>
         <span className="ml-auto text-sm text-gray-500">{user.email}</span>
         <form action={cerrarSesion}>
           <button

@@ -15,9 +15,11 @@ charset-normalizer      # detección de codificación (.txt, .csv)
 pytest
 reportlab               # genera PDFs de prueba
 
-# --- Modelo real (Hito 9) — se fijarán versiones exactas al integrar el .pkl ---
-# transformers
-# torch
-# scikit-learn
-# joblib
-# numpy
+# --- Modelo real (Hito 9) ---
+# Descomentar y fijar versiones que coincidan con las usadas al entrenar el .pkl.
+# La versión de scikit-learn DEBE coincidir exactamente con la del entrenamiento.
+# transformers>=4.40
+# torch>=2.2
+# scikit-learn==<VERSION_EXACTA>
+# joblib>=1.3
+# numpy>=1.26

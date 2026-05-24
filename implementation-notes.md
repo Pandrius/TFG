@@ -57,6 +57,47 @@ Leyenda de cada entrada:
 
 <!-- Las entradas nuevas se añaden debajo, en orden cronológico. -->
 
+## 2026-05-24 — Aplicación de migraciones y despliegue Vercel
+
+**Pedido**
+- Aplicar las 8 migraciones pendientes (20260524000001–20260524000008) al proyecto
+  Supabase, usando los tokens y el CLI disponibles.
+- Resolver error 404 en Vercel.
+
+**Decidido por Claude**
+- La Management API (`api.supabase.com`) quedó bloqueada por Cloudflare (error 1010,
+  bloqueo por ASN). Se usó el Supabase CLI v2.78.1 ya instalado como alternativa.
+- Se creó temporalmente `aplicar_migraciones.py` para el intento de Management API;
+  se eliminó tras confirmar que el CLI era el camino correcto.
+- `supabase db push --linked --yes` aplica todas las migraciones del directorio
+  `supabase/migrations/` en orden. Los NOTICE de "already exists / skipping" son
+  esperados: las migraciones usan `CREATE ... IF NOT EXISTS` y `DROP ... IF EXISTS`,
+  por lo que son idempotentes.
+- El error 404 en Vercel se debía a dos causas: (1) el "Root Directory" no estaba
+  configurado como `web/`, y (2) faltaban las variables de entorno
+  `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y
+  `SUPABASE_SERVICE_ROLE_KEY`. Ambas se resolvieron en el panel de Vercel.
+
+**Cambios**
+- Ninguno en el código. Solo operación de infraestructura.
+
+**Compromisos**
+- Las migraciones de baseline y columnas_documentos ya existían parcialmente en
+  Supabase; el CLI las reaplicó de forma segura por los guards IF NOT EXISTS.
+
+**A revisar**
+- Añadir `SERVICIO_IA_URL` en Vercel cuando el servicio IA esté desplegado.
+- Suministrar: `clasificador.pkl`, versión exacta de scikit-learn, `BETO_NOMBRE`,
+  `BETO_POOLING` para activar el modelo real (Hito 9).
+- Ejecutar `python ml/verificar_pipeline.py` para confirmar embedding antes de
+  desplegar el servicio IA con el modelo real.
+- Verificar la matriz de acceso completa (propietario, público, invitado con permiso,
+  favorito, compañero de org, bloqueado) en el entorno de Vercel.
+
+Verificación: `npm run build` → 16 rutas, 0 errores. `supabase db push` → 11 migraciones aplicadas.
+
+---
+
 ## 2026-05-24 — Hitos 5–9: resto de la plataforma
 
 **Pedido**

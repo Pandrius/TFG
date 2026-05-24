@@ -17,3 +17,5 @@ __pycache__/
 
 # Modelo entrenado (se entrega aparte; puede ser grande)
 servicio-ia/modelo/*.pkl
+
+.vercel
