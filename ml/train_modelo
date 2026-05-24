@@ -1,0 +1,95 @@
+import os
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import cross_val_predict, StratifiedKFold
+from sklearn.metrics import classification_report, confusion_matrix
+
+def entrenar_y_evaluar_interno(nombre_modelo, modelo, X, y):
+    """
+    Evalúa el modelo usando Validación Cruzada de 5 pliegues para obtener
+    métricas reales y la matriz de confusión sobre el dataset de entrenamiento.
+    Luego, entrena el modelo final.
+    """
+    print(f"   🚀 Evaluando {nombre_modelo} mediante Validación Cruzada (5-Folds)...")
+    
+    # StratifiedKFold asegura que cada subconjunto tenga la misma proporción de clases
+    cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    
+    # Genera predicciones "out-of-fold" (predicciones limpias sobre train)
+    y_preds = cross_val_predict(modelo, X, y, cv=cv, n_jobs=-1)
+    
+    # Ahora entrenamos el modelo final en todo el set de train para dejarlo listo en memoria
+    modelo.fit(X, y)
+    print(f"   ✅ Modelo final ajustado en todo el conjunto.")
+    
+    # Calcular Métricas Clave
+    cm = confusion_matrix(y, y_preds)
+    reporte = classification_report(y, y_preds, target_names=["Clase 0 (Pub)", "Clase 1 (Priv)"])
+    
+    # Imprimir Diagnóstico Relevante en Consola
+    print(f"\n   📊 --- DIAGNÓSTICO DE RESULTADOS ({nombre_modelo}) ---")
+    print(f"   📝 Reporte de Clasificación:\n{reporte}")
+    
+    print(f"   🧩 Matriz de Confusión (Val. Cruzada):")
+    print(f"                      Predicho: Pub     Predicho: Priv")
+    print(f"      Real Clase 0 (Pub):  {cm[0][0]:<10d} {cm[0][1]:<10d}")
+    print(f"      Real Clase 1 (Priv): {cm[1][0]:<10d} {cm[1][1]:<10d}")
+    print("\n" + "-" * 60)
+    
+    return modelo
+
+def ejecutar_entrenamiento_analitico():
+    # Detectar automáticamente la carpeta 'ml' donde reside este script
+    path_base = os.path.dirname(os.path.abspath(__file__))
+    
+    print(f"📂 Carpeta de trabajo detectada: {path_base}")
+    print("====== CARGANDO DATOS DE ENTRENAMIENTO ======")
+    
+    # ==========================================
+    # 1. CARGA DE DATASETS
+    # ==========================================
+    df_train_a = pd.read_csv(os.path.join(path_base, "train_EXPERIMENTO_A_desbalanceado.csv"))
+    df_train_b = pd.read_csv(os.path.join(path_base, "train_EXPERIMENTO_B_balanceado.csv"))
+    
+    y_train_a = df_train_a['label'].values
+    y_train_b = df_train_b['label'].values
+
+    X_train_a = np.load(os.path.join(path_base, "embeddings_BERTO_train_unbalanced.npy"))
+    X_train_b = np.load(os.path.join(path_base, "embeddings_BERTO_train_balanced.npy"))
+    
+    # Verificación de consistencia
+    assert len(X_train_a) == len(y_train_a), "🚨 Desajuste en EXP A."
+    assert len(X_train_b) == len(y_train_b), "🚨 Desajuste en EXP B."
+
+    # ==========================================
+    # 2. EXPERIMENTO A: DATASET DESBALANCEADO
+    # ==========================================
+    print("\n" + "="*80)
+    print("🔥 EXPERIMENTO A: DATASET DESBALANCEADO ORIGINAL")
+    print("="*80)
+    
+    lr_a = LogisticRegression(max_iter=1000, random_state=42, n_jobs=-1)
+    lr_a_instancia = entrenar_y_evaluar_interno("Regresión Logística (Exp A)", lr_a, X_train_a, y_train_a)
+    
+    nb_a = GaussianNB()
+    nb_a_instancia = entrenar_y_evaluar_interno("Gaussian Naive Bayes (Exp A)", nb_a, X_train_a, y_train_a)
+
+    # ==========================================
+    # 3. EXPERIMENTO B: DATASET BALANCEADO LONG.
+    # ==========================================
+    print("\n" + "="*80)
+    print("⚖️ EXPERIMENTO B: DATASET BALANCEADO POR LONGITUD DE PALABRAS")
+    print("="*80)
+    
+    lr_b = LogisticRegression(max_iter=1000, random_state=42, n_jobs=-1)
+    lr_b_instancia = entrenar_y_evaluar_interno("Regresión Logística (Exp B)", lr_b, X_train_b, y_train_b)
+    
+    nb_b = GaussianNB()
+    nb_b_instancia = entrenar_y_evaluar_interno("Gaussian Naive Bayes (Exp B)", nb_b, X_train_b, y_train_b)
+
+    print("\n🎉 ¡Análisis y entrenamiento completados con éxito!")
+
+if __name__ == "__main__":
+    ejecutar_entrenamiento_analitico()
