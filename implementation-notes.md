@@ -996,3 +996,21 @@ Build de producción: éxito.
 Spec de B cerrada al 100%. Pendiente lo marcado en "A revisar".
 
 Verificación final: `npm test` 13/13. `npm run build` éxito (18 rutas).
+
+---
+
+## 2026-05-27 — C1-01: Componentes Kpi y KpiAnillo
+
+**Pedido**
+- Componentes reutilizables para KPIs (label + valor + pista/delta opcional + slot visual).
+- KpiAnillo: anillo conic-gradient con porcentaje en el color accent.
+
+**Decidido por Claude** — Ninguna decisión discrecional.
+
+**Cambios** — Ninguno.
+
+**Compromisos** — KpiAnillo usa conic-gradient CSS puro (sin SVG). Funciona bien a 36×36 px; si crece habría que migrar a SVG real.
+
+**A revisar** — Verificación visual al usarse en /mis-documentos (C1-10).
+
+Verificación: npx tsc --noEmit → 0 errores.
