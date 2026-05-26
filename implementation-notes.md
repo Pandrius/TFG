@@ -505,5 +505,5 @@ se desplegaron y verificaron en sesión anterior.
   (próximos hitos).
 
 Verificación: npm test → 13/13 tests verdes (8 validaciones + 5 iniciales).
-Commit: [SHA pendiente].
+Commit: 43cad5d.
 
