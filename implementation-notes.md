@@ -601,3 +601,18 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-10: Componente Modal
+
+**Pedido**
+- Modal.tsx con overlay, ESC para cerrar, body lock, 3 tonos (neutral/warn/danger).
+- Slot para acciones a la derecha del footer.
+
+**Decidido por Claude** — Ninguna.
+**Cambios** — Ninguno.
+**Compromisos** — Click en overlay cierra (UX común). Si en algún caso futuro queremos modal "obligatorio sin escape", añadir prop `cerrable` y bloquearlo. Por ahora no se necesita.
+**A revisar** — Verificación en el modal "hacer público" (C, no en este sub-proyecto).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
