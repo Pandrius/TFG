@@ -907,3 +907,92 @@ Verificación: `npx tsc --noEmit` → 0 errores.
 **A revisar** — Verificación visual end-to-end (B-24).
 
 Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
+## 2026-05-26 — B-24: Cierre del sub-proyecto B (auth + perfil)
+
+**Pedido**
+- Smoke test E2E del flujo de auth y perfil; cierre del sub-proyecto B.
+- Verificación final: build de producción, tests verdes.
+- Documentar lo que queda por validar manualmente.
+
+**Decidido por Claude**
+- Ninguna. Tarea de verificación.
+
+**Cambios**
+- Estructura del bitácora durante B: cada tarea (B-01 a B-23) añadió su
+  propia entrada — más granular que el plan original (que decía "una
+  entrada de cierre en B-24"). Es coherente con CLAUDE.md ("en cualquier
+  tarea de implementación... mantén actualizado el fichero").
+- B-12 (migración SQL): el comando `supabase db push --linked` fue
+  bloqueado por el security classifier. El fichero está creado y
+  versionado, pendiente de aplicación manual por el usuario.
+
+**Compromisos**
+- No se verificó la UI ni el flujo end-to-end automáticamente — falta
+  apertura manual en navegador (ver checklist abajo).
+- No se aplicó la migración 20260526000001 al proyecto Supabase remoto:
+  el avatar upload y el registro con nuevo trigger no funcionarán hasta
+  que se aplique.
+
+**A revisar (acciones del usuario)**
+
+Para que el sub-proyecto B quede plenamente funcional, el usuario debe:
+
+1. **Aplicar la migración**:
+   ```
+   supabase db push --linked
+   ```
+   (puede dar NOTICE de "already exists" en lo del trigger; es esperado).
+
+2. **Añadir redirect URLs en el panel de Supabase**
+   (Authentication → URL Configuration → Redirect URLs):
+   - http://localhost:3000/recuperar/confirmar
+   - https://<dominio-vercel>/recuperar/confirmar
+
+3. **Smoke test manual** (`npm run dev`, abrir http://localhost:3000):
+   - [ ] / — landing carga con Fraunces; click "Crear cuenta".
+   - [ ] /registro — probar:
+     * username `ab` → error "al menos 3"
+     * username con espacio → error "letras, números, punto y guion bajo"
+     * username válido pero ya usado → error "ya está en uso"
+     * password 7 chars → error "al menos 8"
+     * password ≠ confirm → mensaje en vivo + botón disabled
+     * datos correctos → redirect a /inicio.
+   - [ ] Cerrar sesión desde topbar (botón ghost).
+   - [ ] /login — credenciales malas → Alert err. Buenas → /inicio.
+   - [ ] Cerrar sesión. /login → "¿Olvidaste tu contraseña?" → /recuperar
+     → enviar email → mensaje "revisa tu bandeja".
+   - [ ] Abrir el email, click en el enlace → /recuperar/confirmar con
+     hash → "Validando…" → form → nueva contraseña → redirect /inicio.
+   - [ ] /perfil — username/email correctos, nombre completo editable.
+   - [ ] Avatar: subir JPG → aparece en /perfil y en topbar. Quitar →
+     vuelve a iniciales.
+   - [ ] Cambiar contraseña: actual incorrecta → error; correcta + nueva
+     válida + confirmación → toast "Contraseña actualizada".
+   - [ ] Logout, login con la nueva contraseña → entra.
+   - [ ] DevTools → Rendering → Emulate prefers-color-scheme: dark →
+     toda la app cambia a modo oscuro.
+
+**Resumen del sub-proyecto B**
+
+23 commits implementados (B-01 a B-23):
+
+- B-01 a B-04: setup de Vitest, fuentes, tokens del sistema, utilidades
+  puras con TDD (13/13 tests).
+- B-05 a B-11: 9 componentes UI base reutilizables (Button, Input,
+  PasswordInput, FormField, Tag, Avatar, Toast/Provider, Modal, Alert).
+- B-12: migración SQL para bucket avatares + ajuste del trigger.
+- B-13: server actions de auth reescritas (validaciones + unicidad +
+  recuperación sin enumeration).
+- B-14 a B-17: 4 pantallas de auth/recuperación rediseñadas o nuevas.
+- B-18 a B-21: AvatarUpload con canvas, route handler /api/perfil/avatar,
+  server actions de perfil, pantalla /perfil.
+- B-22 a B-23: topbar rediseñada + landing pública rediseñada.
+
+Tests automáticos: 13/13 verde.
+Build de producción: éxito.
+Spec de B cerrada al 100%. Pendiente lo marcado en "A revisar".
+
+Verificación final: `npm test` 13/13. `npm run build` éxito (18 rutas).
