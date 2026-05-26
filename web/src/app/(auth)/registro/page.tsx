@@ -49,7 +49,7 @@ export default function PaginaRegistro() {
           />
         </label>
 
-        {estado?.error && (
+        {estado && "error" in estado && (
           <p className="text-sm text-red-600" role="alert">
             {estado.error}
           </p>

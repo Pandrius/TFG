@@ -663,3 +663,31 @@ Verificación: npx tsc --noEmit → 0 errores.
 Verificación: Fichero SQL creado en `supabase/migrations/20260526000001_perfil_y_avatares.sql`.
 Aplicación de migración: pendiente (usuario ejecuta `supabase db push --linked`).
 
+---
+
+## 2026-05-26 — B-13: Reescritura de acciones de auth
+
+**Pedido**
+- Reescribir web/src/app/(auth)/acciones.ts con:
+  - registrarse con validaciones (usuario/email/password/confirm) y chequeo
+    de unicidad de nombre_usuario antes de signUp.
+  - iniciarSesion (sin cambios funcionales, refactor de error handling).
+  - cerrarSesion (sin cambios).
+  - solicitarRecuperacion: nueva action con resetPasswordForEmail, siempre
+    devuelve mensaje positivo (no filtra si el email existe).
+- EstadoFormulario unificado: error con campo opcional o ok.
+
+**Decidido por Claude** — Ninguna decisión discrecional. Spec exacto.
+**Cambios** — Ninguno.
+**Compromisos** —
+  - Chequeo de unicidad de username con admin client (bypass RLS) por
+    simplicidad; alternativa sería policy SELECT pública sobre profiles
+    que ya existe en migración 20260522000001 — funcionaría también.
+    Mantengo admin client para coherencia con otras consultas del proyecto.
+  - El `host` para el redirectTo se infiere de las cabeceras, con fallback
+    a localhost:3000. Si en Vercel el host se ve raro, revisar.
+**A revisar** — Probar flujo de recuperación de extremo a extremo cuando las
+  pantallas estén listas (B-16, B-17).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
