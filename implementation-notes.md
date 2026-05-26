@@ -1031,3 +1031,25 @@ Verificación: npx tsc --noEmit → 0 errores.
 **A revisar** — Verificación al integrarse en PipelineRow (C1-04).
 
 Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
+## 2026-05-27 — C1-03: Componente DropZone
+
+**Pedido**
+- Área draggable reutilizable: drop + click → file picker, múltiple, disabled, accept.
+- Estados visuales: idle, hover, disabled.
+
+**Decidido por Claude**
+- Ninguna.
+
+**Cambios**
+- Ninguno.
+
+**Compromisos**
+- Sin barra de progreso interna; quien la usa gestiona el progreso (PanelSubidas).
+
+**A revisar**
+- Verificación al integrarse en PanelSubidas (C1-06).
+
+Verificación: `npx tsc --noEmit` → 0 errores.
