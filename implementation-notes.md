@@ -1094,6 +1094,25 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 ---
 
+## 2026-05-27 — C1-09: TablaDocumentos
+
+**Pedido**
+- Tabla filtrable (Todos/Privados/Públicos), fila con icono + RenombrarInline + tag clickable + menú ⋯.
+- Tag click: priv→pub abre ModalHacerPublico, pub→priv directo.
+
+**Decidido por Claude**
+- Filtro "Procesando" omitido (los archivos en proceso aún no están en la lista — están en PanelSubidas).
+- Menú ⋯ con click-outside via div fixed inset-0 invisible.
+- Ruta "/personal · pdf" decorativa de momento (cuando haya carpetas en C.3, real).
+
+**Cambios** — Sin filtro "Procesando".
+**Compromisos** — Ninguno.
+**A revisar** — Probar UX al integrarse en /mis-documentos (C1-10).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
 ## 2026-05-27 — C1-06: Panel de subidas con cola en cliente
 
 **Pedido**
