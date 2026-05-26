@@ -758,3 +758,24 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-17: Pantalla /recuperar/confirmar
+
+**Pedido**
+- Pantalla que recibe los tokens en el hash (#access_token=...&refresh_token=...&type=recovery)
+  que deja Supabase tras el clic en el email de recuperación.
+- Aplicar la sesión con setSession, limpiar el hash de la URL, mostrar form,
+  validar (min 8 + coincidencia), llamar updateUser con la nueva password,
+  redirigir a /inicio.
+
+**Decidido por Claude** — Ninguna.
+**Cambios** — Ninguno.
+**Compromisos** —
+  - Limpieza del hash via history.replaceState — evita exponer tokens en la URL.
+  - El form usa onSubmit + state local (no useActionState) porque toda la
+    interacción con Supabase es client-side (setSession + updateUser).
+**A revisar** — Probar el flujo completo end-to-end cuando llegue un email real.
+
+Verificación: npx tsc --noEmit → 0 errores.
+
