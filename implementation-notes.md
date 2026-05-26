@@ -1091,3 +1091,29 @@ Verificación: npx tsc --noEmit → 0 errores.
 **A revisar** — Verificación al integrarse en TablaDocumentos (C1-09).
 
 Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
+## 2026-05-27 — C1-06: Panel de subidas con cola en cliente
+
+**Pedido**
+- Cola en cliente con concurrencia 3, límite 10 por tanda, SSE existente.
+- Validación formato + tamaño + límite con toasts.
+- Pipeline visible por archivo con fade-out a 5s.
+- Cancelar pendientes, reintentar errores, quitar.
+
+**Decidido por Claude**
+- Ref `activos` como Set<id> para llevar el conteo concurrente sin meter más estado React (evita race conditions).
+- `queueMicrotask` para despachar tras setState, no useEffect [archivos] (evita bucles infinitos al actualizar progreso vía SSE).
+- `router.refresh()` al completar cada archivo (no al final de la tanda) — el usuario ve documentos aparecer mientras siguen subidas activas.
+- Fade-out via prop `saliendo` que cambia opacity y luego setTimeout limpia el item del estado.
+
+**Cambios** — Ninguno.
+
+**Compromisos**
+- AbortController guardado por archivo pero nunca llamado (no hay "cancelar mientras procesa"). Infra puesta para el futuro.
+- Si la pestaña se cierra, las subidas se cortan — sin persistencia.
+
+**A revisar** — Verificación al integrarse en /mis-documentos (C1-10) con subidas reales en paralelo.
+
+Verificación: npx tsc --noEmit → 0 errores.
