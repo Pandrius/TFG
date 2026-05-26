@@ -1136,3 +1136,21 @@ Verificación: npx tsc --noEmit → 0 errores.
 **A revisar** — Probar UX al integrarse en tabla (C1-09).
 
 Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
+## 2026-05-27 — C1-08: Modales hacer público y eliminar
+
+**Pedido**
+- Modal "¿Hacer público?" tono warn, checkbox obligatorio habilita el botón accent.
+- Modal "¿Eliminar?" tono danger, botón rojo, sin checkbox.
+
+**Decidido por Claude**
+- Modal eliminar sin doble confirmación — el botón rojo y "no se puede deshacer" son suficientes.
+- ModalHacerPublico recibe `tipo` para mostrar el icono (duplicación pequeña, modal autónomo).
+
+**Cambios** — Ninguno.
+**Compromisos** — Ninguno.
+**A revisar** — Verificación al integrarse en TablaDocumentos (C1-09).
+
+Verificación: npx tsc --noEmit → 0 errores.
