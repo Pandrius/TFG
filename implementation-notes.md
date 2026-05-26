@@ -1071,3 +1071,23 @@ Verificación: `npx tsc --noEmit` → 0 errores.
 **A revisar** — Verificación al integrarse en PanelSubidas (C1-06).
 
 Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
+## 2026-05-27 — C1-05: Server actions de documentos
+
+**Pedido**
+- actualizarConfidencialidad(doc_id, nueva).
+- renombrarDocumento(doc_id, nombre).
+- eliminarDocumento(doc_id) — storage + BD.
+
+**Decidido por Claude**
+- Tipo Resultado local al fichero (no se extrae a lib compartida hasta que C.2 lo necesite).
+- Verificación de propiedad explícita (SELECT user_id) en lugar de delegar en RLS, por coherencia con el patrón del proyecto y para mensajes claros.
+- Eliminar es best-effort en storage: si el fichero ya no existe o storage falla, se borra igualmente el registro de BD.
+
+**Cambios** — Ninguno.
+**Compromisos** — Si storage falla en borrado, queda objeto huérfano; si pasa en producción, un cron de limpieza.
+**A revisar** — Verificación al integrarse en TablaDocumentos (C1-09).
+
+Verificación: npx tsc --noEmit → 0 errores.
