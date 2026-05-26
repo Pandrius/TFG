@@ -98,6 +98,21 @@ Verificación: `npm run build` → 16 rutas, 0 errores. `supabase db push` → 1
 
 ---
 
+## 2026-05-27 — C1-11: Pantalla /inicio rediseñada
+
+**Pedido**
+- Dashboard ligero post-login con saludo personalizado + 3 atajos.
+
+**Decidido por Claude**
+- Saludo = primer token del nombre_completo si existe, si no nombre_usuario.
+- 3 atajos como cards iguales. Sin panel "Actividad reciente" (lo dejamos para C.2/C.3 cuando haya eventos reales).
+
+**Cambios** — Omitido panel "Actividad reciente".
+**Compromisos** — Ninguno.
+**A revisar** — Confirmar saludo correcto con/sin nombre_completo.
+
+Verificación: `npx tsc --noEmit` → 0 errores.
+
 ## 2026-05-26 — B-14: Pantalla /registro rediseñada
 
 **Pedido**
