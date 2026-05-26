@@ -98,6 +98,37 @@ Verificación: `npm run build` → 16 rutas, 0 errores. `supabase db push` → 1
 
 ---
 
+## 2026-05-26 — B-03: Tokens del sistema Esmeralda biblioteca en globals.css
+
+**Pedido**
+- Reemplazar el contenido completo de `web/src/app/globals.css` con los tokens de diseño
+  del sistema "Esmeralda biblioteca": superficies, tinta, acentos, soporte (oro),
+  estado destructivo, sombras, más variantes dark mode.
+- Mapear los custom properties como utilidades de Tailwind v4 mediante `@theme inline`.
+- Verificar que el build pasa.
+- Commit exacto: `B-03: tokens del sistema Esmeralda biblioteca + dark mode automatico`.
+
+**Decidido por Claude**
+- Ninguna decisión discrecional. Se aplicó el contenido CSS exactamente como se especificó.
+
+**Cambios**
+- El archivo anterior contenía solo 27 líneas con 2 tokens básicos (--background, --foreground).
+  Ahora contiene ~118 líneas con ~30 tokens para ambos modos de color (light y dark),
+  incluyendo superficies, tinta, acento esmeralda, soporte oro, destructivo, sombras.
+
+**Compromisos**
+- Ninguno. La especificación fue clara y completa.
+
+**A revisar**
+- Confirmación visual: el sitio carga en `npm run dev` y los colores se aplican
+  conforme al sistema de diseño (background paper, text ink, etc.).
+- Prueba de dark mode en navegador (F12 → Settings → Color Scheme → Dark).
+
+Verificación: `npx tsc --noEmit` → 0 errores. `npm run build` → SUCCESS (14/14 rutas).
+Commit: `8e38950`.
+
+---
+
 ## 2026-05-24 — Hitos 5–9: resto de la plataforma
 
 **Pedido**
