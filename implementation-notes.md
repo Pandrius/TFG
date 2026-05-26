@@ -530,3 +530,27 @@ Commit: 43cad5d.
 
 Verificación: `npx tsc --noEmit` → 0 errores.
 
+---
+
+## 2026-05-26 — B-06: Input, PasswordInput y FormField
+
+**Pedido**
+- 3 componentes: Input (text/email/...) con estado de error,
+  PasswordInput (extiende con toggle ojo show/hide),
+  FormField (wrapper label/hint/error).
+
+**Decidido por Claude**
+- Ninguna decisión discrecional. Código exacto de la spec.
+
+**Cambios**
+- Ninguno.
+
+**Compromisos**
+- El toggle del PasswordInput usa texto ("mostrar"/"ocultar") en
+  vez de icono — más simple, sin dependencia de iconografía.
+
+**A revisar**
+- Verificación visual al usarse en login/registro (B-14, B-15).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
