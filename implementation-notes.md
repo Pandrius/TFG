@@ -350,3 +350,100 @@ habría que aplicar las migraciones y restaurar el patrón RLS.
 `supabase db push` con un Personal Access Token para que las policies queden
 activas también a nivel de base de datos. La SSE de subida y el pipeline visual
 se desplegaron y verificaron en sesión anterior.
+
+---
+
+## 2026-05-26 — Sub-proyecto A: sistema de diseño (sin implementar todavía)
+
+**Pedido**
+- Rediseño UI/UX integral nivel "agencia profesional", único, con
+  personalidad, que no parezca hecho por IA.
+- Iterar el sistema visual en HTML (paleta, tipografía, componentes) antes
+  de tocar código.
+- Funcionalidades nuevas anunciadas para la UX: API pública con rate
+  limits, gestión completa CRUD, reclasificar con aviso de confirmación,
+  multi-upload paralelo con pipeline visible, perfil + preferencias +
+  foto, sign-in/up sin confirmación de email pero con recuperación,
+  descargas masivas ("mini-nube").
+
+**Decidido por Claude**
+- **Descomposición en sub-proyectos.** La petición original es demasiado
+  grande para una sola spec. Propuesta A→B→C→D, aprobada por el usuario:
+  - A. Sistema de diseño (este).
+  - B. Auth retocada + perfil/preferencias.
+  - C. Rediseño + UX de documentos (multi-upload con pipeline,
+    reclasificar con aviso, descarga masiva, CRUD).
+  - D. API pública + rate limiting.
+- **Ubicación de los bocetos visuales.** Carpeta nueva `design/` en la
+  raíz con 6 HTMLs standalone numerados por iteración (`00-personalidad.html`
+  → `05-botones.html`). Standalone para que se abran con doble clic, sin
+  depender del dev server de Next.
+- **Spec del sub-proyecto A** en `docs/superpowers/specs/2026-05-26-sistema-diseno-design.md`
+  (carpeta nueva, convención del flujo de brainstorming).
+- **Decisiones de diseño (cadena completa de iteraciones)**:
+  - Personalidad: **D — document-first / cálido / biblioteca** sobre 4
+    direcciones consideradas (editorial suizo, brutalista, tech oscuro,
+    document-first).
+  - Mezcla con C (tech dashboard): de C tomamos la estructura informativa
+    (KPIs personales, pipeline en vivo, actividad reciente). Quedó la
+    base cálida + densidad de información tipo dashboard.
+  - Paleta inicial (terracota + crema + Fraunces) **descartada por
+    colisión con la marca Anthropic**. Es exactamente su lenguaje visual.
+  - Se compararon 5 paletas alternativas; el usuario eligió la familia
+    verde, y dentro de esa familia, **Esmeralda biblioteca** (verde joya
+    `#0F5A45` + oro `#A5701E` + papel marfil) entre 5 verdes.
+  - Modo oscuro: **tinta crema sobre verde muy oscuro** (no negro
+    técnico). Paper `#0E1816`, accent sube a `#46B891`, oro a `#E0A65A`.
+  - Tipografía: **Fraunces 500 + 400 italic** para títulos/eyebrows,
+    **Inter** para cuerpo, **JetBrains Mono** para datos técnicos.
+    Convención: el italic de Fraunces como "acento italiano" (eyebrow,
+    labels de form, nombres propios) — micro-detalle editorial.
+  - Botón primary: **soft tinted** (fondo `accent-soft` + texto `accent`)
+    sobre 6 alternativas, después de feedback del usuario rechazando el
+    primary negro relleno por pesado.
+  - Tags pasados a **outline** (transparente + borde fino + dot del color
+    principal) para no colisionar visualmente con el botón primary soft
+    tinted, que comparte el fondo `accent-soft`.
+  - Patrón "confirmación crítica" con checkbox obligatorio: el botón
+    accent del modal empieza disabled y solo se habilita al marcar el
+    checkbox. Pensado para "hacer público un documento" y se reutilizará
+    para cualquier acción irreversible que exponga datos.
+  - Pipeline visual de subida: 4 stages (`subido → texto → analizando →
+    guardado`) con estado por chip (pending/done/now/err) y barra de
+    progreso. Soporta paralelo (una fila por archivo).
+- **Spec de A no incluye implementación.** Documenta tokens, componentes
+  y convenciones; la traducción a CSS/Next se hará dentro del sub-proyecto
+  B según se necesite, no como un PR aparte (evita acumular cambios de UI
+  sin feature que los justifique).
+
+**Cambios**
+- Ninguno respecto al plan aprobado en alto nivel; la cadena de
+  iteraciones (00→05) sí desvió respecto a lo previsto: hubo que añadir
+  la iteración 02 (paletas alternativas) y 03 (variaciones de verde)
+  porque la primera paleta colisionaba con Anthropic, y la 05 (botones)
+  porque el primary negro no convenció al usuario. Cada desvío fue
+  reacción a feedback explícito, no exploración gratuita.
+
+**Compromisos**
+- Esta sesión NO toca código de Next.js. Todo lo producido son ficheros
+  HTML standalone bajo `design/` y la spec en `docs/superpowers/specs/`.
+  La validación visual está hecha; la traducción a `globals.css`,
+  `next/font/google` y `web/src/components/ui/` queda para el sub-proyecto
+  B.
+- Los HTML cargan las fuentes vía Google Fonts CDN; al pasar a Next se
+  cargarán con `next/font/google` (recomendación en la spec: solo cargar
+  Fraunces 500 + 400 italic, no toda la familia, que pesa mucho con su
+  axis variable opsz 9..144).
+
+**A revisar**
+- Verificar contraste WCAG real al implementar (especialmente tags
+  outline en modo oscuro y barra de progreso de pipeline).
+- Decidir el momento exacto de aplicación del sistema: la spec
+  recomienda incremental dentro de B, no PR único de migración masiva.
+- Confirmar que Fraunces + Inter + JetBrains Mono cargan bien en los
+  navegadores objetivo del TFG.
+- La combinación verde+oro+serif italic puede leerse como "demasiado
+  decorativa" para un tribunal académico conservador. Validar
+  percepción con 2-3 pantallas reales antes de cerrar visualmente el
+  proyecto.
+

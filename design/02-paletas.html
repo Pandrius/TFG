@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DRES · 5 paletas alternativas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #efeae0;
+    color: #1f1a14;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .meta-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(250,246,239,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #e9dfcd;
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .meta-header h1 {
+    font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500;
+    margin: 0; letter-spacing: -0.01em;
+  }
+  .meta-header h1 span { color: #75695a; font-weight: 400; margin-left: 6px; font-style: italic; font-size: 13px; }
+  .meta-nav { display: flex; gap: 6px; }
+  .meta-nav a {
+    font-size: 13px; color: #75695a; text-decoration: none;
+    padding: 6px 10px; border-radius: 999px;
+  }
+  .meta-nav a:hover { background: #e9dfcd; color: #1f1a14; }
+
+  .meta-intro {
+    max-width: 880px;
+    margin: 56px auto 24px;
+    padding: 0 32px;
+  }
+  .meta-intro h2 {
+    font-family: 'Fraunces', serif; font-size: 36px; font-weight: 500;
+    letter-spacing: -0.02em; margin: 0 0 10px;
+  }
+  .meta-intro p {
+    font-size: 15px; color: #75695a; line-height: 1.6; margin: 0 0 8px; max-width: 680px;
+  }
+  .meta-intro .warn {
+    background: white;
+    border-left: 3px solid #b04a2f;
+    padding: 14px 18px;
+    margin-top: 20px;
+    font-size: 13px; color: #3d342a;
+    border-radius: 0 8px 8px 0;
+  }
+  .meta-intro .warn strong { font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; color: #b04a2f; }
+
+  .palettes {
+    max-width: 1320px;
+    margin: 40px auto;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  /* ============ palette card ============ */
+  .pal {
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+  }
+  .pal-head {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--rule);
+  }
+  .pal-head .left {
+    padding: 26px 28px;
+    background: var(--paper);
+    border-right: 1px solid var(--rule);
+  }
+  .pal-head .label {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 14px; color: var(--accent); margin-bottom: 4px;
+  }
+  .pal-head h3 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 28px; letter-spacing: -0.02em; margin: 0;
+  }
+  .pal-head h3 em { font-style: italic; color: var(--accent); }
+  .pal-head .desc {
+    color: var(--mute); font-size: 13px; line-height: 1.55;
+    margin: 10px 0 0; max-width: 380px;
+  }
+  .pal-head .right {
+    padding: 22px 28px;
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--card);
+  }
+  .swatch-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sw {
+    display: flex; flex-direction: column;
+    border-radius: 8px; overflow: hidden;
+    min-width: 90px; flex: 1;
+    border: 1px solid var(--rule);
+  }
+  .sw .chip { height: 36px; }
+  .sw .lab {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 4px 7px; color: var(--mute); background: var(--paper);
+    display: flex; justify-content: space-between;
+  }
+  .sw .lab .k { color: var(--ink-soft); }
+
+  /* mini app inside palette */
+  .pal-body { padding: 24px 28px 28px; background: var(--card); }
+  .mini-bar {
+    display: flex; justify-content: space-between; align-items: end;
+    margin-bottom: 18px;
+  }
+  .mini-bar h4 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 22px; letter-spacing: -0.02em; margin: 0;
+  }
+  .mini-bar h4 em { font-style: italic; color: var(--accent); }
+  .mini-bar .sub { color: var(--mute); font-size: 12px; font-style: italic; font-family: 'Fraunces',serif; margin-top: 2px; }
+  .btn-mini {
+    background: var(--ink); color: var(--paper);
+    padding: 7px 14px; font-size: 12px; font-weight: 500;
+    border-radius: 999px; border: 0;
+  }
+  .btn-mini.accent { background: var(--accent); color: white; }
+  .btn-mini.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+
+  .mini-kpis {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 10px;
+    margin-bottom: 18px;
+  }
+  .mini-kpi {
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 12px 14px;
+    position: relative;
+  }
+  .mini-kpi .l { font-family: 'Fraunces',serif; font-style: italic; font-size: 11px; color: var(--mute); margin-bottom: 2px; }
+  .mini-kpi .v { font-family: 'Fraunces',serif; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
+  .mini-kpi .v em { font-style: italic; color: var(--accent); }
+  .mini-kpi .d { font-size: 10px; color: var(--mute); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+  .mini-kpi .d .up { color: var(--leaf); }
+
+  .mini-list {
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 12px;
+    overflow: hidden;
+  }
+  .mini-list .row {
+    display: grid; grid-template-columns: 28px 1fr auto auto;
+    align-items: center; gap: 12px;
+    padding: 10px 14px; border-bottom: 1px solid var(--rule); font-size: 13px;
+  }
+  .mini-list .row:last-child { border-bottom: 0; }
+  .mini-list .row .ic {
+    width: 28px; height: 32px; border-radius: 5px;
+    background: var(--card); border: 1px solid var(--rule);
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-style: italic; color: var(--accent);
+    font-size: 12px;
+  }
+  .mini-list .row .name { font-weight: 500; }
+  .mini-list .row .meta { color: var(--mute); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 2px 9px; border-radius: 999px;
+  }
+  .tag .d { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .tag.pub { background: var(--accent-soft); color: var(--accent); }
+  .tag.priv { background: var(--leaf-soft); color: var(--leaf-deep); }
+
+  /* ===================== PALETAS ===================== */
+  /* P1 — Marine clásico (prussian blue) */
+  .p1 {
+    --paper: #F4EFE2;
+    --card: #FDFAF1;
+    --soft: #EBE4D2;
+    --rule: #DDD3BA;
+    --ink: #14223A;
+    --ink-soft: #2A3955;
+    --mute: #6B7388;
+    --accent: #1E3A66;
+    --accent-soft: #D7DEEC;
+    --leaf: #1E3A66;
+    --leaf-soft: #ECE3CB;
+    --leaf-deep: #7A5A1F;
+  }
+  /* P2 — Botánico forest + mostaza */
+  .p2 {
+    --paper: #F2EEE0;
+    --card: #FBF9F1;
+    --soft: #E5E0CD;
+    --rule: #D6CFB5;
+    --ink: #1B231C;
+    --ink-soft: #2E3A30;
+    --mute: #6C7569;
+    --accent: #2D5A3F;
+    --accent-soft: #DCE6DD;
+    --leaf: #2D5A3F;
+    --leaf-soft: #F1E4BD;
+    --leaf-deep: #7A5A12;
+  }
+  /* P3 — Burdeos editorial */
+  .p3 {
+    --paper: #F5E9E4;
+    --card: #FDF6F2;
+    --soft: #ECD9D2;
+    --rule: #E0C8BF;
+    --ink: #2A1418;
+    --ink-soft: #4A2A30;
+    --mute: #7E6065;
+    --accent: #7A1F37;
+    --accent-soft: #EFCFD8;
+    --leaf: #7A1F37;
+    --leaf-soft: #EEDFB0;
+    --leaf-deep: #6A4E18;
+  }
+  /* P4 — Cobalto pop */
+  .p4 {
+    --paper: #F1ECE0;
+    --card: #FFFFFF;
+    --soft: #E5DFD0;
+    --rule: #D6CFB9;
+    --ink: #0B0F1F;
+    --ink-soft: #1F2540;
+    --mute: #6F7282;
+    --accent: #1238E5;
+    --accent-soft: #DCE2FA;
+    --leaf: #1238E5;
+    --leaf-soft: #F4E7A4;
+    --leaf-deep: #6A540F;
+  }
+  /* P5 — Lavanda intelectual (berenjena + mostaza) */
+  .p5 {
+    --paper: #F4ECEE;
+    --card: #FCF7F8;
+    --soft: #EADEE1;
+    --rule: #DFCED3;
+    --ink: #1F1828;
+    --ink-soft: #38293F;
+    --mute: #786A7E;
+    --accent: #4A2E5C;
+    --accent-soft: #E5DAE9;
+    --leaf: #4A2E5C;
+    --leaf-soft: #EFE2BE;
+    --leaf-deep: #6E561C;
+  }
+
+</style>
+</head>
+<body>
+
+<header class="meta-header">
+  <h1>Dr<em style="color:#b04a2f;font-style:italic">es</em>. <span>· 5 paletas alternativas · misma estructura, distinto color</span></h1>
+  <nav class="meta-nav">
+    <a href="#p1">1·Marina</a>
+    <a href="#p2">2·Bosque</a>
+    <a href="#p3">3·Burdeos</a>
+    <a href="#p4">4·Cobalto</a>
+    <a href="#p5">5·Berenjena</a>
+  </nav>
+</header>
+
+<section class="meta-intro">
+  <h2>Misma personalidad. Otra paleta.</h2>
+  <p>La estructura (Fraunces italic + KPIs + tarjetas redondeadas + papel cálido) se queda. Lo que cambia es <strong>el color de tinta y de acento</strong> — y eso basta para sacarnos del territorio Anthropic.</p>
+  <p>Cinco direcciones distintas, cada una con personalidad propia. Aplicadas a la misma micro-vista para que la comparación sea limpia. Mira cuál te tira y la convertimos en el sistema base.</p>
+  <div class="warn"><strong>Por qué descartamos la anterior:</strong> crema (#FAF6EF) + terracota (#B04A2F) + serif italic = paleta de Anthropic / Claude. Demasiado reconocible. Necesitamos una tinta de acento que no se parezca a un naranja-marrón.</div>
+</section>
+
+<div class="palettes">
+
+  <!-- ============================================== -->
+  <!-- P1 · MARINA CLÁSICA                            -->
+  <!-- ============================================== -->
+  <div id="p1" class="pal p1">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Paleta 01</div>
+        <h3>Marina <em>clásica</em></h3>
+        <p class="desc">Crema cálido + azul prusia profundo como tinta y acento. Recuerda a libros antiguos de marina, cuadernos de bitácora, instituciones. El "público" usa el mismo azul; el "privado" se reserva al ocre tostado. Muy distintivo, ningún SaaS la usa.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#F4EFE2"></div><div class="lab"><span>paper</span><span class="k">#F4EFE2</span></div></div>
+          <div class="sw"><div class="chip" style="background:#FDFAF1"></div><div class="lab"><span>card</span><span class="k">#FDFAF1</span></div></div>
+          <div class="sw"><div class="chip" style="background:#DDD3BA"></div><div class="lab"><span>rule</span><span class="k">#DDD3BA</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#14223A"></div><div class="lab"><span>ink</span><span class="k">#14223A</span></div></div>
+          <div class="sw"><div class="chip" style="background:#1E3A66"></div><div class="lab"><span>accent</span><span class="k">#1E3A66</span></div></div>
+          <div class="sw"><div class="chip" style="background:#D7DEEC"></div><div class="lab"><span>accent-soft</span><span class="k">#D7DEEC</span></div></div>
+          <div class="sw"><div class="chip" style="background:#7A5A1F"></div><div class="lab"><span>ocre</span><span class="k">#7A5A1F</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span><div></div></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- P2 · BOSQUE BOTÁNICO                            -->
+  <!-- ============================================== -->
+  <div id="p2" class="pal p2">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Paleta 02</div>
+        <h3>Bosque <em>botánico</em></h3>
+        <p class="desc">Papel ligeramente verdoso + verde bosque profundo como acento + amarillo mostaza para los privados. Mood "universidad antigua / cuaderno botánico / archivo". Calmado, orgánico, intelectual. Funciona muy bien para un TFG con presencia académica.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#F2EEE0"></div><div class="lab"><span>paper</span><span class="k">#F2EEE0</span></div></div>
+          <div class="sw"><div class="chip" style="background:#FBF9F1"></div><div class="lab"><span>card</span><span class="k">#FBF9F1</span></div></div>
+          <div class="sw"><div class="chip" style="background:#D6CFB5"></div><div class="lab"><span>rule</span><span class="k">#D6CFB5</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#1B231C"></div><div class="lab"><span>ink</span><span class="k">#1B231C</span></div></div>
+          <div class="sw"><div class="chip" style="background:#2D5A3F"></div><div class="lab"><span>accent</span><span class="k">#2D5A3F</span></div></div>
+          <div class="sw"><div class="chip" style="background:#DCE6DD"></div><div class="lab"><span>accent-soft</span><span class="k">#DCE6DD</span></div></div>
+          <div class="sw"><div class="chip" style="background:#7A5A12"></div><div class="lab"><span>mostaza</span><span class="k">#7A5A12</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span><div></div></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- P3 · BURDEOS                                    -->
+  <!-- ============================================== -->
+  <div id="p3" class="pal p3">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Paleta 03</div>
+        <h3>Burdeos <em>editorial</em></h3>
+        <p class="desc">Papel rosado polvoriento + granate profundo + ocre dorado de soporte. Sensación libro antiguo, archivo notarial, sello en cera lacre. La más "editorial-clásica" de todas — única, no hay SaaS que se vea así.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#F5E9E4"></div><div class="lab"><span>paper</span><span class="k">#F5E9E4</span></div></div>
+          <div class="sw"><div class="chip" style="background:#FDF6F2"></div><div class="lab"><span>card</span><span class="k">#FDF6F2</span></div></div>
+          <div class="sw"><div class="chip" style="background:#E0C8BF"></div><div class="lab"><span>rule</span><span class="k">#E0C8BF</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#2A1418"></div><div class="lab"><span>ink</span><span class="k">#2A1418</span></div></div>
+          <div class="sw"><div class="chip" style="background:#7A1F37"></div><div class="lab"><span>accent</span><span class="k">#7A1F37</span></div></div>
+          <div class="sw"><div class="chip" style="background:#EFCFD8"></div><div class="lab"><span>accent-soft</span><span class="k">#EFCFD8</span></div></div>
+          <div class="sw"><div class="chip" style="background:#6A4E18"></div><div class="lab"><span>oro</span><span class="k">#6A4E18</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span><div></div></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- P4 · COBALTO POP                                -->
+  <!-- ============================================== -->
+  <div id="p4" class="pal p4">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Paleta 04</div>
+        <h3>Cobalto <em>pop</em></h3>
+        <p class="desc">Papel crudo neutro + azul cobalto eléctrico (no prusia, más vivo) + amarillo limón de chispa. Editorial moderno tipo Penguin Press / It's Nice That. Personalidad fuerte y joven sin dejar de ser legible. Recordable a la primera.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#F1ECE0"></div><div class="lab"><span>paper</span><span class="k">#F1ECE0</span></div></div>
+          <div class="sw"><div class="chip" style="background:#FFFFFF"></div><div class="lab"><span>card</span><span class="k">#FFFFFF</span></div></div>
+          <div class="sw"><div class="chip" style="background:#D6CFB9"></div><div class="lab"><span>rule</span><span class="k">#D6CFB9</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#0B0F1F"></div><div class="lab"><span>ink</span><span class="k">#0B0F1F</span></div></div>
+          <div class="sw"><div class="chip" style="background:#1238E5"></div><div class="lab"><span>accent</span><span class="k">#1238E5</span></div></div>
+          <div class="sw"><div class="chip" style="background:#DCE2FA"></div><div class="lab"><span>accent-soft</span><span class="k">#DCE2FA</span></div></div>
+          <div class="sw"><div class="chip" style="background:#F2D03A"></div><div class="lab"><span>limón</span><span class="k">#F2D03A</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span><div></div></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- P5 · BERENJENA                                  -->
+  <!-- ============================================== -->
+  <div id="p5" class="pal p5">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Paleta 05</div>
+        <h3>Berenjena <em>intelectual</em></h3>
+        <p class="desc">Papel ligeramente rosado + morado berenjena profundo + mostaza cálido. La más distintiva y menos vista. Calmada pero con personalidad fuerte. Mood biblioteca, pensamiento, archivo crítico. Si quieres salir del territorio "tierra/naranja" del todo, esta es la ruta.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#F4ECEE"></div><div class="lab"><span>paper</span><span class="k">#F4ECEE</span></div></div>
+          <div class="sw"><div class="chip" style="background:#FCF7F8"></div><div class="lab"><span>card</span><span class="k">#FCF7F8</span></div></div>
+          <div class="sw"><div class="chip" style="background:#DFCED3"></div><div class="lab"><span>rule</span><span class="k">#DFCED3</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#1F1828"></div><div class="lab"><span>ink</span><span class="k">#1F1828</span></div></div>
+          <div class="sw"><div class="chip" style="background:#4A2E5C"></div><div class="lab"><span>accent</span><span class="k">#4A2E5C</span></div></div>
+          <div class="sw"><div class="chip" style="background:#E5DAE9"></div><div class="lab"><span>accent-soft</span><span class="k">#E5DAE9</span></div></div>
+          <div class="sw"><div class="chip" style="background:#6E561C"></div><div class="lab"><span>mostaza</span><span class="k">#6E561C</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span><div></div></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span><div></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer style="text-align:center;padding:60px 20px 80px;color:#75695a;font-size:12px;font-family:'Fraunces',serif;font-style:italic">
+  Dr<em style="color:#b04a2f">es</em>. — iteración 02 · paletas
+</footer>
+
+</body>
+</html>

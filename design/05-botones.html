@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DRES · alternativas botón primary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #ECEAD8;
+    --card: #F8F6E4;
+    --soft: #E2DEC5;
+    --rule: #CCC8AB;
+    --ink: #0F1C18;
+    --ink-soft: #1D2E27;
+    --mute: #6A7268;
+    --accent: #0F5A45;
+    --accent-hover: #0C4836;
+    --accent-soft: #C9DDD2;
+    --accent-tint: #E6EFE9;
+    --oro: #A5701E;
+    --oro-soft: #F1DEB0;
+    --oro-tint: #F8EAD2;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin:0; font-family:'Inter',sans-serif; background:#DBD7BD; color:var(--ink); -webkit-font-smoothing:antialiased; }
+
+  .meta-header {
+    position:sticky; top:0; z-index:50;
+    background:rgba(248,246,228,0.95); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--rule);
+    padding:14px 32px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .meta-header h1 { font-family:'Fraunces',serif; font-size:18px; font-weight:500; margin:0; letter-spacing:-0.01em; }
+  .meta-header h1 em { font-style:italic; color:var(--accent); }
+  .meta-header h1 span { color:var(--mute); font-weight:400; margin-left:6px; font-style:italic; font-size:13px; }
+
+  .page { max-width:1240px; margin:0 auto; padding:0 32px 80px; }
+  .intro { max-width:720px; margin:56px 0 28px; }
+  .intro h2 { font-family:'Fraunces',serif; font-size:36px; font-weight:500; letter-spacing:-0.02em; margin:0 0 10px; }
+  .intro h2 em { font-style:italic; color:var(--accent); }
+  .intro p { color:var(--mute); font-size:15px; line-height:1.65; margin:0 0 8px; }
+
+  .axis {
+    background:var(--card); border:1px solid var(--rule); border-radius:14px;
+    padding:18px 22px; margin-top:16px;
+  }
+  .axis .subhead { font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--mute); margin:0 0 10px; }
+  .axis p { margin:0; font-size:13px; line-height:1.55; color:var(--ink-soft); }
+
+  /* grid */
+  .opts { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:32px; }
+
+  .opt {
+    background:var(--card); border:1px solid var(--rule); border-radius:16px;
+    overflow:hidden;
+  }
+  .opt .head {
+    padding:18px 22px; background:var(--paper); border-bottom:1px solid var(--rule);
+  }
+  .opt .head .lab { font-family:'Fraunces',serif; font-style:italic; font-size:13px; color:var(--accent); margin-bottom:2px; }
+  .opt .head h3 { font-family:'Fraunces',serif; font-weight:500; font-size:22px; letter-spacing:-0.02em; margin:0; }
+  .opt .head h3 em { font-style:italic; color:var(--accent); }
+  .opt .head .desc { color:var(--mute); font-size:12px; margin-top:6px; line-height:1.55; }
+
+  .opt .body { padding:22px 22px 24px; }
+  .opt .group { margin-bottom:18px; }
+  .opt .group:last-child { margin-bottom:0; }
+  .opt .gl { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--mute); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
+  .opt .strip { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+  /* contexto: barra superior tipo "Mis documentos" */
+  .ctx {
+    background:var(--paper); border:1px solid var(--rule); border-radius:10px;
+    padding:14px 16px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  .ctx .title { font-family:'Fraunces',serif; font-weight:500; font-size:18px; letter-spacing:-0.01em; }
+  .ctx .title em { font-style:italic; color:var(--accent); }
+  .ctx .actions { display:flex; gap:8px; }
+
+  /* ============ botones base ============ */
+  .btn {
+    display:inline-flex; align-items:center; gap:8px;
+    border:0; cursor:pointer; font-family:'Inter',sans-serif;
+    font-weight:500; border-radius:999px;
+    transition: all .12s ease;
+    padding:9px 16px; font-size:13px;
+  }
+  .btn.sm { padding:6px 12px; font-size:12px; }
+  .btn.lg { padding:11px 20px; font-size:14px; }
+
+  /* ghost común */
+  .btn.ghost { background:transparent; color:var(--ink); border:1px solid var(--rule); }
+  .btn.ghost:hover { background:var(--soft); }
+
+  /* accent común (verde sólido) — se mantiene en todas */
+  .btn.accent { background:var(--accent); color:white; }
+  .btn.accent:hover { background:var(--accent-hover); }
+
+  /* ============ OPCIÓN A: outline tinta ============ */
+  .btn.A {
+    background:transparent; color:var(--ink);
+    border:1.5px solid var(--ink);
+  }
+  .btn.A:hover { background:var(--ink); color:var(--paper); }
+
+  /* ============ OPCIÓN B: outline esmeralda ============ */
+  .btn.B {
+    background:transparent; color:var(--accent);
+    border:1.5px solid var(--accent);
+  }
+  .btn.B:hover { background:var(--accent); color:white; }
+
+  /* ============ OPCIÓN C: soft tinted (fondo verde claro + texto verde) ============ */
+  .btn.C {
+    background:var(--accent-soft); color:var(--accent);
+    border:0;
+  }
+  .btn.C:hover { background:#B8CFC2; color:var(--accent-hover); }
+
+  /* ============ OPCIÓN D: oro relleno (cambia el color de "privado") ============ */
+  .btn.D {
+    background:var(--oro); color:white;
+    border:0;
+  }
+  .btn.D:hover { background:#8C5E15; }
+
+  /* ============ OPCIÓN E: crema con sombra dura (tipo encuadernación) ============ */
+  .btn.E {
+    background:var(--card); color:var(--ink);
+    border:1px solid var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    border-radius:8px;
+  }
+  .btn.E:hover { transform:translate(1px,1px); box-shadow: 2px 2px 0 var(--ink); }
+  .btn.E:active { transform:translate(3px,3px); box-shadow: 0 0 0 var(--ink); }
+
+  /* ============ OPCIÓN F: ghost esmeralda con doble borde (editorial) ============ */
+  .btn.F {
+    background:var(--card); color:var(--accent);
+    border:1px solid var(--accent);
+    box-shadow: inset 0 0 0 3px var(--card), 0 0 0 1.5px var(--accent);
+    padding:8px 16px;
+  }
+  .btn.F:hover { background:var(--accent-tint); }
+
+  /* tags */
+  .tag { display:inline-flex; align-items:center; gap:6px; font-size:11px; padding:2px 9px; border-radius:999px; font-weight:500; }
+  .tag .d { width:5px; height:5px; border-radius:50%; background:currentColor; }
+  .tag.pub { background:var(--accent-soft); color:var(--accent); }
+  .tag.priv { background:var(--oro-soft); color:var(--oro); }
+
+  /* mini doc row */
+  .doc {
+    display:grid; grid-template-columns:32px 1fr auto auto;
+    align-items:center; gap:12px;
+    padding:10px 14px; background:var(--paper);
+    border:1px solid var(--rule); border-radius:10px;
+    margin-top:10px;
+  }
+  .doc .ic { width:32px; height:38px; border-radius:5px; background:var(--card); border:1px solid var(--rule); display:grid; place-items:center; font-family:'Fraunces',serif; font-style:italic; color:var(--accent); font-size:12px; }
+  .doc .name { font-weight:500; font-size:13px; }
+  .doc .meta { color:var(--mute); font-size:11px; font-family:'JetBrains Mono',monospace; margin-top:2px; }
+
+  .note {
+    margin-top:14px; padding:10px 12px; background:var(--oro-tint); border-radius:8px;
+    border-left:2px solid var(--oro);
+    font-size:12px; color:var(--oro);
+    line-height:1.5;
+  }
+  .note b { font-family:'Fraunces',serif; font-style:italic; font-weight:500; }
+
+  .verdict {
+    margin-top:64px; background:var(--card); border:1px solid var(--rule); border-radius:16px; padding:24px 28px;
+  }
+  .verdict h3 { font-family:'Fraunces',serif; font-weight:500; font-size:22px; letter-spacing:-0.02em; margin:0 0 12px; }
+  .verdict h3 em { font-style:italic; color:var(--accent); }
+  .verdict ul { margin:0; padding-left:20px; }
+  .verdict li { margin-bottom:8px; font-size:14px; line-height:1.55; }
+  .verdict li b { font-family:'Fraunces',serif; font-style:italic; color:var(--accent); font-weight:500; }
+</style>
+</head>
+<body>
+
+<header class="meta-header">
+  <h1>Dr<em>es</em>. <span>· 6 estilos para el botón principal</span></h1>
+</header>
+
+<main class="page">
+
+  <section class="intro">
+    <h2>El botón <em>"+ Subir archivo"</em>.</h2>
+    <p>Negro relleno se siente pesado en una paleta tan cálida. Estas son las seis alternativas reales. Cada una afecta a la jerarquía: el <strong>accent verde</strong> (sólido, para "Confirmar y publicar") se mantiene igual en las seis — solo cambia el <strong>primary neutro</strong>.</p>
+
+    <div class="axis">
+      <div class="subhead">Decisión clave</div>
+      <p>El primary aparece en el sitio más visible de cada pantalla (toolbar, hero CTAs). Es el que marca el carácter del producto. Si vamos por outline o tinted nos veremos más <em>editoriales</em>; con oro o con sombra dura ganamos personalidad pero perdemos sobriedad.</p>
+    </div>
+  </section>
+
+  <div class="opts">
+
+    <!-- A -->
+    <div class="opt">
+      <div class="head">
+        <div class="lab">Opción A</div>
+        <h3>Outline <em>tinta</em></h3>
+        <div class="desc">Borde fino de tinta sobre papel. Editorial, ligero, no compite con el verde. Al hacer hover se rellena de tinta — el peso aparece solo en interacción.</div>
+      </div>
+      <div class="body">
+        <div class="group">
+          <div class="gl">Aislado · tres jerarquías</div>
+          <div class="strip">
+            <button class="btn A">+ Subir archivo</button>
+            <button class="btn ghost">Cancelar</button>
+            <button class="btn accent">Confirmar</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="gl">En contexto · toolbar de "Mis documentos"</div>
+          <div class="ctx">
+            <div class="title">Mis <em>documentos</em></div>
+            <div class="actions">
+              <button class="btn ghost sm">Importar carpeta</button>
+              <button class="btn A sm">+ Subir archivo</button>
+            </div>
+          </div>
+          <div class="doc">
+            <div class="ic">M</div>
+            <div>
+              <div class="name">Memoria del TFG v3</div>
+              <div class="meta">docx · 812 KB · ayer</div>
+            </div>
+            <span class="tag pub"><span class="d"></span>público</span>
+            <button class="btn A sm">Ver</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="opt">
+      <div class="head">
+        <div class="lab">Opción B</div>
+        <h3>Outline <em>esmeralda</em></h3>
+        <div class="desc">Mismo gesto que A pero el borde es verde. Más "de marca", todo el sistema respira esmeralda. Hover rellena con verde — pero entonces se confunde más con el accent.</div>
+      </div>
+      <div class="body">
+        <div class="group">
+          <div class="gl">Aislado · tres jerarquías</div>
+          <div class="strip">
+            <button class="btn B">+ Subir archivo</button>
+            <button class="btn ghost">Cancelar</button>
+            <button class="btn accent">Confirmar</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="gl">En contexto · toolbar de "Mis documentos"</div>
+          <div class="ctx">
+            <div class="title">Mis <em>documentos</em></div>
+            <div class="actions">
+              <button class="btn ghost sm">Importar carpeta</button>
+              <button class="btn B sm">+ Subir archivo</button>
+            </div>
+          </div>
+          <div class="doc">
+            <div class="ic">M</div>
+            <div>
+              <div class="name">Memoria del TFG v3</div>
+              <div class="meta">docx · 812 KB · ayer</div>
+            </div>
+            <span class="tag pub"><span class="d"></span>público</span>
+            <button class="btn B sm">Ver</button>
+          </div>
+        </div>
+        <div class="note"><b>Atención:</b> primary y accent quedan muy parecidos en estado normal. Si lo eliges, conviene fundirlos en uno solo y eliminar la doble jerarquía.</div>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="opt">
+      <div class="head">
+        <div class="lab">Opción C · <em>mi favorita</em></div>
+        <h3>Soft <em>tinted</em></h3>
+        <div class="desc">Fondo verde muy suave + texto verde oscuro. Limpio, editorial, sin pesar. Es la opción más coherente con la estética "papel/biblioteca". Hover sube ligeramente la saturación.</div>
+      </div>
+      <div class="body">
+        <div class="group">
+          <div class="gl">Aislado · tres jerarquías</div>
+          <div class="strip">
+            <button class="btn C">+ Subir archivo</button>
+            <button class="btn ghost">Cancelar</button>
+            <button class="btn accent">Confirmar</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="gl">En contexto · toolbar de "Mis documentos"</div>
+          <div class="ctx">
+            <div class="title">Mis <em>documentos</em></div>
+            <div class="actions">
+              <button class="btn ghost sm">Importar carpeta</button>
+              <button class="btn C sm">+ Subir archivo</button>
+            </div>
+          </div>
+          <div class="doc">
+            <div class="ic">M</div>
+            <div>
+              <div class="name">Memoria del TFG v3</div>
+              <div class="meta">docx · 812 KB · ayer</div>
+            </div>
+            <span class="tag pub"><span class="d"></span>público</span>
+            <button class="btn C sm">Ver</button>
+          </div>
+        </div>
+        <div class="note" style="background:var(--accent-tint);border-left-color:var(--accent);color:var(--accent)"><b>Atención:</b> el "público" usa el mismo background-soft. Hay que diferenciar el tag (por ejemplo, sin background, solo texto + punto) o cambiar el tint del botón a oro-soft.</div>
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="opt">
+      <div class="head">
+        <div class="lab">Opción D</div>
+        <h3>Oro <em>sólido</em></h3>
+        <div class="desc">Usa el dorado como acción dominante. Único, cálido, da peso editorial. La acción tiene <em>presencia</em> sin entrar en negro.</div>
+      </div>
+      <div class="body">
+        <div class="group">
+          <div class="gl">Aislado · tres jerarquías</div>
+          <div class="strip">
+            <button class="btn D">+ Subir archivo</button>
+            <button class="btn ghost">Cancelar</button>
+            <button class="btn accent">Confirmar</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="gl">En contexto · toolbar de "Mis documentos"</div>
+          <div class="ctx">
+            <div class="title">Mis <em>documentos</em></div>
+            <div class="actions">
+              <button class="btn ghost sm">Importar carpeta</button>
+              <button class="btn D sm">+ Subir archivo</button>
+            </div>
+          </div>
+          <div class="doc">
+            <div class="ic">M</div>
+            <div>
+              <div class="name">Memoria del TFG v3</div>
+              <div class="meta">docx · 812 KB · ayer</div>
+            </div>
+            <span class="tag pub"><span class="d"></span>público</span>
+            <button class="btn D sm">Ver</button>
+          </div>
+        </div>
+        <div class="note"><b>Implicación:</b> el oro deja de estar libre para los <em>privados</em>. Habría que cambiar el color de los tags privados (a un gris cálido o a un terracota desaturado).</div>
+      </div>
+    </div>
+
+    <!-- E -->
+    <div class="opt">
+      <div class="head">
+        <div class="lab">Opción E</div>
+        <h3>Crema con <em>sombra dura</em></h3>
+        <div class="desc">Botón de papel con borde fino y sombra sólida desplazada. Recuerda a una solapa de libro o una tarjeta de archivo. Muy editorial, con personalidad neo-brutal pero cálida. Al pulsar, se "hunde".</div>
+      </div>
+      <div class="body">
+        <div class="group">
+          <div class="gl">Aislado · tres jerarquías</div>
+          <div class="strip">
+            <button class="btn E">+ Subir archivo</button>
+            <button class="btn ghost">Cancelar</button>
+            <button class="btn accent">Confirmar</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="gl">En contexto · toolbar de "Mis documentos"</div>
+          <div class="ctx">
+            <div class="title">Mis <em>documentos</em></div>
+            <div class="actions">
+              <button class="btn ghost sm">Importar carpeta</button>
+              <button class="btn E sm">+ Subir archivo</button>
+            </div>
+          </div>
+          <div class="doc">
+            <div class="ic">M</div>
+            <div>
+              <div class="name">Memoria del TFG v3</div>
+              <div class="meta">docx · 812 KB · ayer</div>
+            </div>
+            <span class="tag pub"><span class="d"></span>público</span>
+            <button class="btn E sm">Ver</button>
+          </div>
+        </div>
+        <div class="note"><b>Atención:</b> con muchos botones repetidos (filas de documentos) puede saturar. Funciona muy bien para CTAs únicos (toolbar, hero) y menos para acciones repetidas.</div>
+      </div>
+    </div>
+
+    <!-- F -->
+    <div class="opt">
+      <div class="head">
+        <div class="lab">Opción F</div>
+        <h3>Doble <em>borde editorial</em></h3>
+        <div class="desc">Borde + un espacio en blanco + borde — efecto "marco doble" tipo papel timbrado. Muy distintivo, sin gritar. Hover rellena con verde muy claro.</div>
+      </div>
+      <div class="body">
+        <div class="group">
+          <div class="gl">Aislado · tres jerarquías</div>
+          <div class="strip">
+            <button class="btn F">+ Subir archivo</button>
+            <button class="btn ghost">Cancelar</button>
+            <button class="btn accent">Confirmar</button>
+          </div>
+        </div>
+        <div class="group">
+          <div class="gl">En contexto · toolbar de "Mis documentos"</div>
+          <div class="ctx">
+            <div class="title">Mis <em>documentos</em></div>
+            <div class="actions">
+              <button class="btn ghost sm">Importar carpeta</button>
+              <button class="btn F sm">+ Subir archivo</button>
+            </div>
+          </div>
+          <div class="doc">
+            <div class="ic">M</div>
+            <div>
+              <div class="name">Memoria del TFG v3</div>
+              <div class="meta">docx · 812 KB · ayer</div>
+            </div>
+            <span class="tag pub"><span class="d"></span>público</span>
+            <button class="btn F sm">Ver</button>
+          </div>
+        </div>
+        <div class="note"><b>Atención:</b> el doble borde es delicado a tamaños pequeños — los <em>sm</em> pierden el efecto. Funciona mejor para acciones principales, no para todo.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="verdict">
+    <h3>Mi <em>recomendación</em></h3>
+    <ul>
+      <li><b>Opción C (soft tinted)</b> — la más coherente con la estética. Calmada, sin pesar, claramente "biblioteca". Resuelves el conflicto con el tag "público" cambiando los tags a estilo "outline" (solo texto + punto + borde fino), no fondo coloreado. Es lo que yo elegiría.</li>
+      <li><b>Opción A (outline tinta)</b> — la más segura. Editorial, neutra, funciona en cualquier sitio. Si C te parece muy poco contundente, A es la jugada.</li>
+      <li><b>Opción E (sombra dura)</b> — si quieres meterle más personalidad y aceptas el coste (no escala a botones repetidos). Yo la usaría solo para CTAs únicos (toolbar de página, hero de la landing) y dejaría las demás acciones en estilo C o A.</li>
+    </ul>
+  </div>
+
+</main>
+
+<footer style="text-align:center;padding:60px 20px 80px;color:var(--mute);font-size:12px;font-family:'Fraunces',serif;font-style:italic">
+  Dr<em style="color:var(--accent)">es</em>. — iteración 05 · botones
+</footer>
+
+</body>
+</html>

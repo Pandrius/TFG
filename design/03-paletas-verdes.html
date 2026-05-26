@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DRES · variaciones del bosque</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #ece8d8;
+    color: #1b231c;
+    -webkit-font-smoothing: antialiased;
+  }
+  .meta-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(251,249,241,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #d6cfb5;
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .meta-header h1 {
+    font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500;
+    margin: 0; letter-spacing: -0.01em;
+  }
+  .meta-header h1 em { font-style: italic; color: #2D5A3F; }
+  .meta-header h1 span { color: #6c7569; font-weight: 400; margin-left: 6px; font-style: italic; font-size: 13px; }
+  .meta-nav { display: flex; gap: 6px; }
+  .meta-nav a {
+    font-size: 13px; color: #6c7569; text-decoration: none;
+    padding: 6px 10px; border-radius: 999px;
+  }
+  .meta-nav a:hover { background: #DCE6DD; color: #2D5A3F; }
+
+  .meta-intro {
+    max-width: 880px;
+    margin: 56px auto 24px;
+    padding: 0 32px;
+  }
+  .meta-intro h2 {
+    font-family: 'Fraunces', serif; font-size: 36px; font-weight: 500;
+    letter-spacing: -0.02em; margin: 0 0 10px;
+  }
+  .meta-intro h2 em { font-style: italic; color: #2D5A3F; }
+  .meta-intro p {
+    font-size: 15px; color: #6c7569; line-height: 1.6; margin: 0 0 8px; max-width: 680px;
+  }
+  .meta-intro .axes {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    margin-top: 24px;
+    font-size: 12px; color: #6c7569;
+  }
+  .meta-intro .axes div {
+    background: white; border: 1px solid #d6cfb5;
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .meta-intro .axes div strong {
+    display: block; color: #1b231c; margin-bottom: 4px;
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 500;
+    font-size: 14px;
+  }
+
+  .palettes {
+    max-width: 1320px;
+    margin: 40px auto;
+    padding: 0 32px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  /* ============ palette card ============ */
+  .pal {
+    background: var(--card);
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 18px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+  }
+  .pal.ref { box-shadow: inset 0 0 0 2px var(--accent-soft); }
+  .pal-head {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--rule);
+  }
+  .pal-head .left {
+    padding: 26px 28px;
+    background: var(--paper);
+    border-right: 1px solid var(--rule);
+    position: relative;
+  }
+  .pal-head .left .badge-ref {
+    position: absolute; top: 18px; right: 18px;
+    background: var(--accent); color: var(--card);
+    padding: 3px 10px; border-radius: 999px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .pal-head .label {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 14px; color: var(--accent); margin-bottom: 4px;
+  }
+  .pal-head h3 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 28px; letter-spacing: -0.02em; margin: 0;
+  }
+  .pal-head h3 em { font-style: italic; color: var(--accent); }
+  .pal-head .desc {
+    color: var(--mute); font-size: 13px; line-height: 1.55;
+    margin: 10px 0 0; max-width: 400px;
+  }
+  .pal-head .desc strong { color: var(--ink-soft); font-weight: 500; }
+  .pal-head .right {
+    padding: 22px 28px;
+    display: flex; flex-direction: column; gap: 10px;
+    background: var(--card);
+  }
+  .swatch-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sw {
+    display: flex; flex-direction: column;
+    border-radius: 8px; overflow: hidden;
+    min-width: 92px; flex: 1;
+    border: 1px solid var(--rule);
+  }
+  .sw .chip { height: 36px; }
+  .sw .lab {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 4px 7px; color: var(--mute); background: var(--paper);
+    display: flex; justify-content: space-between;
+  }
+  .sw .lab .k { color: var(--ink-soft); }
+
+  /* mini app */
+  .pal-body { padding: 24px 28px 28px; background: var(--card); }
+  .mini-bar {
+    display: flex; justify-content: space-between; align-items: end;
+    margin-bottom: 18px;
+  }
+  .mini-bar h4 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 22px; letter-spacing: -0.02em; margin: 0;
+  }
+  .mini-bar h4 em { font-style: italic; color: var(--accent); }
+  .mini-bar .sub { color: var(--mute); font-size: 12px; font-style: italic; font-family: 'Fraunces',serif; margin-top: 2px; }
+  .btn-mini {
+    background: var(--ink); color: var(--paper);
+    padding: 7px 14px; font-size: 12px; font-weight: 500;
+    border-radius: 999px; border: 0;
+  }
+
+  .mini-kpis {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 10px;
+    margin-bottom: 18px;
+  }
+  .mini-kpi {
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .mini-kpi .l { font-family: 'Fraunces',serif; font-style: italic; font-size: 11px; color: var(--mute); margin-bottom: 2px; }
+  .mini-kpi .v { font-family: 'Fraunces',serif; font-size: 22px; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
+  .mini-kpi .v em { font-style: italic; color: var(--accent); }
+  .mini-kpi .d { font-size: 10px; color: var(--mute); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+  .mini-kpi .d .up { color: var(--accent); }
+
+  .mini-list {
+    background: var(--paper); border: 1px solid var(--rule); border-radius: 12px;
+    overflow: hidden;
+  }
+  .mini-list .row {
+    display: grid; grid-template-columns: 28px 1fr auto;
+    align-items: center; gap: 12px;
+    padding: 10px 14px; border-bottom: 1px solid var(--rule); font-size: 13px;
+  }
+  .mini-list .row:last-child { border-bottom: 0; }
+  .mini-list .row .ic {
+    width: 28px; height: 32px; border-radius: 5px;
+    background: var(--card); border: 1px solid var(--rule);
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-style: italic; color: var(--accent);
+    font-size: 12px;
+  }
+  .mini-list .row .name { font-weight: 500; }
+  .mini-list .row .meta { color: var(--mute); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 2px 9px; border-radius: 999px;
+  }
+  .tag .d { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .tag.pub { background: var(--accent-soft); color: var(--accent); }
+  .tag.priv { background: var(--support-soft); color: var(--support); }
+
+  /* hero strip — typography breath */
+  .pal-hero {
+    background: var(--paper);
+    border-top: 1px solid var(--rule);
+    padding: 22px 28px;
+    display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: center;
+  }
+  .pal-hero .h-line {
+    font-family: 'Fraunces', serif; font-size: 32px; font-weight: 500;
+    letter-spacing: -0.02em; line-height: 1.05; margin: 0;
+  }
+  .pal-hero .h-line em { font-style: italic; color: var(--accent); font-weight: 500; }
+  .pal-hero .h-side {
+    font-size: 12px; color: var(--mute); font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase; letter-spacing: 0.08em; line-height: 1.6;
+  }
+  .pal-hero .h-side b { color: var(--ink-soft); font-weight: 500; }
+
+  /* ===================== PALETAS ===================== */
+  /* 01 BOSQUE (referencia) */
+  .v1 {
+    --paper: #F2EEE0;
+    --card: #FBF9F1;
+    --rule: #D6CFB5;
+    --ink: #1B231C;
+    --ink-soft: #2E3A30;
+    --mute: #6C7569;
+    --accent: #2D5A3F;
+    --accent-soft: #DCE6DD;
+    --support: #7A5A12;
+    --support-soft: #F1E4BD;
+  }
+  /* 02 PINO profundo / racing — verde casi negro, mostaza cálido */
+  .v2 {
+    --paper: #EBE7D6;
+    --card: #F7F4E7;
+    --rule: #CFC8AA;
+    --ink: #0E1814;
+    --ink-soft: #1F2A23;
+    --mute: #677066;
+    --accent: #133A2D;
+    --accent-soft: #C9D8CD;
+    --support: #8C6A1F;
+    --support-soft: #EEE0B3;
+  }
+  /* 03 SALVIA clínica — sage desaturada, paper más gris */
+  .v3 {
+    --paper: #EAEBDF;
+    --card: #F6F6EC;
+    --rule: #CECEB8;
+    --ink: #1F2722;
+    --ink-soft: #344038;
+    --mute: #707968;
+    --accent: #6C8770;
+    --accent-soft: #DCE3D7;
+    --support: #8A7029;
+    --support-soft: #ECE1B6;
+  }
+  /* 04 OLIVO mediterráneo — más amarillento, con terracota de soporte */
+  .v4 {
+    --paper: #F0EAD2;
+    --card: #FAF6E5;
+    --rule: #D5CCA0;
+    --ink: #1F2014;
+    --ink-soft: #34361F;
+    --mute: #6F6E4F;
+    --accent: #5A6B1F;
+    --accent-soft: #E2E2B6;
+    --support: #993D14;
+    --support-soft: #F2CFB8;
+  }
+  /* 05 ESMERALDA biblioteca — verde joya saturado, oro */
+  .v5 {
+    --paper: #ECEAD8;
+    --card: #F8F6E4;
+    --rule: #CCC8AB;
+    --ink: #0F1C18;
+    --ink-soft: #1D2E27;
+    --mute: #6A7268;
+    --accent: #0F5A45;
+    --accent-soft: #C9DDD2;
+    --support: #A5701E;
+    --support-soft: #F1DEB0;
+  }
+
+</style>
+</head>
+<body>
+
+<header class="meta-header">
+  <h1>Dr<em>es</em>. <span>· 5 variaciones del bosque — cinco verdes con personalidad</span></h1>
+  <nav class="meta-nav">
+    <a href="#v1">1·Bosque</a>
+    <a href="#v2">2·Pino</a>
+    <a href="#v3">3·Salvia</a>
+    <a href="#v4">4·Olivo</a>
+    <a href="#v5">5·Esmeralda</a>
+  </nav>
+</header>
+
+<section class="meta-intro">
+  <h2>Misma familia, <em>cinco temperaturas</em>.</h2>
+  <p>Te dejo el bosque original arriba como referencia, y cuatro variaciones a su alrededor. Cada una mueve dos ejes: <strong>cuánto verde</strong> y <strong>qué temperatura</strong>. La estructura, tipografía y formato no cambian — así puedes leer el cambio de color limpio.</p>
+  <div class="axes">
+    <div><strong>Verde profundo ↔ desaturado</strong>Pino y esmeralda son los más saturados. Salvia es la más calmada y "europea".</div>
+    <div><strong>Frío ↔ cálido</strong>Salvia y pino tiran a frío. Olivo y bosque tiran a cálido. Esmeralda equilibrada.</div>
+    <div><strong>Soporte mostaza ↔ terracota</strong>Casi todas usan mostaza para los privados. Olivo es la única que mete terracota — más contraste, más mediterráneo.</div>
+  </div>
+</section>
+
+<div class="palettes">
+
+  <!-- ============================================== -->
+  <!-- 01 BOSQUE (REFERENCIA)                          -->
+  <!-- ============================================== -->
+  <div id="v1" class="pal v1 ref">
+    <div class="pal-head">
+      <div class="left">
+        <div class="badge-ref">referencia</div>
+        <div class="label">Variación 01</div>
+        <h3>Bosque <em>botánico</em></h3>
+        <p class="desc">El que ya conoces. Verde bosque <strong>#2D5A3F</strong>, papel ligeramente verdoso, mostaza ocre para los privados. Equilibrado — ni muy frío ni muy oscuro. Universidad antigua, cuaderno botánico, archivo institucional.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#F2EEE0"></div><div class="lab"><span>paper</span><span class="k">#F2EEE0</span></div></div>
+          <div class="sw"><div class="chip" style="background:#FBF9F1"></div><div class="lab"><span>card</span><span class="k">#FBF9F1</span></div></div>
+          <div class="sw"><div class="chip" style="background:#D6CFB5"></div><div class="lab"><span>rule</span><span class="k">#D6CFB5</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#1B231C"></div><div class="lab"><span>ink</span><span class="k">#1B231C</span></div></div>
+          <div class="sw"><div class="chip" style="background:#2D5A3F"></div><div class="lab"><span>accent</span><span class="k">#2D5A3F</span></div></div>
+          <div class="sw"><div class="chip" style="background:#DCE6DD"></div><div class="lab"><span>accent-soft</span><span class="k">#DCE6DD</span></div></div>
+          <div class="sw"><div class="chip" style="background:#7A5A12"></div><div class="lab"><span>mostaza</span><span class="k">#7A5A12</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+      </div>
+    </div>
+    <div class="pal-hero">
+      <h2 class="h-line">Documentos protegidos <em>por defecto</em>.</h2>
+      <div class="h-side"><b>Acento</b> #2D5A3F<br><b>Soporte</b> mostaza<br><b>Mood</b> botánico, calmado</div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 02 PINO PROFUNDO                                -->
+  <!-- ============================================== -->
+  <div id="v2" class="pal v2">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Variación 02</div>
+        <h3>Pino <em>profundo</em> · racing</h3>
+        <p class="desc">Verde mucho más oscuro y dramático <strong>#133A2D</strong> — casi British racing green. La tinta también baja a un verde-negro <strong>#0E1814</strong>. Sensación de cuero de despacho antiguo, encuadernación, archivo del rector. Más serio, más institucional.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#EBE7D6"></div><div class="lab"><span>paper</span><span class="k">#EBE7D6</span></div></div>
+          <div class="sw"><div class="chip" style="background:#F7F4E7"></div><div class="lab"><span>card</span><span class="k">#F7F4E7</span></div></div>
+          <div class="sw"><div class="chip" style="background:#CFC8AA"></div><div class="lab"><span>rule</span><span class="k">#CFC8AA</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#0E1814"></div><div class="lab"><span>ink</span><span class="k">#0E1814</span></div></div>
+          <div class="sw"><div class="chip" style="background:#133A2D"></div><div class="lab"><span>accent</span><span class="k">#133A2D</span></div></div>
+          <div class="sw"><div class="chip" style="background:#C9D8CD"></div><div class="lab"><span>accent-soft</span><span class="k">#C9D8CD</span></div></div>
+          <div class="sw"><div class="chip" style="background:#8C6A1F"></div><div class="lab"><span>mostaza</span><span class="k">#8C6A1F</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+      </div>
+    </div>
+    <div class="pal-hero">
+      <h2 class="h-line">Documentos protegidos <em>por defecto</em>.</h2>
+      <div class="h-side"><b>Acento</b> #133A2D<br><b>Soporte</b> mostaza cálido<br><b>Mood</b> despacho, encuadernación</div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 03 SALVIA CLÍNICA                               -->
+  <!-- ============================================== -->
+  <div id="v3" class="pal v3">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Variación 03</div>
+        <h3>Salvia <em>clínica</em></h3>
+        <p class="desc">Verde sage muy desaturado <strong>#6C8770</strong>, casi gris. Paper más frío, casi pistacho pálido. La más serena de todas, con cierto aire <em>europeo / nórdico</em>. Sensación lab/clinical sin dejar de ser cálida. Riesgo: el acento poco saturado puede pelear con la jerarquía.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#EAEBDF"></div><div class="lab"><span>paper</span><span class="k">#EAEBDF</span></div></div>
+          <div class="sw"><div class="chip" style="background:#F6F6EC"></div><div class="lab"><span>card</span><span class="k">#F6F6EC</span></div></div>
+          <div class="sw"><div class="chip" style="background:#CECEB8"></div><div class="lab"><span>rule</span><span class="k">#CECEB8</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#1F2722"></div><div class="lab"><span>ink</span><span class="k">#1F2722</span></div></div>
+          <div class="sw"><div class="chip" style="background:#6C8770"></div><div class="lab"><span>accent</span><span class="k">#6C8770</span></div></div>
+          <div class="sw"><div class="chip" style="background:#DCE3D7"></div><div class="lab"><span>accent-soft</span><span class="k">#DCE3D7</span></div></div>
+          <div class="sw"><div class="chip" style="background:#8A7029"></div><div class="lab"><span>mostaza</span><span class="k">#8A7029</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+      </div>
+    </div>
+    <div class="pal-hero">
+      <h2 class="h-line">Documentos protegidos <em>por defecto</em>.</h2>
+      <div class="h-side"><b>Acento</b> #6C8770<br><b>Soporte</b> mostaza apagado<br><b>Mood</b> clínico, nórdico</div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 04 OLIVO MEDITERRÁNEO                           -->
+  <!-- ============================================== -->
+  <div id="v4" class="pal v4">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Variación 04</div>
+        <h3>Olivo <em>mediterráneo</em></h3>
+        <p class="desc">Verde olivo amarillento <strong>#5A6B1F</strong> sobre papel más cálido y dorado. La única que sustituye la mostaza por <strong>terracota</strong> para los privados — contraste mediterráneo, sol + sombra. Más narrativo. Mood aceite/romero/sur.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#F0EAD2"></div><div class="lab"><span>paper</span><span class="k">#F0EAD2</span></div></div>
+          <div class="sw"><div class="chip" style="background:#FAF6E5"></div><div class="lab"><span>card</span><span class="k">#FAF6E5</span></div></div>
+          <div class="sw"><div class="chip" style="background:#D5CCA0"></div><div class="lab"><span>rule</span><span class="k">#D5CCA0</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#1F2014"></div><div class="lab"><span>ink</span><span class="k">#1F2014</span></div></div>
+          <div class="sw"><div class="chip" style="background:#5A6B1F"></div><div class="lab"><span>accent</span><span class="k">#5A6B1F</span></div></div>
+          <div class="sw"><div class="chip" style="background:#E2E2B6"></div><div class="lab"><span>accent-soft</span><span class="k">#E2E2B6</span></div></div>
+          <div class="sw"><div class="chip" style="background:#993D14"></div><div class="lab"><span>terracota</span><span class="k">#993D14</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+      </div>
+    </div>
+    <div class="pal-hero">
+      <h2 class="h-line">Documentos protegidos <em>por defecto</em>.</h2>
+      <div class="h-side"><b>Acento</b> #5A6B1F<br><b>Soporte</b> terracota<br><b>Mood</b> mediterráneo, narrativo</div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 05 ESMERALDA BIBLIOTECA                         -->
+  <!-- ============================================== -->
+  <div id="v5" class="pal v5">
+    <div class="pal-head">
+      <div class="left">
+        <div class="label">Variación 05</div>
+        <h3>Esmeralda <em>biblioteca</em></h3>
+        <p class="desc">Verde joya saturado <strong>#0F5A45</strong> con un toque azulado, sobre papel marfil dorado. El oro <strong>#A5701E</strong> sube para hacerle compañía. Sensación tapiz/encuadernación con hilo, biblioteca privada, club de lectura. La más rica visualmente.</p>
+      </div>
+      <div class="right">
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#ECEAD8"></div><div class="lab"><span>paper</span><span class="k">#ECEAD8</span></div></div>
+          <div class="sw"><div class="chip" style="background:#F8F6E4"></div><div class="lab"><span>card</span><span class="k">#F8F6E4</span></div></div>
+          <div class="sw"><div class="chip" style="background:#CCC8AB"></div><div class="lab"><span>rule</span><span class="k">#CCC8AB</span></div></div>
+        </div>
+        <div class="swatch-row">
+          <div class="sw"><div class="chip" style="background:#0F1C18"></div><div class="lab"><span>ink</span><span class="k">#0F1C18</span></div></div>
+          <div class="sw"><div class="chip" style="background:#0F5A45"></div><div class="lab"><span>accent</span><span class="k">#0F5A45</span></div></div>
+          <div class="sw"><div class="chip" style="background:#C9DDD2"></div><div class="lab"><span>accent-soft</span><span class="k">#C9DDD2</span></div></div>
+          <div class="sw"><div class="chip" style="background:#A5701E"></div><div class="lab"><span>oro</span><span class="k">#A5701E</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="pal-body">
+      <div class="mini-bar">
+        <div><h4>Hola, <em>Andrés</em></h4><div class="sub">24 documentos · 3 compartidos esta semana</div></div>
+        <button class="btn-mini">+ Subir archivo</button>
+      </div>
+      <div class="mini-kpis">
+        <div class="mini-kpi"><div class="l">Documentos</div><div class="v">24</div><div class="d"><span class="up">+3 hoy</span></div></div>
+        <div class="mini-kpi"><div class="l">Privados</div><div class="v"><em>17</em></div><div class="d">71%</div></div>
+        <div class="mini-kpi"><div class="l">Públicos</div><div class="v"><em>7</em></div><div class="d">29%</div></div>
+        <div class="mini-kpi"><div class="l">Espacio</div><div class="v">18,4 MB</div><div class="d">3,7%</div></div>
+      </div>
+      <div class="mini-list">
+        <div class="row"><div class="ic">C</div><div><div class="name">Contrato proveedor 2024</div><div class="meta">pdf · 2.4 MB · hace 2 h</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+        <div class="row"><div class="ic">M</div><div><div class="name">Memoria del TFG v3</div><div class="meta">docx · 812 KB · ayer</div></div><span class="tag pub"><span class="d"></span>público</span></div>
+        <div class="row"><div class="ic">P</div><div><div class="name">Plan económico Q2</div><div class="meta">xlsx · 180 KB · 2 d</div></div><span class="tag priv"><span class="d"></span>privado</span></div>
+      </div>
+    </div>
+    <div class="pal-hero">
+      <h2 class="h-line">Documentos protegidos <em>por defecto</em>.</h2>
+      <div class="h-side"><b>Acento</b> #0F5A45<br><b>Soporte</b> oro saturado<br><b>Mood</b> biblioteca, tapiz</div>
+    </div>
+  </div>
+
+</div>
+
+<footer style="text-align:center;padding:60px 20px 80px;color:#6c7569;font-size:12px;font-family:'Fraunces',serif;font-style:italic">
+  Dr<em style="color:#2D5A3F">es</em>. — iteración 03 · variaciones del bosque
+</footer>
+
+</body>
+</html>

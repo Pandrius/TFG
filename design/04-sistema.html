@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DRES · sistema de diseño · esmeralda biblioteca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ====================================================== */
+  /*  TOKENS                                                 */
+  /* ====================================================== */
+  :root {
+    --paper: #ECEAD8;
+    --card: #F8F6E4;
+    --soft: #E2DEC5;
+    --rule: #CCC8AB;
+    --rule-soft: #DDD7B8;
+    --ink: #0F1C18;
+    --ink-soft: #1D2E27;
+    --mute: #6A7268;
+    --accent: #0F5A45;
+    --accent-hover: #0C4836;
+    --accent-soft: #C9DDD2;
+    --accent-tint: #E6EFE9;
+    --oro: #A5701E;
+    --oro-soft: #F1DEB0;
+    --oro-tint: #F8EAD2;
+    --danger: #8C2A20;
+    --danger-soft: #EFD2CD;
+    --danger-tint: #F8E3DF;
+
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 14px;
+    --r-xl: 18px;
+    --r-pill: 999px;
+
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 20px;
+    --sp-6: 24px;
+    --sp-8: 32px;
+    --sp-10: 40px;
+    --sp-12: 48px;
+
+    --shadow-1: 0 1px 0 rgba(15,28,24,0.04);
+    --shadow-2: 0 4px 12px -2px rgba(15,28,24,0.06), 0 1px 0 rgba(15,28,24,0.04);
+    --shadow-3: 0 12px 32px -8px rgba(15,28,24,0.18), 0 1px 0 rgba(15,28,24,0.04);
+  }
+
+  .dark {
+    --paper: #0E1816;
+    --card: #141F1B;
+    --soft: #1B2823;
+    --rule: #283831;
+    --rule-soft: #1F2D27;
+    --ink: #EBE3CA;
+    --ink-soft: #D2C8AB;
+    --mute: #8A9388;
+    --accent: #46B891;
+    --accent-hover: #5FC7A1;
+    --accent-soft: #1E3A30;
+    --accent-tint: #16291F;
+    --oro: #E0A65A;
+    --oro-soft: #3A2D14;
+    --oro-tint: #2A2110;
+    --danger: #E08070;
+    --danger-soft: #3F1E17;
+    --danger-tint: #2A140E;
+
+    --shadow-1: 0 1px 0 rgba(0,0,0,0.4);
+    --shadow-2: 0 4px 12px -2px rgba(0,0,0,0.4), 0 1px 0 rgba(0,0,0,0.4);
+    --shadow-3: 0 12px 32px -8px rgba(0,0,0,0.6), 0 1px 0 rgba(0,0,0,0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #DBD7BD;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ============== meta header / layout ==================== */
+  .meta-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(248,246,228,0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #CCC8AB;
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .meta-header h1 {
+    font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500;
+    margin: 0; letter-spacing: -0.01em; color: #0F1C18;
+  }
+  .meta-header h1 em { font-style: italic; color: #0F5A45; }
+  .meta-header h1 span { color: #6A7268; font-weight: 400; margin-left: 6px; font-style: italic; font-size: 13px; }
+  .meta-nav { display: flex; gap: 4px; }
+  .meta-nav a {
+    font-size: 13px; color: #6A7268; text-decoration: none;
+    padding: 6px 10px; border-radius: 999px;
+  }
+  .meta-nav a:hover { background: #C9DDD2; color: #0F5A45; }
+
+  .page {
+    max-width: 1240px; margin: 0 auto; padding: 0 32px 80px;
+  }
+  .intro {
+    max-width: 720px; margin: 56px 0 28px;
+  }
+  .intro h2 {
+    font-family: 'Fraunces', serif; font-size: 40px; font-weight: 500;
+    letter-spacing: -0.02em; margin: 0 0 10px; color: var(--ink);
+  }
+  .intro h2 em { font-style: italic; color: var(--accent); }
+  .intro p { color: var(--mute); font-size: 15px; line-height: 1.65; margin: 0 0 8px; }
+
+  .section {
+    margin-top: 64px;
+    background: var(--card);
+    border: 1px solid var(--rule);
+    border-radius: var(--r-xl);
+    overflow: hidden;
+    color: var(--ink);
+  }
+  .section .head {
+    padding: 22px 28px; border-bottom: 1px solid var(--rule);
+    display: flex; justify-content: space-between; align-items: end;
+    background: var(--paper);
+  }
+  .section .head .label {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 14px; color: var(--accent); margin-bottom: 2px;
+  }
+  .section .head h3 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 28px; letter-spacing: -0.02em; margin: 0;
+  }
+  .section .head h3 em { font-style: italic; color: var(--accent); }
+  .section .head .sub { color: var(--mute); font-size: 13px; margin-top: 4px; max-width: 480px; font-family: 'Fraunces', serif; font-style: italic; }
+  .section .body { padding: 28px; }
+
+  .subhead {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--mute); margin: 0 0 14px;
+  }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
+  /* ====================================================== */
+  /*  PALETA                                                 */
+  /* ====================================================== */
+  .pal-block { padding: 22px; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); }
+  .pal-block.dark { background: #0E1816; color: #EBE3CA; border-color: #283831; }
+  .pal-block.dark .subhead { color: #8A9388; }
+  .pal-block .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .sw { display: flex; flex-direction: column; min-width: 96px; flex: 1; border-radius: 8px; overflow: hidden; border: 1px solid var(--rule); }
+  .pal-block.dark .sw { border-color: #283831; }
+  .sw .chip { height: 44px; }
+  .sw .lab { font-family: 'JetBrains Mono', monospace; font-size: 10px; padding: 5px 8px; color: var(--mute); background: var(--card); display: flex; justify-content: space-between; }
+  .pal-block.dark .sw .lab { background: #141F1B; color: #8A9388; }
+  .sw .lab .k { color: var(--ink-soft); }
+  .pal-block.dark .sw .lab .k { color: #D2C8AB; }
+
+  /* ====================================================== */
+  /*  TIPOGRAFÍA                                             */
+  /* ====================================================== */
+  .type-row {
+    display: grid; grid-template-columns: 180px 1fr;
+    align-items: end; gap: 24px;
+    padding: 16px 0; border-bottom: 1px dashed var(--rule);
+  }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--mute); line-height: 1.5; }
+  .type-row .meta b { color: var(--ink-soft); font-weight: 500; }
+  .type-display {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 56px; letter-spacing: -0.025em; line-height: 1;
+  }
+  .type-display em { font-style: italic; color: var(--accent); font-weight: 500; }
+  .type-h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 36px; letter-spacing: -0.02em; line-height: 1.1; }
+  .type-h2 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 24px; letter-spacing: -0.015em; line-height: 1.15; }
+  .type-h3 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 18px; letter-spacing: -0.01em; line-height: 1.2; }
+  .type-body-lg { font-family: 'Inter', sans-serif; font-size: 17px; line-height: 1.6; }
+  .type-body { font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.6; }
+  .type-body-sm { font-family: 'Inter', sans-serif; font-size: 13px; line-height: 1.55; color: var(--ink-soft); }
+  .type-caption { font-family: 'Inter', sans-serif; font-size: 12px; line-height: 1.5; color: var(--mute); }
+  .type-eyebrow { font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; color: var(--accent); }
+  .type-mono { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink-soft); }
+  .type-overline { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--mute); }
+
+  /* ====================================================== */
+  /*  BOTONES                                                */
+  /* ====================================================== */
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 0; cursor: pointer; font-family: 'Inter', sans-serif;
+    font-weight: 500; border-radius: var(--r-pill);
+    transition: all .12s ease;
+  }
+  .btn.md { padding: 10px 18px; font-size: 13px; }
+  .btn.sm { padding: 6px 12px; font-size: 12px; }
+  .btn.lg { padding: 13px 22px; font-size: 14px; }
+  .btn.primary {
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .btn.primary:hover { background: #B8CFC2; color: var(--accent-hover); }
+  .dark .btn.primary { background: var(--accent-soft); color: var(--accent); }
+  .btn.accent {
+    background: var(--accent); color: white;
+  }
+  .btn.accent:hover { background: var(--accent-hover); }
+  .btn.ghost {
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--rule);
+  }
+  .btn.ghost:hover { background: var(--soft); }
+  .btn.danger {
+    background: var(--danger); color: white;
+  }
+  .btn.danger:hover { background: #6F1E16; }
+  .btn.link {
+    background: transparent; color: var(--accent); padding: 6px 0;
+    border-radius: 0; border-bottom: 1px solid var(--accent-soft);
+  }
+  .btn.link:hover { border-color: var(--accent); }
+  .btn[disabled] { opacity: 0.45; pointer-events: none; }
+
+  .btn-strip { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+  /* ====================================================== */
+  /*  INPUTS                                                 */
+  /* ====================================================== */
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field label {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 13px; color: var(--ink-soft);
+  }
+  .field .hint { font-size: 12px; color: var(--mute); }
+  .field .err { font-size: 12px; color: var(--danger); }
+  .input {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: var(--r-md);
+    padding: 10px 14px; font-size: 14px; font-family: 'Inter', sans-serif;
+    color: var(--ink); width: 100%;
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .input::placeholder { color: var(--mute); }
+  .input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+  .input.error { border-color: var(--danger); }
+  .input.error:focus { box-shadow: 0 0 0 3px var(--danger-tint); }
+  .input-group { position: relative; }
+  .input-group .ic {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--mute); pointer-events: none;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+  .input-group .input { padding-left: 34px; }
+  .input-group .kbd {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    background: var(--soft); padding: 2px 6px; border-radius: 4px;
+    color: var(--mute); border: 1px solid var(--rule);
+  }
+  textarea.input { resize: vertical; min-height: 100px; font-family: 'Inter', sans-serif; }
+  select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--mute) 50%), linear-gradient(135deg, var(--mute) 50%, transparent 50%); background-position: right 16px top 50%, right 11px top 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
+
+  .checkbox, .radio {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; cursor: pointer; user-select: none;
+  }
+  .checkbox .box, .radio .box {
+    width: 18px; height: 18px; border: 1.5px solid var(--rule);
+    background: var(--card); display: grid; place-items: center;
+    transition: all .12s;
+  }
+  .checkbox .box { border-radius: 5px; }
+  .radio .box { border-radius: 50%; }
+  .checkbox.on .box {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .checkbox.on .box::after { content: '✓'; color: white; font-size: 11px; font-weight: 600; }
+  .radio.on .box::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .radio.on .box { border-color: var(--accent); }
+
+  .toggle {
+    width: 38px; height: 22px; background: var(--rule);
+    border-radius: 999px; position: relative; cursor: pointer; transition: background .12s;
+  }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; background: var(--card);
+    border-radius: 50%; transition: all .12s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle.on::after { left: 18px; }
+
+  /* dropzone */
+  .dropzone {
+    border: 2px dashed var(--rule);
+    border-radius: var(--r-lg);
+    padding: 32px;
+    text-align: center;
+    background: var(--paper);
+    transition: all .12s;
+  }
+  .dropzone .ic {
+    width: 48px; height: 48px; margin: 0 auto 12px;
+    border-radius: 14px; background: var(--accent-tint);
+    color: var(--accent); display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 22px;
+  }
+  .dropzone .t { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500; margin-bottom: 4px; letter-spacing: -0.01em; }
+  .dropzone .t em { font-style: italic; color: var(--accent); }
+  .dropzone .sub { color: var(--mute); font-size: 13px; }
+  .dropzone .formats { margin-top: 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mute); text-transform: uppercase; letter-spacing: 0.08em; }
+
+  /* ====================================================== */
+  /*  TAGS / BADGES                                          */
+  /* ====================================================== */
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; padding: 2px 10px; border-radius: 999px;
+    font-weight: 500;
+    background: transparent;
+    border: 1px solid;
+  }
+  .tag .d { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .tag.pub { color: var(--accent); border-color: var(--accent-soft); }
+  .tag.priv { color: var(--oro); border-color: var(--oro-soft); }
+  .tag.proc { color: var(--ink-soft); border-color: var(--rule); }
+  .tag.err { color: var(--danger); border-color: var(--danger-soft); }
+  .tag.neutral { color: var(--mute); border-color: var(--rule); }
+
+  /* avatars */
+  .av { display: inline-grid; place-items: center; border-radius: 50%; font-family: 'Fraunces', serif; font-style: italic; font-weight: 500; }
+  .av.sm { width: 24px; height: 24px; font-size: 11px; }
+  .av.md { width: 32px; height: 32px; font-size: 13px; }
+  .av.lg { width: 44px; height: 44px; font-size: 17px; }
+  .av.acc { background: var(--accent-soft); color: var(--accent); }
+  .av.oro { background: var(--oro-soft); color: var(--oro); }
+  .av.neutral { background: var(--soft); color: var(--ink-soft); }
+  .av-stack { display: inline-flex; }
+  .av-stack .av { margin-left: -8px; border: 2px solid var(--card); }
+  .av-stack .av:first-child { margin-left: 0; }
+
+  /* ====================================================== */
+  /*  TOASTS                                                 */
+  /* ====================================================== */
+  .toast {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: var(--r-md); padding: 14px 16px;
+    box-shadow: var(--shadow-2);
+    min-width: 320px;
+  }
+  .toast .ic {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: grid; place-items: center; font-size: 13px; font-weight: 600;
+    margin-top: 1px;
+  }
+  .toast.ok .ic { background: var(--accent-soft); color: var(--accent); }
+  .toast.warn .ic { background: var(--oro-soft); color: var(--oro); }
+  .toast.err .ic { background: var(--danger-soft); color: var(--danger); }
+  .toast .t { font-weight: 500; font-size: 14px; margin: 0 0 2px; }
+  .toast .sub { color: var(--mute); font-size: 12px; line-height: 1.5; }
+  .toast .x { color: var(--mute); cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-left: auto; }
+
+  /* ====================================================== */
+  /*  MODAL                                                  */
+  /* ====================================================== */
+  .modal-shell {
+    background: rgba(15,28,24,0.35);
+    padding: 56px 28px;
+    border-radius: var(--r-lg);
+    display: grid; place-items: center;
+  }
+  .dark .modal-shell { background: rgba(0,0,0,0.6); }
+  .modal {
+    background: var(--card); border-radius: var(--r-xl);
+    box-shadow: var(--shadow-3);
+    max-width: 460px; width: 100%;
+    border: 1px solid var(--rule);
+    overflow: hidden;
+  }
+  .modal .top {
+    padding: 22px 24px 0;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .modal .top .icw {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--oro-soft); color: var(--oro);
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px;
+    flex-shrink: 0;
+  }
+  .modal .top h3 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 22px; letter-spacing: -0.02em; margin: 0;
+  }
+  .modal .top h3 em { font-style: italic; color: var(--oro); }
+  .modal .top .sub { color: var(--mute); font-size: 13px; margin-top: 6px; line-height: 1.55; }
+  .modal .body { padding: 20px 24px 0; }
+  .modal .body .doc-pill {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border: 1px solid var(--rule);
+    border-radius: var(--r-md);
+    background: var(--paper);
+    margin-bottom: 14px;
+  }
+  .modal .body .doc-pill .icd {
+    width: 28px; height: 32px; border-radius: 5px;
+    background: var(--card); border: 1px solid var(--rule);
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-style: italic; color: var(--accent);
+    font-size: 13px;
+  }
+  .modal .body .doc-pill .info .name { font-weight: 500; font-size: 13px; }
+  .modal .body .doc-pill .info .meta { color: var(--mute); font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+  .modal .body .checkbox { margin-bottom: 14px; }
+  .modal .actions {
+    display: flex; justify-content: flex-end; gap: 8px;
+    padding: 18px 24px 22px;
+  }
+
+  /* ====================================================== */
+  /*  TABS                                                   */
+  /* ====================================================== */
+  .tabs {
+    display: flex; gap: 4px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .tab {
+    padding: 10px 16px; cursor: pointer;
+    font-family: 'Fraunces', serif; font-style: italic; font-size: 14px;
+    color: var(--mute);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.on { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tabs-pill { display: inline-flex; background: var(--soft); border-radius: 999px; padding: 3px; gap: 2px; }
+  .tabs-pill .tab {
+    border-radius: 999px; padding: 5px 12px; font-size: 12px; border: 0; margin: 0;
+    font-family: 'Inter', sans-serif; font-style: normal; font-weight: 500;
+  }
+  .tabs-pill .tab.on { background: var(--card); color: var(--ink); }
+
+  /* breadcrumb */
+  .crumb {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Inter', sans-serif; font-size: 13px;
+  }
+  .crumb a, .crumb span { color: var(--mute); text-decoration: none; }
+  .crumb a:hover { color: var(--ink); }
+  .crumb .sep { color: var(--rule); }
+  .crumb .now { color: var(--ink); font-weight: 500; }
+
+  /* ====================================================== */
+  /*  PIPELINE DE SUBIDA                                     */
+  /* ====================================================== */
+  .pipeline {
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: var(--r-lg); padding: 22px 24px;
+  }
+  .pipeline-row {
+    display: grid; grid-template-columns: 36px 1fr auto;
+    gap: 14px; align-items: center;
+    padding: 12px 0; border-bottom: 1px dashed var(--rule);
+  }
+  .pipeline-row:last-child { border-bottom: 0; }
+  .pipeline-row .ic {
+    width: 36px; height: 44px; border-radius: 6px;
+    background: var(--card); border: 1px solid var(--rule);
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-style: italic; color: var(--accent);
+    font-size: 13px;
+  }
+  .pipeline-row .name { font-weight: 500; font-size: 14px; margin-bottom: 6px; }
+  .pipeline-row .stages {
+    display: flex; gap: 4px; align-items: center; margin-bottom: 6px;
+  }
+  .pipeline-row .s {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 2px 8px; border-radius: 4px;
+    background: var(--soft); color: var(--mute); border: 1px solid var(--rule);
+  }
+  .pipeline-row .s.done { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .pipeline-row .s.now { background: var(--ink); color: var(--paper); border-color: transparent; }
+  .pipeline-row .s.err { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+  .pipeline-row .s .dot {
+    width: 5px; height: 5px; border-radius: 50%; background: currentColor;
+  }
+  .pipeline-row .s.now .dot { animation: pulse 1.2s infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .pipeline-row .bar {
+    height: 4px; background: var(--soft); border-radius: 4px; overflow: hidden;
+  }
+  .pipeline-row .bar > div { height: 100%; background: var(--accent); border-radius: 4px; }
+  .pipeline-row .pct {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--mute); min-width: 50px; text-align: right;
+  }
+  .pipeline-row.done .pct { color: var(--accent); }
+  .pipeline-row .pct.ok::before { content: '✓ '; }
+
+  /* ====================================================== */
+  /*  EMPTY STATE                                            */
+  /* ====================================================== */
+  .empty {
+    padding: 48px 24px; text-align: center;
+    border: 1px dashed var(--rule); border-radius: var(--r-lg);
+    background: var(--paper);
+  }
+  .empty .ic {
+    width: 56px; height: 56px; border-radius: 16px;
+    background: var(--accent-tint); color: var(--accent);
+    display: grid; place-items: center; margin: 0 auto 16px;
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 600; font-size: 26px;
+  }
+  .empty h4 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .empty h4 em { font-style: italic; color: var(--accent); }
+  .empty p { color: var(--mute); font-size: 13px; max-width: 360px; margin: 0 auto 18px; line-height: 1.55; }
+
+  /* skeleton */
+  .skel {
+    background: linear-gradient(90deg, var(--soft) 0%, var(--rule-soft) 50%, var(--soft) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px; height: 14px;
+  }
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* loader */
+  .spinner {
+    width: 22px; height: 22px;
+    border: 2.5px solid var(--accent-soft);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* mode demo row */
+  .mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: stretch; }
+  .mode-row .demo {
+    background: var(--paper); border: 1px solid var(--rule);
+    border-radius: var(--r-lg); padding: 22px; min-height: 200px;
+  }
+
+  /* spacing tokens */
+  .spaces { display: flex; gap: 18px; align-items: end; flex-wrap: wrap; }
+  .spaces .item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .spaces .item .box { background: var(--accent); border-radius: 4px; }
+  .spaces .item .lab { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mute); }
+
+  /* radii */
+  .radii { display: flex; gap: 12px; align-items: end; }
+  .radii .item { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .radii .item .box { width: 64px; height: 64px; background: var(--accent-soft); border: 1px solid var(--accent); }
+  .radii .item .lab { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--mute); }
+
+</style>
+</head>
+<body>
+
+<header class="meta-header">
+  <h1>Dr<em>es</em>. <span>· sistema de diseño · esmeralda biblioteca</span></h1>
+  <nav class="meta-nav">
+    <a href="#tokens">Tokens</a>
+    <a href="#tipo">Tipografía</a>
+    <a href="#botones">Botones</a>
+    <a href="#inputs">Inputs</a>
+    <a href="#feedback">Feedback</a>
+    <a href="#modal">Modal</a>
+    <a href="#pipeline">Pipeline</a>
+    <a href="#empty">Vacíos</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <section class="intro">
+    <h2>Esmeralda <em>biblioteca</em>.</h2>
+    <p>Sistema base sobre el que vamos a construir todas las pantallas. Tokens definitivos (claro y oscuro), escala tipográfica completa, y la librería de componentes que se va a usar en login, mis-documentos, subida, perfil, organizaciones, todo.</p>
+    <p>Cada bloque es código real, con estados reales (hover, focus, error, vacío). Si validas esto, el resto del producto se monta encima sin sorpresas.</p>
+  </section>
+
+  <!-- ========== TOKENS / PALETA ========== -->
+  <div id="tokens" class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 01</div>
+        <h3>Paleta · <em>claro y oscuro</em></h3>
+        <div class="sub">Mismos roles, distinta luz. El oscuro no es negro técnico — es verde muy oscuro con tinta crema cálida.</div>
+      </div>
+    </div>
+    <div class="body grid-2">
+      <div class="pal-block">
+        <div class="subhead">— Claro</div>
+        <div class="row">
+          <div class="sw"><div class="chip" style="background:#ECEAD8"></div><div class="lab"><span>paper</span><span class="k">#ECEAD8</span></div></div>
+          <div class="sw"><div class="chip" style="background:#F8F6E4"></div><div class="lab"><span>card</span><span class="k">#F8F6E4</span></div></div>
+          <div class="sw"><div class="chip" style="background:#E2DEC5"></div><div class="lab"><span>soft</span><span class="k">#E2DEC5</span></div></div>
+          <div class="sw"><div class="chip" style="background:#CCC8AB"></div><div class="lab"><span>rule</span><span class="k">#CCC8AB</span></div></div>
+        </div>
+        <div class="row">
+          <div class="sw"><div class="chip" style="background:#0F1C18"></div><div class="lab"><span>ink</span><span class="k">#0F1C18</span></div></div>
+          <div class="sw"><div class="chip" style="background:#1D2E27"></div><div class="lab"><span>ink-soft</span><span class="k">#1D2E27</span></div></div>
+          <div class="sw"><div class="chip" style="background:#6A7268"></div><div class="lab"><span>mute</span><span class="k">#6A7268</span></div></div>
+        </div>
+        <div class="row">
+          <div class="sw"><div class="chip" style="background:#0F5A45"></div><div class="lab"><span>accent</span><span class="k">#0F5A45</span></div></div>
+          <div class="sw"><div class="chip" style="background:#C9DDD2"></div><div class="lab"><span>accent-soft</span><span class="k">#C9DDD2</span></div></div>
+          <div class="sw"><div class="chip" style="background:#A5701E"></div><div class="lab"><span>oro</span><span class="k">#A5701E</span></div></div>
+          <div class="sw"><div class="chip" style="background:#F1DEB0"></div><div class="lab"><span>oro-soft</span><span class="k">#F1DEB0</span></div></div>
+          <div class="sw"><div class="chip" style="background:#8C2A20"></div><div class="lab"><span>danger</span><span class="k">#8C2A20</span></div></div>
+        </div>
+      </div>
+      <div class="pal-block dark">
+        <div class="subhead">— Oscuro</div>
+        <div class="row">
+          <div class="sw"><div class="chip" style="background:#0E1816"></div><div class="lab"><span>paper</span><span class="k">#0E1816</span></div></div>
+          <div class="sw"><div class="chip" style="background:#141F1B"></div><div class="lab"><span>card</span><span class="k">#141F1B</span></div></div>
+          <div class="sw"><div class="chip" style="background:#1B2823"></div><div class="lab"><span>soft</span><span class="k">#1B2823</span></div></div>
+          <div class="sw"><div class="chip" style="background:#283831"></div><div class="lab"><span>rule</span><span class="k">#283831</span></div></div>
+        </div>
+        <div class="row">
+          <div class="sw"><div class="chip" style="background:#EBE3CA"></div><div class="lab"><span>ink</span><span class="k">#EBE3CA</span></div></div>
+          <div class="sw"><div class="chip" style="background:#D2C8AB"></div><div class="lab"><span>ink-soft</span><span class="k">#D2C8AB</span></div></div>
+          <div class="sw"><div class="chip" style="background:#8A9388"></div><div class="lab"><span>mute</span><span class="k">#8A9388</span></div></div>
+        </div>
+        <div class="row">
+          <div class="sw"><div class="chip" style="background:#46B891"></div><div class="lab"><span>accent</span><span class="k">#46B891</span></div></div>
+          <div class="sw"><div class="chip" style="background:#1E3A30"></div><div class="lab"><span>accent-soft</span><span class="k">#1E3A30</span></div></div>
+          <div class="sw"><div class="chip" style="background:#E0A65A"></div><div class="lab"><span>oro</span><span class="k">#E0A65A</span></div></div>
+          <div class="sw"><div class="chip" style="background:#3A2D14"></div><div class="lab"><span>oro-soft</span><span class="k">#3A2D14</span></div></div>
+          <div class="sw"><div class="chip" style="background:#E08070"></div><div class="lab"><span>danger</span><span class="k">#E08070</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="body" style="border-top:1px solid var(--rule);">
+      <div class="grid-2" style="align-items:stretch;">
+        <div>
+          <div class="subhead">Espaciado · escala 4</div>
+          <div class="spaces">
+            <div class="item"><div class="box" style="width:4px;height:4px"></div><div class="lab">sp-1 / 4</div></div>
+            <div class="item"><div class="box" style="width:8px;height:8px"></div><div class="lab">sp-2 / 8</div></div>
+            <div class="item"><div class="box" style="width:12px;height:12px"></div><div class="lab">sp-3 / 12</div></div>
+            <div class="item"><div class="box" style="width:16px;height:16px"></div><div class="lab">sp-4 / 16</div></div>
+            <div class="item"><div class="box" style="width:20px;height:20px"></div><div class="lab">sp-5 / 20</div></div>
+            <div class="item"><div class="box" style="width:24px;height:24px"></div><div class="lab">sp-6 / 24</div></div>
+            <div class="item"><div class="box" style="width:32px;height:32px"></div><div class="lab">sp-8 / 32</div></div>
+            <div class="item"><div class="box" style="width:40px;height:40px"></div><div class="lab">sp-10 / 40</div></div>
+            <div class="item"><div class="box" style="width:48px;height:48px"></div><div class="lab">sp-12 / 48</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="subhead">Radio de borde</div>
+          <div class="radii">
+            <div class="item"><div class="box" style="border-radius:6px"></div><div class="lab">r-sm / 6</div></div>
+            <div class="item"><div class="box" style="border-radius:10px"></div><div class="lab">r-md / 10</div></div>
+            <div class="item"><div class="box" style="border-radius:14px"></div><div class="lab">r-lg / 14</div></div>
+            <div class="item"><div class="box" style="border-radius:18px"></div><div class="lab">r-xl / 18</div></div>
+            <div class="item"><div class="box" style="border-radius:999px"></div><div class="lab">pill</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TIPOGRAFÍA ========== -->
+  <div id="tipo" class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 02</div>
+        <h3>Escala <em>tipográfica</em></h3>
+        <div class="sub">Fraunces para títulos y acentos italianos, Inter para texto continuo, JetBrains Mono para datos técnicos.</div>
+      </div>
+    </div>
+    <div class="body">
+      <div class="type-row">
+        <div class="meta"><b>display</b><br>Fraunces 500<br>56 / -0.025em / 1</div>
+        <div class="type-display">Documentos <em>protegidos</em>.</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>h1</b><br>Fraunces 500<br>36 / -0.02em / 1.1</div>
+        <div class="type-h1">Mis <em>documentos</em></div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>h2</b><br>Fraunces 500<br>24 / -0.015em / 1.15</div>
+        <div class="type-h2">Subidas en curso</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>h3</b><br>Fraunces 500<br>18 / -0.01em / 1.2</div>
+        <div class="type-h3">Memoria del TFG v3</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>eyebrow</b><br>Fraunces 400 italic<br>14 / accent</div>
+        <div class="type-eyebrow">— una forma más serena de archivar.</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>body-lg</b><br>Inter 400<br>17 / 1.6</div>
+        <div class="type-body-lg">Subes un documento, una IA decide si puede ver la luz o no. Tú revisas, lo cambias si hace falta, y sigues con tu día.</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>body</b><br>Inter 400<br>15 / 1.6</div>
+        <div class="type-body">El cuerpo va en Inter, 15 px de base. Inter convive con Fraunces sin pelear: una neutra geométrica para texto continuo, y Fraunces aparece en titulares y acentos italianos.</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>body-sm</b><br>Inter 400<br>13 / 1.55</div>
+        <div class="type-body-sm">Textos secundarios, metadatos no técnicos, descripciones de campos de formulario.</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>caption</b><br>Inter 400<br>12 / mute</div>
+        <div class="type-caption">24 documentos · 18,4 MB · última subida hace 2 h</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>overline</b><br>JBM 400<br>11 / upper / 0.08em</div>
+        <div class="type-overline">— Bloque 03 · sistema de componentes</div>
+      </div>
+      <div class="type-row">
+        <div class="meta"><b>mono</b><br>JetBrains Mono 400<br>13 / ink-soft</div>
+        <div class="type-mono">POST /v1/classify · 200 OK · 1.8s</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== BOTONES ========== -->
+  <div id="botones" class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 03</div>
+        <h3>Botones · <em>todas las variantes</em></h3>
+        <div class="sub">Primary (tinta) para acción dominante neutra. Accent (verde) para confirmar. Ghost para secundarias. Danger para destructivas.</div>
+      </div>
+    </div>
+    <div class="body">
+      <div style="margin-bottom:24px">
+        <div class="subhead">Variantes</div>
+        <div class="btn-strip">
+          <button class="btn primary md">+ Subir archivo</button>
+          <button class="btn accent md">Confirmar y publicar</button>
+          <button class="btn ghost md">Cancelar</button>
+          <button class="btn danger md">Eliminar documento</button>
+          <a class="btn link md" href="#">Ver detalles →</a>
+        </div>
+      </div>
+      <div style="margin-bottom:24px">
+        <div class="subhead">Tamaños</div>
+        <div class="btn-strip">
+          <button class="btn primary lg">Empezar gratis</button>
+          <button class="btn primary md">+ Subir archivo</button>
+          <button class="btn primary sm">+ Subir</button>
+        </div>
+      </div>
+      <div style="margin-bottom:24px">
+        <div class="subhead">Estados</div>
+        <div class="btn-strip">
+          <button class="btn accent md">Normal</button>
+          <button class="btn accent md" style="background:var(--accent-hover)">Hover</button>
+          <button class="btn accent md" style="box-shadow:0 0 0 3px var(--accent-tint)">Focus</button>
+          <button class="btn accent md" disabled>Disabled</button>
+          <button class="btn accent md"><span class="spinner" style="width:14px;height:14px;border-width:2px;border-color:rgba(255,255,255,0.3);border-top-color:white"></span>Procesando…</button>
+        </div>
+      </div>
+      <div>
+        <div class="subhead">Iconográficos · acción rápida</div>
+        <div class="btn-strip">
+          <button class="btn ghost sm" style="padding:6px 8px;border-radius:8px;width:30px;height:30px;justify-content:center">↓</button>
+          <button class="btn ghost sm" style="padding:6px 8px;border-radius:8px;width:30px;height:30px;justify-content:center">✎</button>
+          <button class="btn ghost sm" style="padding:6px 8px;border-radius:8px;width:30px;height:30px;justify-content:center">⋯</button>
+          <button class="btn ghost sm" style="padding:6px 8px;border-radius:8px;width:30px;height:30px;justify-content:center;color:var(--danger);border-color:var(--danger-soft)">✕</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== INPUTS ========== -->
+  <div id="inputs" class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 04</div>
+        <h3>Campos de <em>formulario</em></h3>
+        <div class="sub">Misma altura, mismo radio, focus con halo verde tenue, errores en granate. Labels en Fraunces italic — añaden personalidad sin romper la lectura.</div>
+      </div>
+    </div>
+    <div class="body grid-2" style="align-items:start;">
+      <div>
+        <div class="subhead">Inputs y selects</div>
+        <div class="field">
+          <label>Nombre de usuario</label>
+          <input class="input" placeholder="andres.garcia" />
+          <span class="hint">3–32 caracteres. Letras, números, punto y guion.</span>
+        </div>
+        <div class="field">
+          <label>Correo</label>
+          <input class="input" type="email" placeholder="tucorreo@dominio.com" value="andres@uni.es" />
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input class="input error" type="password" value="abcd" />
+          <span class="err">Mínimo 8 caracteres con una mayúscula y un número.</span>
+        </div>
+        <div class="field">
+          <label>Buscar</label>
+          <div class="input-group">
+            <span class="ic">⌕</span>
+            <input class="input" placeholder="Buscar documentos…" />
+            <span class="kbd">⌘K</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Carpeta destino</label>
+          <select class="input">
+            <option>Personal · contratos</option>
+            <option>Personal · TFG</option>
+            <option>Org · UPM · proyectos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nota interna</label>
+          <textarea class="input" placeholder="Escribe una nota…">Documento aportado por el departamento de compras, requiere revisión legal antes de marcar como público.</textarea>
+        </div>
+      </div>
+      <div>
+        <div class="subhead">Controles</div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px">
+          <label class="checkbox on"><span class="box"></span>Notificarme cuando alguien comparta conmigo</label>
+          <label class="checkbox"><span class="box"></span>Suscribirme al boletín mensual</label>
+          <label class="checkbox on"><span class="box"></span>Permitir descargas con marca de agua</label>
+        </div>
+
+        <div class="subhead">Radio · grupo</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+          <label class="radio on"><span class="box"></span>Modo claro</label>
+          <label class="radio"><span class="box"></span>Modo oscuro</label>
+          <label class="radio"><span class="box"></span>Seguir al sistema</label>
+        </div>
+
+        <div class="subhead">Toggles</div>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px">
+          <label style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span>Mostrar archivos en la papelera</span><span class="toggle on"></span></label>
+          <label style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span>API pública activada</span><span class="toggle"></span></label>
+          <label style="display:flex;justify-content:space-between;align-items:center;font-size:13px"><span>Recibir avisos por correo</span><span class="toggle on"></span></label>
+        </div>
+
+        <div class="subhead">Dropzone de subida</div>
+        <div class="dropzone">
+          <div class="ic">↓</div>
+          <div class="t">Arrastra archivos <em>aquí</em></div>
+          <div class="sub">o haz clic para seleccionarlos. Puedes subir varios a la vez.</div>
+          <div class="formats">PDF · DOCX · TXT · XLSX · CSV · PPTX · hasta 10 MB</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAGS, AVATARES, FEEDBACK ========== -->
+  <div id="feedback" class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 05</div>
+        <h3>Tags, avatares y <em>feedback</em></h3>
+        <div class="sub">El color comunica el estado a la primera. Las notificaciones (toasts) se usan para confirmar acciones sin interrumpir.</div>
+      </div>
+    </div>
+    <div class="body">
+      <div class="subhead">Tags</div>
+      <div class="btn-strip" style="margin-bottom:24px">
+        <span class="tag pub"><span class="d"></span>público</span>
+        <span class="tag priv"><span class="d"></span>privado</span>
+        <span class="tag proc"><span class="d"></span>analizando</span>
+        <span class="tag err"><span class="d"></span>error</span>
+        <span class="tag neutral"><span class="d"></span>borrador</span>
+      </div>
+
+      <div class="subhead">Avatares</div>
+      <div class="btn-strip" style="margin-bottom:24px">
+        <span class="av sm acc">A</span>
+        <span class="av md acc">An</span>
+        <span class="av lg acc">An</span>
+        <span class="av md oro">M</span>
+        <span class="av md neutral">J</span>
+        <div class="av-stack">
+          <span class="av md acc">A</span>
+          <span class="av md oro">M</span>
+          <span class="av md neutral">J</span>
+          <span class="av md neutral" style="background:var(--soft);color:var(--mute);font-style:normal;font-size:11px">+5</span>
+        </div>
+      </div>
+
+      <div class="subhead">Toasts</div>
+      <div style="display:flex;flex-direction:column;gap:10px;max-width:480px">
+        <div class="toast ok">
+          <div class="ic">✓</div>
+          <div>
+            <div class="t">Documento publicado</div>
+            <div class="sub">"Memoria del TFG v3" ya es accesible desde Explorar.</div>
+          </div>
+          <span class="x">✕</span>
+        </div>
+        <div class="toast warn">
+          <div class="ic">!</div>
+          <div>
+            <div class="t">Se reclasificó como privado</div>
+            <div class="sub">El modelo detectó información personal. Revísalo si quieres forzar el estado.</div>
+          </div>
+          <span class="x">✕</span>
+        </div>
+        <div class="toast err">
+          <div class="ic">✕</div>
+          <div>
+            <div class="t">No se pudo subir el archivo</div>
+            <div class="sub">El servicio de IA no respondió. El documento se guardó como privado (fail-safe).</div>
+          </div>
+          <span class="x">✕</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL ========== -->
+  <div id="modal" class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 06</div>
+        <h3>Modal de <em>confirmación crítica</em></h3>
+        <div class="sub">Ejemplo real: el usuario quiere reclasificar un documento privado como público. Hay que advertirle y obligarle a aceptar antes de soltar el botón.</div>
+      </div>
+    </div>
+    <div class="body">
+      <div class="modal-shell">
+        <div class="modal">
+          <div class="top">
+            <div class="icw">!</div>
+            <div style="flex:1">
+              <h3>¿Hacer este documento <em>público</em>?</h3>
+              <div class="sub">Cualquiera con cuenta podrá verlo y descargarlo desde "Explorar". Esta acción se puede revertir, pero los accesos quedan registrados.</div>
+            </div>
+          </div>
+          <div class="body">
+            <div class="doc-pill">
+              <div class="icd">C</div>
+              <div class="info">
+                <div class="name">Contrato proveedor 2024</div>
+                <div class="meta">pdf · 2,4 MB · clasificado como privado</div>
+              </div>
+            </div>
+            <label class="checkbox"><span class="box"></span>He revisado el documento y confirmo que no contiene datos personales ni información confidencial.</label>
+          </div>
+          <div class="actions">
+            <button class="btn ghost md">Cancelar</button>
+            <button class="btn accent md" disabled>Sí, hacerlo público</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PIPELINE ========== -->
+  <div id="pipeline" class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 07</div>
+        <h3>Pipeline de <em>subida en vivo</em></h3>
+        <div class="sub">Cada archivo recorre cuatro fases: subido → texto → analizando → guardado. Visible en tiempo real, con SSE detrás. Soporta paralelo.</div>
+      </div>
+    </div>
+    <div class="body">
+      <div class="pipeline">
+        <div class="pipeline-row done">
+          <div class="ic">M</div>
+          <div>
+            <div class="name">Memoria_TFG_v3.docx</div>
+            <div class="stages">
+              <span class="s done"><span class="dot"></span>subido</span>
+              <span class="s done"><span class="dot"></span>texto</span>
+              <span class="s done"><span class="dot"></span>analizando</span>
+              <span class="s done"><span class="dot"></span>guardado</span>
+            </div>
+            <div class="bar"><div style="width:100%"></div></div>
+          </div>
+          <div class="pct ok">listo</div>
+        </div>
+        <div class="pipeline-row">
+          <div class="ic">C</div>
+          <div>
+            <div class="name">Contrato_anexo_v2.pdf</div>
+            <div class="stages">
+              <span class="s done"><span class="dot"></span>subido</span>
+              <span class="s done"><span class="dot"></span>texto</span>
+              <span class="s now"><span class="dot"></span>analizando</span>
+              <span class="s"><span class="dot"></span>guardado</span>
+            </div>
+            <div class="bar"><div style="width:68%"></div></div>
+          </div>
+          <div class="pct">68%</div>
+        </div>
+        <div class="pipeline-row">
+          <div class="ic">A</div>
+          <div>
+            <div class="name">Acta_reunion_27nov.docx</div>
+            <div class="stages">
+              <span class="s done"><span class="dot"></span>subido</span>
+              <span class="s now"><span class="dot"></span>extrayendo</span>
+              <span class="s"><span class="dot"></span>analizando</span>
+              <span class="s"><span class="dot"></span>guardado</span>
+            </div>
+            <div class="bar"><div style="width:34%"></div></div>
+          </div>
+          <div class="pct">34%</div>
+        </div>
+        <div class="pipeline-row">
+          <div class="ic">F</div>
+          <div>
+            <div class="name">Foto_pizarra.jpg</div>
+            <div class="stages">
+              <span class="s done"><span class="dot"></span>subido</span>
+              <span class="s done"><span class="dot"></span>texto</span>
+              <span class="s err"><span class="dot"></span>sin texto</span>
+              <span class="s"><span class="dot"></span>guardado</span>
+            </div>
+            <div class="bar"><div style="width:50%;background:var(--danger)"></div></div>
+          </div>
+          <div class="pct" style="color:var(--danger)">reintentar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== NAVEGACIÓN ========== -->
+  <div class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 08</div>
+        <h3>Navegación · <em>tabs, pills, miga</em></h3>
+        <div class="sub">Tabs subrayados Fraunces italic para secciones principales. Pills para filtros rápidos. Breadcrumbs en Inter.</div>
+      </div>
+    </div>
+    <div class="body">
+      <div style="margin-bottom:28px">
+        <div class="subhead">Tabs (sección de página)</div>
+        <div class="tabs">
+          <div class="tab on">Todos los documentos</div>
+          <div class="tab">Compartidos conmigo</div>
+          <div class="tab">Favoritos</div>
+          <div class="tab">Papelera</div>
+        </div>
+      </div>
+      <div style="margin-bottom:28px">
+        <div class="subhead">Pills (filtros rápidos)</div>
+        <div class="tabs-pill">
+          <div class="tab on">Todos</div>
+          <div class="tab">Privados</div>
+          <div class="tab">Públicos</div>
+          <div class="tab">Procesando</div>
+        </div>
+      </div>
+      <div>
+        <div class="subhead">Breadcrumbs</div>
+        <div class="crumb">
+          <a href="#">Mis documentos</a>
+          <span class="sep">/</span>
+          <a href="#">Personal</a>
+          <span class="sep">/</span>
+          <a href="#">Contratos</a>
+          <span class="sep">/</span>
+          <span class="now">Contrato proveedor 2024</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== VACÍOS Y CARGA ========== -->
+  <div id="empty" class="section">
+    <div class="head">
+      <div>
+        <div class="label">Bloque 09</div>
+        <h3>Estados vacíos y de <em>carga</em></h3>
+        <div class="sub">Si no hay datos, lo decimos con calma y ofrecemos la acción. Si los datos están en camino, lo decimos con skeletons.</div>
+      </div>
+    </div>
+    <div class="body grid-2">
+      <div class="empty">
+        <div class="ic">∅</div>
+        <h4>Aún no hay <em>documentos</em></h4>
+        <p>Sube tu primer archivo y la plataforma lo clasificará automáticamente en menos de dos segundos.</p>
+        <button class="btn accent md">+ Subir mi primer documento</button>
+      </div>
+      <div style="background:var(--paper);border:1px solid var(--rule);border-radius:var(--r-lg);padding:22px">
+        <div class="subhead">Cargando — skeleton</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="skel" style="width:55%;height:18px"></div>
+          <div class="skel" style="width:90%"></div>
+          <div class="skel" style="width:78%"></div>
+          <div style="display:flex;gap:12px;margin-top:14px">
+            <div class="skel" style="width:32px;height:40px"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+              <div class="skel" style="width:68%;height:14px"></div>
+              <div class="skel" style="width:40%;height:10px"></div>
+            </div>
+            <div class="skel" style="width:70px;height:22px;border-radius:999px"></div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:6px">
+            <div class="skel" style="width:32px;height:40px"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+              <div class="skel" style="width:54%;height:14px"></div>
+              <div class="skel" style="width:32%;height:10px"></div>
+            </div>
+            <div class="skel" style="width:70px;height:22px;border-radius:999px"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:18px;color:var(--mute);font-size:13px">
+            <div class="spinner"></div>
+            Cargando tus documentos…
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer style="text-align:center;padding:60px 20px 80px;color:#6A7268;font-size:12px;font-family:'Fraunces',serif;font-style:italic">
+  Dr<em style="color:#0F5A45">es</em>. — iteración 04 · sistema de diseño v1
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>DRES · Comparativa de personalidad visual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;500&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #f4f4f4;
+    color: #111;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---------- Marco común (NO es parte de las opciones) ---------- */
+  .meta-header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #e5e5e5;
+    padding: 14px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: 'Inter', sans-serif;
+  }
+  .meta-header h1 {
+    font-size: 14px; font-weight: 600; margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .meta-header h1 span { color: #888; font-weight: 400; margin-left: 6px; }
+  .meta-nav { display: flex; gap: 4px; }
+  .meta-nav a {
+    font-size: 13px; color: #555; text-decoration: none;
+    padding: 6px 10px; border-radius: 6px;
+  }
+  .meta-nav a:hover { background: #eee; color: #000; }
+  .meta-intro {
+    max-width: 880px;
+    margin: 64px auto 32px;
+    padding: 0 32px;
+    font-family: 'Inter', sans-serif;
+  }
+  .meta-intro h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 12px; }
+  .meta-intro p { font-size: 15px; color: #555; line-height: 1.6; margin: 0 0 8px; max-width: 640px; }
+
+  .option-wrap {
+    margin: 96px auto;
+    max-width: 1280px;
+    padding: 0 32px;
+  }
+  .option-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+  .option-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+  .option-summary {
+    font-family: 'Inter', sans-serif;
+    color: #555; max-width: 640px; font-size: 14px; line-height: 1.6;
+    margin: 0 0 32px;
+  }
+  .option-frame {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #e5e5e5;
+    background: white;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+  }
+  .frame-bar {
+    background: #fafafa;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 10px 16px;
+    display: flex; gap: 8px; align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: #888;
+  }
+  .frame-bar .dot { width: 11px; height: 11px; border-radius: 50%; background: #ddd; }
+  .frame-bar .url { margin-left: 12px; }
+
+  .option-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 24px;
+  }
+  @media (max-width: 980px) {
+    .option-grid { grid-template-columns: 1fr; }
+  }
+
+  .spec-card {
+    background: white;
+    border: 1px solid #e5e5e5;
+    border-radius: 14px;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+  }
+  .spec-card h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    margin: 0 0 14px;
+    font-weight: 500;
+  }
+  .palette-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch {
+    display: flex; flex-direction: column;
+    border-radius: 8px; overflow: hidden;
+    min-width: 84px; flex: 1;
+  }
+  .swatch .chip { height: 56px; }
+  .swatch .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 6px 8px;
+    color: #555;
+    background: #fafafa;
+    border-top: 1px solid #f0f0f0;
+  }
+  .type-stack > * { margin: 0 0 6px; line-height: 1.1; }
+  .type-stack .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: #999;
+    margin-top: 10px; margin-bottom: 2px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    line-height: 1;
+  }
+
+  /* ======================================================== */
+  /*  OPCIÓN A — EDITORIAL SUIZO / INSTITUCIONAL              */
+  /* ======================================================== */
+  .opt-a {
+    --a-bg: #ffffff;
+    --a-ink: #0a0a0a;
+    --a-muted: #6b6b6b;
+    --a-rule: #e5e5e5;
+    --a-accent: #1f4cff;
+  }
+  .opt-a .mockup {
+    background: var(--a-bg);
+    color: var(--a-ink);
+    font-family: 'Inter', sans-serif;
+    padding: 0;
+  }
+  /* landing */
+  .opt-a .land { padding: 24px 28px 56px; min-height: 520px; }
+  .opt-a .land-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 20px; border-bottom: 1px solid var(--a-rule);
+    font-size: 13px;
+  }
+  .opt-a .land-nav .brand {
+    font-weight: 700; letter-spacing: -0.02em; font-size: 15px;
+  }
+  .opt-a .land-nav .links { display: flex; gap: 24px; color: var(--a-muted); }
+  .opt-a .land-nav .links a { color: var(--a-muted); text-decoration: none; }
+  .opt-a .land-nav .links a:hover { color: var(--a-ink); }
+  .opt-a .land-cta {
+    background: var(--a-ink); color: white;
+    padding: 7px 14px; border-radius: 0; font-size: 12px;
+    font-weight: 500;
+  }
+  .opt-a .land-hero {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    padding: 56px 0 24px;
+    align-items: end;
+  }
+  .opt-a .land-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--a-muted);
+    margin-bottom: 16px;
+  }
+  .opt-a .land-h1 {
+    font-size: 56px; line-height: 1; letter-spacing: -0.03em;
+    font-weight: 600; margin: 0;
+  }
+  .opt-a .land-h1 em {
+    font-style: normal; color: var(--a-accent);
+  }
+  .opt-a .land-sub {
+    font-size: 15px; color: var(--a-muted); line-height: 1.6;
+    max-width: 380px; margin: 0;
+  }
+  .opt-a .land-actions { display: flex; gap: 10px; margin-top: 24px; }
+  .opt-a .btn-primary {
+    background: var(--a-ink); color: white;
+    padding: 10px 18px; font-size: 13px; font-weight: 500;
+    border: 0;
+  }
+  .opt-a .btn-secondary {
+    background: transparent; color: var(--a-ink);
+    padding: 10px 18px; font-size: 13px; font-weight: 500;
+    border: 1px solid var(--a-rule);
+  }
+  .opt-a .land-meta {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    margin-top: 56px; border-top: 1px solid var(--a-rule);
+    padding-top: 20px;
+  }
+  .opt-a .land-meta div {
+    font-size: 12px;
+  }
+  .opt-a .land-meta .n {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--a-muted); margin-bottom: 4px;
+  }
+  .opt-a .land-meta .l { color: var(--a-ink); }
+
+  /* app */
+  .opt-a .app { display: grid; grid-template-columns: 200px 1fr; min-height: 520px; }
+  .opt-a .app-side {
+    border-right: 1px solid var(--a-rule);
+    padding: 20px 16px; font-size: 13px;
+  }
+  .opt-a .app-side .brand {
+    font-weight: 700; font-size: 14px; letter-spacing: -0.01em;
+    margin-bottom: 24px;
+  }
+  .opt-a .app-side .group {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--a-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin: 16px 0 6px;
+  }
+  .opt-a .app-side .item {
+    padding: 6px 0; color: var(--a-ink); display: flex; justify-content: space-between;
+  }
+  .opt-a .app-side .item.active { color: var(--a-accent); font-weight: 500; }
+  .opt-a .app-side .item .c { color: var(--a-muted); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .opt-a .app-main { padding: 24px 28px; }
+  .opt-a .app-h {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 4px;
+  }
+  .opt-a .app-h h2 {
+    font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 0;
+  }
+  .opt-a .app-h .btn {
+    background: var(--a-ink); color: white; font-size: 12px;
+    padding: 7px 14px;
+  }
+  .opt-a .app-sub { color: var(--a-muted); font-size: 13px; margin-bottom: 24px; }
+  .opt-a .app-table { font-size: 13px; }
+  .opt-a .app-table .row {
+    display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr;
+    padding: 12px 0; border-bottom: 1px solid var(--a-rule);
+    align-items: center;
+  }
+  .opt-a .app-table .head { color: var(--a-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .opt-a .app-table .doc { display: flex; gap: 10px; align-items: center; }
+  .opt-a .app-table .doc .ic { width: 24px; height: 24px; background: #f3f3f3; border-radius: 4px; display: grid; place-items: center; font-size: 10px; color: var(--a-muted); font-family: 'JetBrains Mono', monospace; }
+  .opt-a .tag {
+    display: inline-block; font-size: 11px;
+    padding: 2px 8px; border-radius: 0; border: 1px solid;
+  }
+  .opt-a .tag.pub { color: var(--a-accent); border-color: var(--a-accent); }
+  .opt-a .tag.priv { color: var(--a-ink); border-color: var(--a-ink); }
+
+  /* ======================================================== */
+  /*  OPCIÓN B — EDITORIAL CON CARÁCTER / BRUTALISMO          */
+  /* ======================================================== */
+  .opt-b {
+    --b-paper: #f1ece1;
+    --b-ink: #0e0e0e;
+    --b-red: #ec3a1a;
+    --b-cobalt: #1f2bd4;
+    --b-rule: #0e0e0e;
+  }
+  .opt-b .mockup {
+    background: var(--b-paper);
+    color: var(--b-ink);
+    font-family: 'Fraunces', serif;
+  }
+  .opt-b .land { padding: 0; min-height: 520px; position: relative; }
+  .opt-b .land-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 24px; border-bottom: 2px solid var(--b-rule);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .opt-b .land-nav .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600;
+  }
+  .opt-b .land-nav .brand .dot { width: 12px; height: 12px; background: var(--b-red); border-radius: 50%; }
+  .opt-b .land-nav .links { display: flex; gap: 18px; }
+  .opt-b .land-hero {
+    padding: 36px 24px 24px;
+    border-bottom: 2px solid var(--b-rule);
+  }
+  .opt-b .land-eye {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.12em; margin-bottom: 20px;
+    display: flex; justify-content: space-between;
+  }
+  .opt-b .land-h1 {
+    font-size: 92px; line-height: 0.92; letter-spacing: -0.04em;
+    font-weight: 600; margin: 0; font-style: italic;
+  }
+  .opt-b .land-h1 .alt {
+    font-style: normal; font-weight: 800;
+    color: var(--b-red);
+  }
+  .opt-b .land-h1 .alt2 {
+    font-style: normal; font-weight: 800;
+    color: var(--b-cobalt);
+  }
+  .opt-b .land-actions {
+    display: flex; gap: 12px; margin-top: 32px; align-items: center;
+  }
+  .opt-b .btn {
+    background: var(--b-ink); color: var(--b-paper);
+    padding: 14px 22px; font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
+    border: 2px solid var(--b-ink);
+  }
+  .opt-b .btn.ghost { background: transparent; color: var(--b-ink); }
+  .opt-b .land-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  }
+  .opt-b .land-grid div {
+    padding: 16px 18px; border-right: 2px solid var(--b-rule);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .opt-b .land-grid div:last-child { border-right: 0; }
+  .opt-b .land-grid .num {
+    font-family: 'Fraunces', serif; font-size: 32px;
+    line-height: 1; display: block; margin-bottom: 4px;
+    text-transform: none; letter-spacing: -0.02em; font-weight: 600;
+  }
+
+  /* app */
+  .opt-b .app { min-height: 520px; padding: 0; }
+  .opt-b .app-top {
+    display: grid; grid-template-columns: 1fr auto;
+    padding: 16px 22px; border-bottom: 2px solid var(--b-rule);
+    align-items: center;
+  }
+  .opt-b .app-top h2 {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 40px; letter-spacing: -0.02em; margin: 0;
+    font-style: italic;
+  }
+  .opt-b .app-top .actions { display: flex; gap: 10px; }
+  .opt-b .pill {
+    border: 2px solid var(--b-ink); padding: 6px 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    text-transform: uppercase;
+  }
+  .opt-b .pill.solid { background: var(--b-ink); color: var(--b-paper); }
+  .opt-b .app-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+  }
+  .opt-b .doc-card {
+    padding: 20px 22px; border-bottom: 2px solid var(--b-rule);
+    border-right: 2px solid var(--b-rule);
+    display: flex; flex-direction: column; gap: 10px;
+    min-height: 140px;
+  }
+  .opt-b .doc-card:nth-child(2n) { border-right: 0; }
+  .opt-b .doc-card .top {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .opt-b .doc-card .top .badge { padding: 3px 8px; border: 2px solid var(--b-ink); }
+  .opt-b .doc-card .top .badge.pub { background: var(--b-red); color: var(--b-paper); border-color: var(--b-red); }
+  .opt-b .doc-card .top .badge.priv { background: var(--b-cobalt); color: var(--b-paper); border-color: var(--b-cobalt); }
+  .opt-b .doc-card .name {
+    font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.1;
+    letter-spacing: -0.01em; font-weight: 600;
+  }
+  .opt-b .doc-card .meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    color: #555; margin-top: auto;
+  }
+
+  /* ======================================================== */
+  /*  OPCIÓN C — TECH OSCURO / DASHBOARD                      */
+  /* ======================================================== */
+  .opt-c {
+    --c-bg: #0a0a0d;
+    --c-surface: #15151b;
+    --c-surface-2: #1d1d24;
+    --c-rule: #2a2a33;
+    --c-text: #ededf0;
+    --c-mute: #7a7a85;
+    --c-accent: #b5ff3a;
+    --c-violet: #8f6dff;
+  }
+  .opt-c .mockup {
+    background: var(--c-bg); color: var(--c-text);
+    font-family: 'Geist', 'Inter', sans-serif;
+    padding: 0;
+  }
+  /* landing */
+  .opt-c .land { padding: 0; min-height: 520px; position: relative; overflow: hidden; }
+  .opt-c .land::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(circle at 80% 20%, rgba(181,255,58,0.07), transparent 50%),
+      radial-gradient(circle at 10% 80%, rgba(143,109,255,0.06), transparent 45%);
+    pointer-events: none;
+  }
+  .opt-c .land-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 24px; border-bottom: 1px solid var(--c-rule);
+    font-size: 13px; position: relative;
+  }
+  .opt-c .land-nav .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; letter-spacing: -0.01em;
+  }
+  .opt-c .land-nav .brand .di { width: 8px; height: 8px; background: var(--c-accent); border-radius: 2px; transform: rotate(45deg); }
+  .opt-c .land-nav .links { display: flex; gap: 22px; color: var(--c-mute); font-family: 'Geist Mono', monospace; font-size: 12px; }
+  .opt-c .land-nav .cmdk {
+    border: 1px solid var(--c-rule); padding: 4px 10px;
+    color: var(--c-mute); font-family: 'Geist Mono', monospace; font-size: 11px;
+    border-radius: 6px;
+  }
+  .opt-c .land-hero {
+    padding: 56px 32px 24px;
+    position: relative;
+  }
+  .opt-c .land-eye {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 10px; border-radius: 999px;
+    background: rgba(181,255,58,0.08);
+    border: 1px solid rgba(181,255,58,0.2);
+    font-family: 'Geist Mono', monospace; font-size: 11px;
+    color: var(--c-accent); margin-bottom: 20px;
+  }
+  .opt-c .land-eye .pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--c-accent); box-shadow: 0 0 8px var(--c-accent); }
+  .opt-c .land-h1 {
+    font-size: 56px; line-height: 1; letter-spacing: -0.03em;
+    font-weight: 500; margin: 0; max-width: 680px;
+  }
+  .opt-c .land-h1 .grad {
+    background: linear-gradient(90deg, var(--c-accent), var(--c-violet));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .opt-c .land-sub {
+    margin-top: 16px; color: var(--c-mute); font-size: 14px;
+    max-width: 480px; line-height: 1.6;
+  }
+  .opt-c .land-actions { margin-top: 28px; display: flex; gap: 10px; }
+  .opt-c .btn {
+    background: var(--c-text); color: var(--c-bg);
+    padding: 9px 18px; font-size: 13px; font-weight: 500;
+    border-radius: 8px; border: 0;
+  }
+  .opt-c .btn.ghost {
+    background: transparent; color: var(--c-text);
+    border: 1px solid var(--c-rule);
+  }
+  .opt-c .land-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+    background: var(--c-rule);
+    border-top: 1px solid var(--c-rule);
+    margin-top: 32px;
+  }
+  .opt-c .land-stats > div {
+    background: var(--c-bg); padding: 18px 24px;
+  }
+  .opt-c .land-stats .v {
+    font-family: 'Geist Mono', monospace; font-size: 22px;
+    font-weight: 500; color: var(--c-text);
+  }
+  .opt-c .land-stats .l {
+    font-size: 11px; color: var(--c-mute);
+    font-family: 'Geist Mono', monospace; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-top: 4px;
+  }
+
+  /* app */
+  .opt-c .app { display: grid; grid-template-columns: 200px 1fr; min-height: 520px; }
+  .opt-c .app-side {
+    background: var(--c-surface); border-right: 1px solid var(--c-rule);
+    padding: 16px 12px; font-size: 13px;
+  }
+  .opt-c .app-side .brand {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 16px;
+  }
+  .opt-c .app-side .brand .di { width: 8px; height: 8px; background: var(--c-accent); border-radius: 2px; transform: rotate(45deg); }
+  .opt-c .app-side .group {
+    font-family: 'Geist Mono', monospace; font-size: 10px;
+    color: var(--c-mute); text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 12px 8px 4px;
+  }
+  .opt-c .app-side .item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 8px; border-radius: 6px; color: var(--c-mute);
+  }
+  .opt-c .app-side .item.active { background: var(--c-surface-2); color: var(--c-text); }
+  .opt-c .app-side .item .b {
+    font-family: 'Geist Mono', monospace; font-size: 10px;
+    padding: 1px 6px; border-radius: 4px; background: var(--c-bg);
+    border: 1px solid var(--c-rule);
+  }
+  .opt-c .app-main { padding: 22px 24px; }
+  .opt-c .app-h {
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .opt-c .app-h h2 {
+    font-size: 22px; font-weight: 500; letter-spacing: -0.02em; margin: 0;
+  }
+  .opt-c .app-h .sub { color: var(--c-mute); font-size: 12px; font-family: 'Geist Mono', monospace; }
+  .opt-c .app-kpis {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    margin: 20px 0;
+  }
+  .opt-c .kpi {
+    background: var(--c-surface); border: 1px solid var(--c-rule);
+    padding: 14px; border-radius: 10px;
+  }
+  .opt-c .kpi .l {
+    font-family: 'Geist Mono', monospace; font-size: 10px;
+    color: var(--c-mute); text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .opt-c .kpi .v {
+    font-family: 'Geist Mono', monospace; font-size: 22px;
+    font-weight: 500; margin-top: 4px;
+  }
+  .opt-c .kpi .d {
+    font-size: 11px; color: var(--c-accent); font-family: 'Geist Mono', monospace; margin-top: 4px;
+  }
+  .opt-c .table {
+    background: var(--c-surface); border: 1px solid var(--c-rule);
+    border-radius: 10px; overflow: hidden; font-size: 13px;
+  }
+  .opt-c .table .row {
+    display: grid; grid-template-columns: 2.5fr 1fr 1fr 0.8fr;
+    padding: 12px 16px; border-bottom: 1px solid var(--c-rule); align-items: center;
+  }
+  .opt-c .table .row:last-child { border-bottom: 0; }
+  .opt-c .table .head {
+    color: var(--c-mute); font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.08em; font-family: 'Geist Mono', monospace;
+  }
+  .opt-c .table .doc { display: flex; gap: 10px; align-items: center; }
+  .opt-c .table .doc .ic {
+    width: 22px; height: 22px; border-radius: 5px;
+    background: var(--c-surface-2); display: grid; place-items: center;
+    font-family: 'Geist Mono', monospace; font-size: 9px; color: var(--c-mute);
+  }
+  .opt-c .table .doc .name { font-weight: 500; }
+  .opt-c .table .doc .path { color: var(--c-mute); font-size: 11px; }
+  .opt-c .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px; border-radius: 6px;
+    font-family: 'Geist Mono', monospace; font-size: 11px;
+  }
+  .opt-c .tag.pub { background: rgba(181,255,58,0.1); color: var(--c-accent); }
+  .opt-c .tag.priv { background: rgba(143,109,255,0.1); color: var(--c-violet); }
+  .opt-c .tag .d { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .opt-c .meta { color: var(--c-mute); font-family: 'Geist Mono', monospace; font-size: 12px; }
+
+  /* ======================================================== */
+  /*  OPCIÓN D — DOCUMENT-FIRST / CÁLIDO                      */
+  /* ======================================================== */
+  .opt-d {
+    --d-paper: #faf6ef;
+    --d-card: #ffffff;
+    --d-ink: #1f1a14;
+    --d-mute: #75695a;
+    --d-rule: #e9dfcd;
+    --d-accent: #b04a2f;
+    --d-accent-soft: #f1d9cf;
+    --d-leaf: #6b7a3a;
+  }
+  .opt-d .mockup {
+    background: var(--d-paper);
+    color: var(--d-ink);
+    font-family: 'Inter', sans-serif;
+  }
+  /* landing */
+  .opt-d .land { padding: 0; min-height: 520px; }
+  .opt-d .land-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 18px 28px;
+    font-size: 14px;
+  }
+  .opt-d .land-nav .brand {
+    font-family: 'Fraunces', serif; font-weight: 600;
+    font-size: 20px; letter-spacing: -0.01em;
+  }
+  .opt-d .land-nav .brand em { font-style: italic; color: var(--d-accent); }
+  .opt-d .land-nav .links { display: flex; gap: 22px; color: var(--d-mute); }
+  .opt-d .land-nav .cta {
+    background: var(--d-ink); color: var(--d-paper);
+    padding: 8px 16px; border-radius: 999px; font-size: 13px;
+  }
+  .opt-d .land-hero {
+    padding: 56px 28px 32px;
+    display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px;
+    align-items: center;
+  }
+  .opt-d .land-eye {
+    font-family: 'Fraunces', serif; font-style: italic;
+    color: var(--d-accent); font-size: 15px;
+    margin-bottom: 14px;
+  }
+  .opt-d .land-h1 {
+    font-family: 'Fraunces', serif; font-weight: 400;
+    font-size: 56px; line-height: 1.05; letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .opt-d .land-h1 em { font-style: italic; color: var(--d-accent); font-weight: 500; }
+  .opt-d .land-sub {
+    color: var(--d-mute); font-size: 15px; line-height: 1.7;
+    max-width: 440px; margin: 18px 0 0;
+  }
+  .opt-d .land-actions { margin-top: 28px; display: flex; gap: 12px; align-items: center; }
+  .opt-d .btn {
+    background: var(--d-ink); color: var(--d-paper);
+    padding: 12px 22px; font-size: 14px; border-radius: 999px;
+    border: 0;
+  }
+  .opt-d .btn.ghost {
+    background: transparent; color: var(--d-ink);
+    border: 1px solid var(--d-ink);
+  }
+  .opt-d .hero-paper {
+    background: var(--d-card);
+    border: 1px solid var(--d-rule);
+    padding: 18px;
+    border-radius: 12px;
+    box-shadow: 0 24px 40px -16px rgba(0,0,0,0.08);
+    font-family: 'Fraunces', serif;
+    position: relative;
+    transform: rotate(1.2deg);
+  }
+  .opt-d .hero-paper .head {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: 'Inter', sans-serif; font-size: 11px;
+    color: var(--d-mute); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .opt-d .hero-paper .head .pill {
+    background: var(--d-accent-soft); color: var(--d-accent);
+    padding: 3px 10px; border-radius: 999px; font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  .opt-d .hero-paper h4 {
+    font-size: 22px; margin: 0 0 4px;
+    font-weight: 500; letter-spacing: -0.01em;
+  }
+  .opt-d .hero-paper p {
+    font-family: 'Inter', sans-serif; font-size: 13px;
+    color: var(--d-mute); margin: 0; line-height: 1.55;
+  }
+  .opt-d .hero-paper .sig {
+    display: flex; justify-content: space-between;
+    font-family: 'Inter', sans-serif; font-size: 11px;
+    color: var(--d-mute); margin-top: 16px; padding-top: 12px;
+    border-top: 1px dashed var(--d-rule);
+  }
+
+  /* app */
+  .opt-d .app { display: grid; grid-template-columns: 220px 1fr; min-height: 520px; }
+  .opt-d .app-side {
+    background: var(--d-paper); border-right: 1px solid var(--d-rule);
+    padding: 22px 18px; font-size: 14px;
+  }
+  .opt-d .app-side .brand {
+    font-family: 'Fraunces', serif; font-weight: 600; font-size: 20px;
+    margin-bottom: 22px; letter-spacing: -0.01em;
+  }
+  .opt-d .app-side .brand em { font-style: italic; color: var(--d-accent); }
+  .opt-d .app-side .group {
+    font-family: 'Fraunces', serif; font-style: italic;
+    font-size: 13px; color: var(--d-mute); margin: 14px 0 6px;
+  }
+  .opt-d .app-side .item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 10px; border-radius: 8px;
+  }
+  .opt-d .app-side .item.active { background: var(--d-accent-soft); color: var(--d-accent); }
+  .opt-d .app-side .item .c { color: var(--d-mute); font-size: 12px; }
+  .opt-d .app-main { padding: 28px 32px; background: var(--d-card); }
+  .opt-d .app-h {
+    display: flex; justify-content: space-between; align-items: end;
+    margin-bottom: 22px;
+  }
+  .opt-d .app-h h2 {
+    font-family: 'Fraunces', serif; font-weight: 500;
+    font-size: 32px; letter-spacing: -0.02em; margin: 0;
+  }
+  .opt-d .app-h h2 em { font-style: italic; color: var(--d-accent); }
+  .opt-d .app-h .btn { font-size: 13px; }
+  .opt-d .doc-list { display: flex; flex-direction: column; gap: 10px; }
+  .opt-d .doc-row {
+    display: grid; grid-template-columns: 36px 1fr auto auto;
+    align-items: center; gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--d-rule);
+    border-radius: 12px;
+    background: var(--d-paper);
+  }
+  .opt-d .doc-row .ic {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: white; border: 1px solid var(--d-rule);
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif; font-style: italic; color: var(--d-accent);
+  }
+  .opt-d .doc-row .info .name { font-weight: 500; }
+  .opt-d .doc-row .info .meta { color: var(--d-mute); font-size: 12px; margin-top: 2px; }
+  .opt-d .tag {
+    font-size: 12px; padding: 3px 10px; border-radius: 999px;
+  }
+  .opt-d .tag.pub { background: var(--d-accent-soft); color: var(--d-accent); }
+  .opt-d .tag.priv { background: #efeadf; color: var(--d-mute); }
+  .opt-d .doc-row .more { color: var(--d-mute); font-size: 18px; }
+</style>
+</head>
+<body>
+
+<header class="meta-header">
+  <h1>DRES <span>· comparativa de personalidad visual · 4 direcciones</span></h1>
+  <nav class="meta-nav">
+    <a href="#a">A · Editorial suizo</a>
+    <a href="#b">B · Editorial fuerte</a>
+    <a href="#c">C · Tech oscuro</a>
+    <a href="#d">D · Document-first</a>
+  </nav>
+</header>
+
+<section class="meta-intro">
+  <h2>Elige una dirección</h2>
+  <p>Cada bloque aplica la dirección de verdad: paleta, tipografía, una mini-landing y una vista de "Mis documentos". No es una descripción — es un boceto realista. Compara, no leas.</p>
+  <p>Cuando tengas la favorita, dime cuál; ahí entramos en el siguiente nivel (tipografía exacta, escala, componentes, estados).</p>
+</section>
+
+<!-- ============================================================ -->
+<!--  OPCIÓN A                                                    -->
+<!-- ============================================================ -->
+<div id="a" class="option-wrap opt-a">
+  <div class="option-label">Dirección A</div>
+  <h2 class="option-title">Editorial suizo / institucional</h2>
+  <p class="option-summary">Profesional, sobrio, confiable. Mucho blanco, retícula visible, tipografía protagonista. Un acento de color usado con disciplina. Comunica seriedad y rigor — el riesgo es que se sienta "ya visto" si no se cuidan los detalles.</p>
+
+  <div class="option-frame">
+    <div class="frame-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">dres.app — landing</span>
+    </div>
+    <div class="mockup land">
+      <div class="land-nav">
+        <div class="brand">DRES.</div>
+        <div class="links">
+          <a href="#">Producto</a>
+          <a href="#">API</a>
+          <a href="#">Precios</a>
+          <a href="#">Acerca</a>
+        </div>
+        <a class="land-cta" href="#">Acceder →</a>
+      </div>
+      <div class="land-hero">
+        <div>
+          <div class="land-eyebrow">Clasificación documental · v1.0</div>
+          <h1 class="land-h1">Documentos<br>protegidos<br><em>por defecto.</em></h1>
+        </div>
+        <div>
+          <p class="land-sub">Sube cualquier archivo. Un modelo entrenado decide qué se puede compartir y qué no. Tú revisas, tú decides el último paso.</p>
+          <div class="land-actions">
+            <button class="btn-primary">Empezar gratis</button>
+            <button class="btn-secondary">Ver la API</button>
+          </div>
+        </div>
+      </div>
+      <div class="land-meta">
+        <div><div class="n">01</div><div class="l">Sube tus archivos</div></div>
+        <div><div class="n">02</div><div class="l">Análisis automático</div></div>
+        <div><div class="n">03</div><div class="l">Acceso controlado</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option-frame" style="margin-top:24px">
+    <div class="frame-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">app.dres.io / mis-documentos</span>
+    </div>
+    <div class="mockup app">
+      <aside class="app-side">
+        <div class="brand">DRES.</div>
+        <div class="group">Personal</div>
+        <div class="item active">Mis documentos <span class="c">24</span></div>
+        <div class="item">Carpetas <span class="c">6</span></div>
+        <div class="item">Compartidos <span class="c">3</span></div>
+        <div class="item">Favoritos <span class="c">8</span></div>
+        <div class="group">Equipo</div>
+        <div class="item">Explorar</div>
+        <div class="item">Organizaciones</div>
+        <div class="item">Usuarios</div>
+        <div class="group">Cuenta</div>
+        <div class="item">API keys</div>
+        <div class="item">Ajustes</div>
+      </aside>
+      <main class="app-main">
+        <div class="app-h">
+          <h2>Mis documentos</h2>
+          <button class="btn">+ Subir archivo</button>
+        </div>
+        <div class="app-sub">24 archivos · 18,4 MB · última subida hace 2 h</div>
+        <div class="app-table">
+          <div class="row head">
+            <div>Documento</div><div>Tipo</div><div>Tamaño</div><div>Modificado</div>
+          </div>
+          <div class="row">
+            <div class="doc"><div class="ic">PDF</div>Contrato_proveedor_2024.pdf</div>
+            <div><span class="tag priv">Privado</span></div>
+            <div>2,4 MB</div><div>hace 2 h</div>
+          </div>
+          <div class="row">
+            <div class="doc"><div class="ic">DOC</div>Memoria_TFG_v3.docx</div>
+            <div><span class="tag pub">Público</span></div>
+            <div>812 KB</div><div>ayer</div>
+          </div>
+          <div class="row">
+            <div class="doc"><div class="ic">XLS</div>Plan_economico_Q2.xlsx</div>
+            <div><span class="tag priv">Privado</span></div>
+            <div>180 KB</div><div>2 días</div>
+          </div>
+          <div class="row">
+            <div class="doc"><div class="ic">PDF</div>Plantilla_factura.pdf</div>
+            <div><span class="tag pub">Público</span></div>
+            <div>96 KB</div><div>1 sem</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="option-grid">
+    <div class="spec-card">
+      <h3>Paleta</h3>
+      <div class="palette-row">
+        <div class="swatch"><div class="chip" style="background:#ffffff;border:1px solid #eee"></div><div class="label">#FFFFFF</div></div>
+        <div class="swatch"><div class="chip" style="background:#0a0a0a"></div><div class="label">#0A0A0A</div></div>
+        <div class="swatch"><div class="chip" style="background:#1f4cff"></div><div class="label">#1F4CFF</div></div>
+        <div class="swatch"><div class="chip" style="background:#6b6b6b"></div><div class="label">#6B6B6B</div></div>
+        <div class="swatch"><div class="chip" style="background:#f4f4f4"></div><div class="label">#F4F4F4</div></div>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>Tipografía</h3>
+      <div class="type-stack" style="font-family:'Inter',sans-serif">
+        <div class="label">Display · Inter 600 · -0.03em</div>
+        <div style="font-size:36px;font-weight:600;letter-spacing:-0.03em">Documentos protegidos.</div>
+        <div class="label">Body · Inter 400 · 15px</div>
+        <div style="font-size:15px;color:#555">El modelo decide qué se puede compartir.</div>
+        <div class="label">Mono · JetBrains Mono · etiquetas</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:0.1em">01 — Pipeline activo</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  OPCIÓN B                                                    -->
+<!-- ============================================================ -->
+<div id="b" class="option-wrap opt-b">
+  <div class="option-label">Dirección B</div>
+  <h2 class="option-title">Editorial con carácter / brutalismo controlado</h2>
+  <p class="option-summary">Personalidad fuerte, único, memorable. Tipografía display + contrastes altos, asimetrías intencionales, color usado con valentía. La opción más "agencia": no parece hecho con plantilla. Riesgo: polariza al tribunal.</p>
+
+  <div class="option-frame">
+    <div class="frame-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">dres.app — landing</span>
+    </div>
+    <div class="mockup land">
+      <div class="land-nav">
+        <div class="brand"><span class="dot"></span>DRES</div>
+        <div class="links">
+          <a href="#" style="color:inherit;text-decoration:none">Docs</a>
+          <a href="#" style="color:inherit;text-decoration:none">API</a>
+          <a href="#" style="color:inherit;text-decoration:none">Login</a>
+        </div>
+      </div>
+      <div class="land-hero">
+        <div class="land-eye">
+          <span>(001) Plataforma de clasificación</span>
+          <span>2026 / Madrid</span>
+        </div>
+        <h1 class="land-h1">Documentos.<br><span class="alt">Públicos</span><br>o <span class="alt2">privados.</span></h1>
+        <div class="land-actions">
+          <button class="btn">Probar →</button>
+          <button class="btn ghost">Leer docs</button>
+        </div>
+      </div>
+      <div class="land-grid">
+        <div><span class="num">10s</span>tiempo medio de análisis</div>
+        <div><span class="num">06</span>formatos soportados</div>
+        <div><span class="num">94%</span>precisión actual</div>
+        <div><span class="num">∞</span>archivos por minuto</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option-frame" style="margin-top:24px">
+    <div class="frame-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">app.dres.io / mis-documentos</span>
+    </div>
+    <div class="mockup app">
+      <div class="app-top">
+        <h2><em>Mis</em> documentos</h2>
+        <div class="actions">
+          <div class="pill">24 docs</div>
+          <div class="pill solid">+ Subir</div>
+        </div>
+      </div>
+      <div class="app-grid">
+        <div class="doc-card">
+          <div class="top">
+            <span>PDF · 2,4 MB</span>
+            <span class="badge priv">Privado</span>
+          </div>
+          <div class="name">Contrato proveedor 2024</div>
+          <div class="meta">subido hace 2 h · 4 páginas</div>
+        </div>
+        <div class="doc-card">
+          <div class="top">
+            <span>DOCX · 812 KB</span>
+            <span class="badge pub">Público</span>
+          </div>
+          <div class="name">Memoria del TFG v3</div>
+          <div class="meta">subido ayer · 47 páginas</div>
+        </div>
+        <div class="doc-card">
+          <div class="top">
+            <span>XLSX · 180 KB</span>
+            <span class="badge priv">Privado</span>
+          </div>
+          <div class="name">Plan económico Q2</div>
+          <div class="meta">subido hace 2 días</div>
+        </div>
+        <div class="doc-card">
+          <div class="top">
+            <span>PDF · 96 KB</span>
+            <span class="badge pub">Público</span>
+          </div>
+          <div class="name">Plantilla de factura</div>
+          <div class="meta">subido hace 1 semana</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option-grid">
+    <div class="spec-card">
+      <h3>Paleta</h3>
+      <div class="palette-row">
+        <div class="swatch"><div class="chip" style="background:#f1ece1"></div><div class="label">#F1ECE1</div></div>
+        <div class="swatch"><div class="chip" style="background:#0e0e0e"></div><div class="label">#0E0E0E</div></div>
+        <div class="swatch"><div class="chip" style="background:#ec3a1a"></div><div class="label">#EC3A1A</div></div>
+        <div class="swatch"><div class="chip" style="background:#1f2bd4"></div><div class="label">#1F2BD4</div></div>
+        <div class="swatch"><div class="chip" style="background:#ffffff;border:1px solid #ddd"></div><div class="label">#FFFFFF</div></div>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>Tipografía</h3>
+      <div class="type-stack">
+        <div class="label">Display · Fraunces 600 italic</div>
+        <div style="font-family:'Fraunces',serif;font-size:42px;font-style:italic;letter-spacing:-0.03em;font-weight:600;line-height:1">Documentos.</div>
+        <div class="label">Display alt · Fraunces 800 recto</div>
+        <div style="font-family:'Fraunces',serif;font-size:38px;font-weight:800;color:#ec3a1a;letter-spacing:-0.02em;line-height:1">PRIVADOS.</div>
+        <div class="label">UI · JetBrains Mono caps</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.1em">(004) Subir archivo →</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  OPCIÓN C                                                    -->
+<!-- ============================================================ -->
+<div id="c" class="option-wrap opt-c">
+  <div class="option-label">Dirección C</div>
+  <h2 class="option-title">Tech oscuro / dashboard de seguridad</h2>
+  <p class="option-summary">Asociación inmediata con confidencialidad y control. Predominio oscuro, acentos sutiles, mood operativo. La idea de "protección" entra por los ojos. La opción más natural para un TFG técnico — riesgo: puede cansar y diferenciarse poco de cualquier dashboard SaaS.</p>
+
+  <div class="option-frame">
+    <div class="frame-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">dres.app — landing</span>
+    </div>
+    <div class="mockup land">
+      <div class="land-nav">
+        <div class="brand"><span class="di"></span>dres</div>
+        <div class="links">
+          <a href="#" style="color:inherit;text-decoration:none">producto</a>
+          <a href="#" style="color:inherit;text-decoration:none">api</a>
+          <a href="#" style="color:inherit;text-decoration:none">docs</a>
+        </div>
+        <div class="cmdk">⌘K · Buscar</div>
+      </div>
+      <div class="land-hero">
+        <div class="land-eye"><span class="pulse"></span>modelo activo · 94,2% precisión</div>
+        <h1 class="land-h1">Clasificación documental <span class="grad">en tiempo real.</span></h1>
+        <p class="land-sub">Pipeline de IA que decide qué documentos pueden salir y cuáles no. Sin configurar reglas. Sin entrenar tu propio modelo. Conecta la API y úsalo.</p>
+        <div class="land-actions">
+          <button class="btn">Crear cuenta</button>
+          <button class="btn ghost">Ver demo →</button>
+        </div>
+      </div>
+      <div class="land-stats">
+        <div><div class="v">~ 1,8 s</div><div class="l">por documento</div></div>
+        <div><div class="v">06</div><div class="l">formatos soportados</div></div>
+        <div><div class="v">99,9%</div><div class="l">uptime · últimos 30 d</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option-frame" style="margin-top:24px">
+    <div class="frame-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">app.dres.io / mis-documentos</span>
+    </div>
+    <div class="mockup app">
+      <aside class="app-side">
+        <div class="brand"><span class="di"></span>dres</div>
+        <div class="group">Personal</div>
+        <div class="item active">Documentos <span class="b">24</span></div>
+        <div class="item">Carpetas <span class="b">6</span></div>
+        <div class="item">Compartidos <span class="b">3</span></div>
+        <div class="group">Equipo</div>
+        <div class="item">Explorar</div>
+        <div class="item">Organizaciones</div>
+        <div class="group">Desarrollador</div>
+        <div class="item">API keys</div>
+        <div class="item">Webhooks</div>
+        <div class="item">Logs</div>
+      </aside>
+      <main class="app-main">
+        <div class="app-h">
+          <h2>Documentos</h2>
+          <span class="sub">last sync · hace 12 s</span>
+        </div>
+        <div class="app-kpis">
+          <div class="kpi"><div class="l">Total</div><div class="v">24</div><div class="d">+3 hoy</div></div>
+          <div class="kpi"><div class="l">Privados</div><div class="v">17</div><div class="d">71%</div></div>
+          <div class="kpi"><div class="l">Públicos</div><div class="v">7</div><div class="d">29%</div></div>
+          <div class="kpi"><div class="l">En proceso</div><div class="v">2</div><div class="d" style="color:var(--c-violet)">analizando</div></div>
+        </div>
+        <div class="table">
+          <div class="row head">
+            <div>Documento</div><div>Estado</div><div>Tamaño</div><div>Modif.</div>
+          </div>
+          <div class="row">
+            <div class="doc"><div class="ic">PDF</div><div><div class="name">Contrato_proveedor_2024.pdf</div><div class="path">/personal · contratos</div></div></div>
+            <div><span class="tag priv"><span class="d"></span>privado</span></div>
+            <div class="meta">2.4 MB</div>
+            <div class="meta">2 h</div>
+          </div>
+          <div class="row">
+            <div class="doc"><div class="ic">DOC</div><div><div class="name">Memoria_TFG_v3.docx</div><div class="path">/personal · tfg</div></div></div>
+            <div><span class="tag pub"><span class="d"></span>público</span></div>
+            <div class="meta">812 KB</div>
+            <div class="meta">1 d</div>
+          </div>
+          <div class="row">
+            <div class="doc"><div class="ic">XLS</div><div><div class="name">Plan_economico_Q2.xlsx</div><div class="path">/personal · finanzas</div></div></div>
+            <div><span class="tag priv"><span class="d"></span>privado</span></div>
+            <div class="meta">180 KB</div>
+            <div class="meta">2 d</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="option-grid">
+    <div class="spec-card">
+      <h3>Paleta</h3>
+      <div class="palette-row">
+        <div class="swatch"><div class="chip" style="background:#0a0a0d"></div><div class="label">#0A0A0D</div></div>
+        <div class="swatch"><div class="chip" style="background:#15151b"></div><div class="label">#15151B</div></div>
+        <div class="swatch"><div class="chip" style="background:#ededf0"></div><div class="label">#EDEDF0</div></div>
+        <div class="swatch"><div class="chip" style="background:#b5ff3a"></div><div class="label">#B5FF3A</div></div>
+        <div class="swatch"><div class="chip" style="background:#8f6dff"></div><div class="label">#8F6DFF</div></div>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>Tipografía</h3>
+      <div class="type-stack">
+        <div class="label">Display · Geist 500 · -0.03em</div>
+        <div style="font-family:'Geist',sans-serif;font-size:34px;font-weight:500;letter-spacing:-0.03em;color:#15151b">Clasificación en tiempo real.</div>
+        <div class="label">Body · Geist 400 · 14px</div>
+        <div style="font-family:'Geist',sans-serif;font-size:14px;color:#555">Pipeline de IA decidiendo qué sale y qué no.</div>
+        <div class="label">Mono · Geist Mono</div>
+        <div style="font-family:'Geist Mono',monospace;font-size:12px;color:#888">curl -X POST /v1/classify</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!--  OPCIÓN D                                                    -->
+<!-- ============================================================ -->
+<div id="d" class="option-wrap opt-d">
+  <div class="option-label">Dirección D</div>
+  <h2 class="option-title">Document-first / cálido y legible</h2>
+  <p class="option-summary">El producto va de documentos — la UI imita esa calma. Paleta cálida (papel/tinta), serif en títulos, mucha legibilidad. Menos "plataforma técnica", más "escritorio digital de archivo". La más cálida y diferenciable; riesgo: puede no transmitir "seguridad".</p>
+
+  <div class="option-frame">
+    <div class="frame-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">dres.app — landing</span>
+    </div>
+    <div class="mockup land">
+      <div class="land-nav">
+        <div class="brand">Dr<em>es</em>.</div>
+        <div class="links">
+          <a href="#" style="color:inherit;text-decoration:none">Producto</a>
+          <a href="#" style="color:inherit;text-decoration:none">API</a>
+          <a href="#" style="color:inherit;text-decoration:none">Acerca</a>
+        </div>
+        <a class="cta" href="#" style="text-decoration:none">Acceder</a>
+      </div>
+      <div class="land-hero">
+        <div>
+          <div class="land-eye">— una forma más serena de archivar.</div>
+          <h1 class="land-h1">Tus documentos,<br><em>protegidos</em><br>sin que tengas<br>que pensarlo.</h1>
+          <p class="land-sub">Subes un archivo. Una IA decide si puede ver la luz o no. Tú revisas, lo cambias si hace falta, y sigues con tu día.</p>
+          <div class="land-actions">
+            <button class="btn">Crear cuenta</button>
+            <button class="btn ghost">Ver demo</button>
+          </div>
+        </div>
+        <div class="hero-paper">
+          <div class="head">
+            <span>Contrato · 4 páginas</span>
+            <span class="pill">privado</span>
+          </div>
+          <h4>Acuerdo de colaboración</h4>
+          <p>Entre las partes que más adelante se identifican, ambas con plena capacidad jurídica para contratar y obligarse, conviene cuanto sigue…</p>
+          <div class="sig">
+            <span>analizado · 1,8 s</span>
+            <span>3 nov 2026</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option-frame" style="margin-top:24px">
+    <div class="frame-bar">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="url">app.dres.io / mis-documentos</span>
+    </div>
+    <div class="mockup app">
+      <aside class="app-side">
+        <div class="brand">Dr<em>es</em>.</div>
+        <div class="group">Personal</div>
+        <div class="item active">Mis documentos <span class="c">24</span></div>
+        <div class="item">Carpetas <span class="c">6</span></div>
+        <div class="item">Compartidos <span class="c">3</span></div>
+        <div class="item">Favoritos <span class="c">8</span></div>
+        <div class="group">Comunidad</div>
+        <div class="item">Explorar</div>
+        <div class="item">Organizaciones</div>
+        <div class="group">Cuenta</div>
+        <div class="item">API keys</div>
+        <div class="item">Ajustes</div>
+      </aside>
+      <main class="app-main">
+        <div class="app-h">
+          <h2>Mis <em>documentos</em></h2>
+          <button class="btn">+ Subir archivo</button>
+        </div>
+        <div class="doc-list">
+          <div class="doc-row">
+            <div class="ic">P</div>
+            <div class="info">
+              <div class="name">Contrato proveedor 2024</div>
+              <div class="meta">PDF · 2,4 MB · subido hace 2 h</div>
+            </div>
+            <div class="tag priv">privado</div>
+            <div class="more">···</div>
+          </div>
+          <div class="doc-row">
+            <div class="ic">M</div>
+            <div class="info">
+              <div class="name">Memoria del TFG v3</div>
+              <div class="meta">DOCX · 812 KB · subido ayer</div>
+            </div>
+            <div class="tag pub">público</div>
+            <div class="more">···</div>
+          </div>
+          <div class="doc-row">
+            <div class="ic">P</div>
+            <div class="info">
+              <div class="name">Plan económico Q2</div>
+              <div class="meta">XLSX · 180 KB · 2 días</div>
+            </div>
+            <div class="tag priv">privado</div>
+            <div class="more">···</div>
+          </div>
+          <div class="doc-row">
+            <div class="ic">F</div>
+            <div class="info">
+              <div class="name">Plantilla de factura</div>
+              <div class="meta">PDF · 96 KB · 1 semana</div>
+            </div>
+            <div class="tag pub">público</div>
+            <div class="more">···</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="option-grid">
+    <div class="spec-card">
+      <h3>Paleta</h3>
+      <div class="palette-row">
+        <div class="swatch"><div class="chip" style="background:#faf6ef"></div><div class="label">#FAF6EF</div></div>
+        <div class="swatch"><div class="chip" style="background:#1f1a14"></div><div class="label">#1F1A14</div></div>
+        <div class="swatch"><div class="chip" style="background:#b04a2f"></div><div class="label">#B04A2F</div></div>
+        <div class="swatch"><div class="chip" style="background:#f1d9cf"></div><div class="label">#F1D9CF</div></div>
+        <div class="swatch"><div class="chip" style="background:#6b7a3a"></div><div class="label">#6B7A3A</div></div>
+      </div>
+    </div>
+    <div class="spec-card">
+      <h3>Tipografía</h3>
+      <div class="type-stack">
+        <div class="label">Display · Fraunces 400 italic</div>
+        <div style="font-family:'Fraunces',serif;font-size:38px;font-weight:400;font-style:italic;letter-spacing:-0.02em;color:#1f1a14;line-height:1">Mis documentos.</div>
+        <div class="label">Display recto · Fraunces 500</div>
+        <div style="font-family:'Fraunces',serif;font-size:32px;font-weight:500;color:#1f1a14;letter-spacing:-0.02em;line-height:1">Acuerdo de colaboración</div>
+        <div class="label">Body · Inter 400 · 15px</div>
+        <div style="font-family:'Inter',sans-serif;font-size:15px;color:#75695a;line-height:1.6">Una forma más serena de archivar.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer style="text-align:center;padding:60px 20px 80px;color:#888;font-size:12px">
+  Boceto comparativo · DRES · 2026 — abre cualquier opción al final del flujo eligiendo una
+</footer>
+
+</body>
+</html>
