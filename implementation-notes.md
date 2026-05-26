@@ -507,3 +507,26 @@ se desplegaron y verificaron en sesión anterior.
 Verificación: npm test → 13/13 tests verdes (8 validaciones + 5 iniciales).
 Commit: 43cad5d.
 
+---
+
+## 2026-05-26 — B-05: Componente Button
+
+**Pedido**
+- Crear `web/src/components/ui/Button.tsx` con 5 variantes (primary/accent/ghost/danger/link),
+  3 tamaños (sm/md/lg), estado loading con spinner, focus ring, disabled.
+- forwardRef para integración con formularios.
+
+**Decidido por Claude**
+- Ninguna decisión discrecional. Se copió el código exacto de la spec.
+
+**Cambios**
+- Ninguno.
+
+**Compromisos**
+- Ninguno.
+
+**A revisar**
+- Verificación visual al usarse en pantallas posteriores.
+
+Verificación: `npx tsc --noEmit` → 0 errores.
+
