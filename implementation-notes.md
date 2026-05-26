@@ -568,3 +568,18 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-08: Componente Avatar
+
+**Pedido**
+- Avatar.tsx que renderiza imagen o iniciales (calculadas por la utilidad de B-04).
+- 4 tamaños: sm/md/lg/xl.
+
+**Decidido por Claude** — Ninguna. Copia exacta.
+**Cambios** — Ninguno.
+**Compromisos** — Se usa `<img>` plano (no next/image). Motivo: los avatares vienen de Supabase Storage con URL pública dinámica y tamaño fijo, no se beneficia de la optimización automática.
+**A revisar** — Verificación al usarse en topbar (B-22) y perfil (B-21).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
