@@ -98,6 +98,32 @@ Verificación: `npm run build` → 16 rutas, 0 errores. `supabase db push` → 1
 
 ---
 
+## 2026-05-26 — B-14: Pantalla /registro rediseñada
+
+**Pedido**
+- Formulario de registro nuevo: usuario, nombre completo (opcional), email,
+  password, confirmar password. Validación en cliente del matching de password
+  (botón disabled hasta que coincidan). Errores por campo + Alert general.
+- Aplicar componentes UI del sistema (Button, Input, PasswordInput, FormField, Alert).
+
+**Decidido por Claude**
+- Ninguna.
+
+**Cambios**
+- Ninguno respecto a la spec.
+
+**Compromisos**
+- La validación cliente del matching usa state local (useState), no Form action —
+  más reactivo y simple para feedback inmediato.
+
+**A revisar**
+- Verificación visual en el navegador después de aplicar todas las pantallas.
+- Probar caso "username ya existe" cuando el flujo esté completo.
+
+Verificación: `npx tsc --noEmit` → 0 errores.
+
+---
+
 ## 2026-05-26 — B-03: Tokens del sistema Esmeralda biblioteca en globals.css
 
 **Pedido**
