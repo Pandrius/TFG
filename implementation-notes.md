@@ -478,3 +478,32 @@ se desplegaron y verificaron en sesión anterior.
   percepción con 2-3 pantallas reales antes de cerrar visualmente el
   proyecto.
 
+---
+
+## 2026-05-26 — B-04: Utilidades puras (validaciones auth + iniciales)
+
+**Pedido**
+- Crear dos módulos de utilidades puras con validadores: `validarNombreUsuario`,
+  `validarEmail`, `validarPassword` en `web/src/lib/auth/validaciones.ts`.
+- Crear función `calcularIniciales` en `web/src/lib/perfil/iniciales.ts` para
+  las iniciales del avatar.
+- Tests TDD: escribir primero los tests, luego la implementación.
+- Archivo de tests: `web/src/lib/auth/__tests__/validaciones.test.ts` y
+  `web/src/lib/perfil/__tests__/iniciales.test.ts`.
+
+**Decidido por Claude**
+- Ninguna decisión discrecional: se implementó exactamente como se especificó.
+
+**Cambios**
+- Ninguno respecto al plan.
+
+**Compromisos**
+- Ninguno. Las especificaciones fueron claras y completas.
+
+**A revisar**
+- Que los validadores se integren correctamente en los formularios de registro/login
+  (próximos hitos).
+
+Verificación: npm test → 13/13 tests verdes (8 validaciones + 5 iniciales).
+Commit: [SHA pendiente].
+
