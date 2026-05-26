@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Rutas accesibles sin haber iniciado sesión.
-const RUTAS_PUBLICAS = ["/", "/login", "/registro"];
+const RUTAS_PUBLICAS = ["/", "/login", "/registro", "/recuperar", "/recuperar/confirmar"];
 
 /**
  * Proxy (antes "middleware" en Next.js <16): refresca la sesión de Supabase
@@ -48,7 +48,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Con sesión en login/registro -> al inicio.
-  if (user && (ruta === "/login" || ruta === "/registro")) {
+  if (user && (ruta === "/login" || ruta === "/registro" || ruta.startsWith("/recuperar"))) {
     const url = request.nextUrl.clone();
     url.pathname = "/inicio";
     return NextResponse.redirect(url);

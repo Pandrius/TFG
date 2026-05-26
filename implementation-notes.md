@@ -155,6 +155,31 @@ Commit: `8e38950`.
 
 ---
 
+## 2026-05-26 — B-16: Pantalla /recuperar + proxy actualizado
+
+**Pedido**
+- Crear /recuperar/page.tsx con form de email + Alert de éxito ("revisa tu bandeja").
+- Añadir /recuperar y /recuperar/confirmar a RUTAS_PUBLICAS del proxy.
+- Si hay sesión y la ruta empieza por /recuperar, redirigir a /inicio.
+
+**Decidido por Claude**
+- Ninguna.
+
+**Cambios**
+- Ninguno.
+
+**Compromisos**
+- La pantalla reemplaza el form por el Alert ok cuando solicitarRecuperacion
+  devuelve éxito (un solo render). No persiste el email en re-renders, es
+  correcto: el usuario ya leyó el mensaje y debe ir al email.
+
+**A revisar**
+- Probar end-to-end cuando llegue el email.
+
+Verificación: `npx tsc --noEmit` → 0 errores.
+
+---
+
 ## 2026-05-24 — Hitos 5–9: resto de la plataforma
 
 **Pedido**
