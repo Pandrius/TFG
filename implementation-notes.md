@@ -583,3 +583,21 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-09: Sistema de toasts
+
+**Pedido**
+- Toast.tsx con ToastProvider (context), useToast hook, componente Toast con 3 variantes (ok/warn/err).
+- Auto-dismiss 5s.
+
+**Decidido por Claude** — Ninguna decisión discrecional.
+
+**Cambios** — Ninguno.
+
+**Compromisos** — Sistema simple basado en pila de IDs únicos (Date.now() + Math.random()). No hay throttling ni agrupación de toasts idénticos repetidos — si una acción se dispara 5 veces, se muestran 5 toasts. Es aceptable para mínimo viable.
+
+**A revisar** — Verificación visual al integrarse en (app)/layout (B-22).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
