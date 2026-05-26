@@ -3,61 +3,72 @@
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { Alert } from "@/components/ui/Alert";
+import { Button } from "@/components/ui/Button";
+import { FormField } from "@/components/ui/FormField";
+import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
+
 import { iniciarSesion } from "../acciones";
 
 export default function PaginaLogin() {
   const [estado, accion, pendiente] = useActionState(iniciarSesion, undefined);
+  const error = estado && "error" in estado ? estado.error : undefined;
 
   return (
     <main className="flex flex-1 items-center justify-center p-6">
       <form
         action={accion}
-        className="flex w-full max-w-sm flex-col gap-4 rounded-xl border border-gray-200 p-8 dark:border-gray-800"
+        className="flex w-full max-w-sm flex-col gap-5 rounded-[18px] border border-rule bg-card p-8 shadow-[var(--shadow-2)]"
       >
-        <h1 className="text-2xl font-bold">Iniciar sesión</h1>
+        <header>
+          <p className="font-display italic text-accent text-sm m-0">
+            — vuelve a tu archivo
+          </p>
+          <h1 className="font-display font-medium text-3xl tracking-tight m-0 mt-1">
+            Iniciar sesión.
+          </h1>
+        </header>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
+        <FormField label="Email" htmlFor="email">
+          <Input
+            id="email"
             name="email"
             type="email"
             required
             autoComplete="email"
-            className="rounded-md border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
           />
-        </label>
+        </FormField>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Contraseña
-          <input
+        <FormField label="Contraseña" htmlFor="password">
+          <PasswordInput
+            id="password"
             name="password"
-            type="password"
             required
             autoComplete="current-password"
-            className="rounded-md border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
           />
-        </label>
+        </FormField>
 
-        {estado && "error" in estado && (
-          <p className="text-sm text-red-600" role="alert">
-            {estado.error}
-          </p>
-        )}
+        {error && <Alert variant="err">{error}</Alert>}
 
-        <button
-          type="submit"
-          disabled={pendiente}
-          className="rounded-md bg-blue-600 px-4 py-2.5 font-medium text-white hover:bg-blue-700 disabled:opacity-60"
-        >
+        <Button type="submit" variant="accent" size="lg" loading={pendiente}>
           {pendiente ? "Entrando…" : "Entrar"}
-        </button>
+        </Button>
 
-        <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-          ¿No tienes cuenta?{" "}
-          <Link href="/registro" className="text-blue-600 hover:underline">
-            Regístrate
+        <div className="flex justify-between text-sm">
+          <Link
+            href="/recuperar"
+            className="text-mute hover:text-ink"
+          >
+            ¿Olvidaste tu contraseña?
           </Link>
-        </p>
+          <Link
+            href="/registro"
+            className="text-accent border-b border-accent-soft hover:border-accent"
+          >
+            Crear cuenta
+          </Link>
+        </div>
       </form>
     </main>
   );

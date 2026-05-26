@@ -717,3 +717,19 @@ Aplicación de migración: pendiente (usuario ejecuta `supabase db push --linked
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-15: Pantalla /login rediseñada
+
+**Pedido**
+- Login con email + password, enlace "¿Olvidaste tu contraseña?" → /recuperar
+  y "Crear cuenta" → /registro.
+- Estética del sistema de diseño.
+
+**Decidido por Claude** — Ninguna.
+**Cambios** — Ninguno.
+**Compromisos** — Ninguno.
+**A revisar** — Verificación visual en navegador.
+
+Verificación: npx tsc --noEmit → 0 errores.
+
