@@ -779,3 +779,27 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-18: Componente AvatarUpload
+
+**Pedido**
+- Componente que renderiza un Avatar grande (xl), botón "Cambiar/Subir foto"
+  (abre file input), opción "Quitar foto" si ya hay imagen.
+- Recorta al cuadrado centrado, redimensiona a 256×256, codifica a WEBP en
+  el navegador antes de subir (vía canvas).
+- Valida tipo (jpg/png/webp) y tamaño (≤2 MB).
+- Callbacks: onSubidoCorrecto, onQuitado, onError.
+
+**Decidido por Claude** — Ninguna.
+**Cambios** — Ninguno.
+**Compromisos** —
+  - El recorte siempre es cuadrado centrado, sin permitir al usuario reposicionar.
+    Para mínimo viable es suficiente; si se necesita reposicionar, añadir
+    librería de cropping en C/D.
+  - El loader es un overlay sobre el avatar (no un spinner aparte) para
+    transmitir que la imagen está procesándose.
+**A revisar** — Probar al usarse en /perfil (B-21) con upload real.
+
+Verificación: npx tsc --noEmit → 0 errores.
+
