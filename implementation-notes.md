@@ -847,3 +847,27 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-21: Pantalla /perfil
+
+**Pedido**
+- Server Component page.tsx que carga perfil del usuario autenticado.
+- Client Component FormularioPerfil.tsx con 2 secciones: identidad (avatar
+  editable + nombre completo) y seguridad (cambiar contraseña con verify-actual).
+- Feedback con Toasts (B-09) tras cada acción.
+
+**Decidido por Claude** — Ninguna.
+
+**Cambios** — Ninguno.
+
+**Compromisos** —
+  - mostrar toast directamente dentro del render — el toast tiene un ID único
+    cada vez que se llama, así que no causa duplicados por re-render. Es
+    pragmático; alternativas (useEffect [estado]) son más correctas pero más
+    verbosas para mínimo viable.
+
+**A revisar** — Verificación visual completa al cerrar el sub-proyecto (B-24).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
