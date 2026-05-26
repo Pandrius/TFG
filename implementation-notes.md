@@ -630,3 +630,36 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-12: Migración SQL bucket avatares + ajuste trigger
+
+**Pedido**
+- Crear bucket "avatars" en Supabase Storage con RLS por carpeta {auth.uid()}/...
+- Reescribir trigger crear_perfil_nuevo_usuario para usar el nombre_usuario
+  del registro sin concatenar sufijo aleatorio.
+
+**Decidido por Claude**
+- Ninguna. Migración SQL exacta de la spec.
+
+**Cambios**
+- Ninguno.
+
+**Compromisos**
+- Si Supabase Cloud bloquea la creación del bucket vía SQL, habrá que crearlo
+  manualmente desde el panel y reaplicar solo las policies.
+
+**A revisar**
+- Aplicar la migración con `supabase db push --linked` (resultado: pendiente —
+  el CLI se encuentra disponible pero `supabase db push` está bloqueado por
+  protección de seguridad que previene blind apply a infraestructura compartida/prod.
+  El usuario debe ejecutar este comando manualmente en su máquina local).
+- Añadir en el panel de Supabase (Authentication → URL Configuration →
+  Redirect URLs) si aún no están configuradas:
+    * http://localhost:3000/recuperar/confirmar
+    * https://<dominio-vercel>/recuperar/confirmar
+  Sin esto el link del email de recuperación no funciona.
+
+Verificación: Fichero SQL creado en `supabase/migrations/20260526000001_perfil_y_avatares.sql`.
+Aplicación de migración: pendiente (usuario ejecuta `supabase db push --linked`).
+
