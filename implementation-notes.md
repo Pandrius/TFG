@@ -1053,3 +1053,21 @@ Verificación: npx tsc --noEmit → 0 errores.
 - Verificación al integrarse en PanelSubidas (C1-06).
 
 Verificación: `npx tsc --noEmit` → 0 errores.
+
+---
+
+## 2026-05-27 — C1-04: Componente PipelineRow
+
+**Pedido**
+- Fila de un archivo en pipeline: icono + nombre + 4 StageChips + barra de progreso + acción contextual.
+- 7 estados (en_cola, subido, texto, analizando, guardado, listo, error).
+
+**Decidido por Claude**
+- Estado "en_cola" sin chips activos (todos pending); "listo" todos done; "error" reemplaza chips por un solo chip rojo.
+- Iconos = 3 letras del tipo de archivo (sin SVG).
+
+**Cambios** — Ninguno.
+**Compromisos** — Barra de progreso en estado "error" al 50% en color danger (alternativa: 100% rojo). Sutil intencionalmente.
+**A revisar** — Verificación al integrarse en PanelSubidas (C1-06).
+
+Verificación: npx tsc --noEmit → 0 errores.
