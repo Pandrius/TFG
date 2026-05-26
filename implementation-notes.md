@@ -554,3 +554,17 @@ Verificación: `npx tsc --noEmit` → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-07: Componente Tag
+
+**Pedido**
+- Tag outline con dot, 5 variantes semánticas (pub/priv/proc/err/neutral).
+
+**Decidido por Claude** — Ninguna. Copia exacta de la spec.
+**Cambios** — Ninguno.
+**Compromisos** — Ninguno.
+**A revisar** — Verificación visual al usarse en mis-documentos (C).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
