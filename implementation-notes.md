@@ -824,3 +824,26 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-20: Server actions de perfil
+
+**Pedido**
+- actualizarPerfil: edita el nombre_completo del perfil.
+- cambiarContrasena: verifica la contraseña actual reautenticando con
+  signInWithPassword, luego actualiza con updateUser.
+
+**Decidido por Claude** — Ninguna.
+**Cambios** — Ninguno.
+**Compromisos** —
+  - La verificación de la contraseña actual con signInWithPassword reescribe
+    temporalmente la sesión del usuario, pero como inmediatamente después
+    se llama a updateUser y el usuario sigue siendo el mismo, la sesión
+    permanece consistente. Es el patrón estándar de Supabase para "verify
+    current password".
+  - revalidatePath('/perfil') invalida la caché del Server Component que
+    recarga el perfil con el nuevo nombre.
+**A revisar** — Probar cambio de password end-to-end (B-24).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
