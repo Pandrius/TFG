@@ -2,9 +2,21 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { cerrarSesion } from "@/app/(auth)/acciones";
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import { ToastProvider } from "@/components/ui/Toast";
+import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 
-/** Layout de la zona autenticada. Exige sesión iniciada. */
+const enlacesNav = [
+  { href: "/mis-documentos", label: "Mis documentos" },
+  { href: "/explorar", label: "Explorar" },
+  { href: "/compartidos", label: "Compartidos" },
+  { href: "/usuarios", label: "Usuarios" },
+  { href: "/carpetas", label: "Carpetas" },
+  { href: "/organizaciones", label: "Organizaciones" },
+];
+
 export default async function LayoutApp({
   children,
 }: {
@@ -16,61 +28,58 @@ export default async function LayoutApp({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const admin = crearClienteAdmin();
+  const { data: perfil } = await admin
+    .from("profiles")
+    .select("nombre_usuario, nombre_completo, avatar_url")
+    .eq("id", user.id)
+    .single();
+
   return (
-    <div className="flex min-h-full flex-col">
-      <header className="flex items-center gap-4 border-b border-gray-200 px-6 py-3 dark:border-gray-800">
-        <Link href="/inicio" className="font-semibold">
-          Gestión Documental
-        </Link>
-        <nav className="flex items-center gap-3 text-sm">
+    <ToastProvider>
+      <div className="flex min-h-full flex-col bg-paper">
+        <header className="flex items-center gap-5 border-b border-rule bg-card px-6 py-3">
           <Link
-            href="/mis-documentos"
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+            href="/inicio"
+            className="font-display font-medium text-lg tracking-tight"
           >
-            Mis documentos
+            Dr<em className="italic text-accent">es</em>.
           </Link>
-          <Link
-            href="/explorar"
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            Explorar
-          </Link>
-          <Link
-            href="/compartidos"
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            Compartidos
-          </Link>
-          <Link
-            href="/usuarios"
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            Usuarios
-          </Link>
-          <Link
-            href="/carpetas"
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            Carpetas
-          </Link>
-          <Link
-            href="/organizaciones"
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            Organizaciones
-          </Link>
-        </nav>
-        <span className="ml-auto text-sm text-gray-500">{user.email}</span>
-        <form action={cerrarSesion}>
-          <button
-            type="submit"
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-          >
-            Cerrar sesión
-          </button>
-        </form>
-      </header>
-      <main className="flex-1 p-6">{children}</main>
-    </div>
+          <nav className="flex items-center gap-4 text-sm">
+            {enlacesNav.map((e) => (
+              <Link
+                key={e.href}
+                href={e.href}
+                className="text-mute hover:text-ink"
+              >
+                {e.label}
+              </Link>
+            ))}
+          </nav>
+          <div className="ml-auto flex items-center gap-3">
+            <Link
+              href="/perfil"
+              className="flex items-center gap-2 hover:opacity-80"
+            >
+              <Avatar
+                nombreCompleto={perfil?.nombre_completo ?? null}
+                nombreUsuario={perfil?.nombre_usuario ?? user.email ?? ""}
+                avatarUrl={perfil?.avatar_url ?? null}
+                size="md"
+              />
+              <span className="text-sm font-medium">
+                {perfil?.nombre_usuario ?? user.email}
+              </span>
+            </Link>
+            <form action={cerrarSesion}>
+              <Button type="submit" variant="ghost" size="sm">
+                Cerrar sesión
+              </Button>
+            </form>
+          </div>
+        </header>
+        <main className="flex-1">{children}</main>
+      </div>
+    </ToastProvider>
   );
 }

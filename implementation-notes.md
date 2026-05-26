@@ -869,5 +869,26 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 **A revisar** — Verificación visual completa al cerrar el sub-proyecto (B-24).
 
-Verificación: npx tsc --noEmit → 0 errores.
+Verificación: `npx tsc --noEmit` → 0 errores.
 
+---
+
+## 2026-05-26 — B-22: Topbar con Avatar real y ToastProvider en zona autenticada
+
+**Pedido**
+- Reescribir (app)/layout.tsx con marca "Dres.", Avatar real (de profiles),
+  ToastProvider envolviendo toda la zona autenticada, "Cerrar sesión" ghost.
+- Mantener los 6 enlaces de navegación existentes.
+
+**Decidido por Claude** — Ninguna.
+
+**Cambios** — Ninguno.
+
+**Compromisos** —
+  - El nombre que muestra el botón del perfil es nombre_usuario (no nombre_completo),
+    porque es más corto y siempre existe. Si se prefiere completo, alternar
+    en C.
+
+**A revisar** — Verificación visual end-to-end (B-24).
+
+Verificación: `npx tsc --noEmit` → 0 errores.
