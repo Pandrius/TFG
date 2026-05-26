@@ -803,3 +803,24 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-19: Route handler /api/perfil/avatar
+
+**Pedido**
+- POST: recibe FormData con campo "avatar" (image/webp ≤2MB), sube a bucket
+  avatars/{user.id}/avatar.webp, actualiza profiles.avatar_url, devuelve URL.
+- DELETE: borra el fichero del bucket y limpia avatar_url.
+- Verificación de sesión + tipo + tamaño en el servidor.
+
+**Decidido por Claude** — Ninguna.
+**Cambios** — Ninguno.
+**Compromisos** —
+  - Se usa admin client para subir/borrar (bypass de RLS), tras verificar
+    auth.getUser(). Coherente con otros endpoints del proyecto.
+  - El cache-busting con ?v=Date.now() es simple — funciona para invalidar
+    el navegador pero NO el CDN de Supabase. Para el TFG es suficiente.
+**A revisar** — Probar POST/DELETE con avatar real cuando /perfil esté listo (B-21).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
