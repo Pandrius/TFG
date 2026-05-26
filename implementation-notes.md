@@ -892,3 +892,18 @@ Verificación: `npx tsc --noEmit` → 0 errores.
 **A revisar** — Verificación visual end-to-end (B-24).
 
 Verificación: `npx tsc --noEmit` → 0 errores.
+
+---
+
+## 2026-05-26 — B-23: Landing pública rediseñada
+
+**Pedido**
+- Reescribir app/page.tsx con eyebrow italic accent, h1 Fraunces 56px con em
+  accent, copy en mute, 2 CTAs (accent + ghost) del sistema.
+
+**Decidido por Claude** — Ninguna.
+**Cambios** — Ninguno.
+**Compromisos** — Ninguno.
+**A revisar** — Verificación visual end-to-end (B-24).
+
+Verificación: npx tsc --noEmit → 0 errores.

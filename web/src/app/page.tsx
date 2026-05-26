@@ -1,27 +1,33 @@
 import Link from "next/link";
 
+import { Button } from "@/components/ui/Button";
+
 export default function PaginaPrincipal() {
   return (
-    <main className="flex flex-1 flex-col items-center justify-center gap-6 p-8 text-center">
-      <h1 className="text-3xl font-bold sm:text-4xl">
-        Plataforma de gestión documental
-      </h1>
-      <p className="max-w-md text-gray-600 dark:text-gray-400">
-        Sube tus documentos y deja que se clasifiquen automáticamente como
-        públicos o confidenciales, con el acceso protegido según su contenido.
-      </p>
+    <main className="flex flex-1 flex-col items-center justify-center gap-10 p-8 text-center">
+      <header className="max-w-2xl flex flex-col gap-4">
+        <p className="font-display italic text-accent text-base m-0">
+          — una forma más serena de archivar.
+        </p>
+        <h1 className="font-display font-medium text-5xl sm:text-6xl tracking-[-0.025em] leading-[1.05] m-0">
+          Tus documentos, <em className="italic text-accent">protegidos</em> sin que
+          tengas que pensarlo.
+        </h1>
+        <p className="text-base text-mute leading-relaxed max-w-md mx-auto">
+          Sube cualquier archivo. Una IA decide si puede ver la luz o no. Tú revisas,
+          lo cambias si hace falta, y sigues con tu día.
+        </p>
+      </header>
       <div className="flex gap-3">
-        <Link
-          href="/registro"
-          className="rounded-md bg-blue-600 px-5 py-2.5 font-medium text-white hover:bg-blue-700"
-        >
-          Crear cuenta
+        <Link href="/registro">
+          <Button variant="accent" size="lg">
+            Crear cuenta
+          </Button>
         </Link>
-        <Link
-          href="/login"
-          className="rounded-md border border-gray-300 px-5 py-2.5 font-medium hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-        >
-          Iniciar sesión
+        <Link href="/login">
+          <Button variant="ghost" size="lg">
+            Iniciar sesión
+          </Button>
         </Link>
       </div>
     </main>
