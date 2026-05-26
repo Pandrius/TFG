@@ -1217,3 +1217,78 @@ Verificación: npx tsc --noEmit → 0 errores.
 - Validar que el empty state muestra correctamente cuando no hay documentos.
 
 Verificación: npx tsc --noEmit → 0 errores. grep -r SubidaArchivos src/ → ningún resultado.
+
+---
+
+## 2026-05-27 — C1-12: Cierre del sub-bloque C.1
+
+**Pedido**
+- Verificación final del bloque y documentación del smoke test manual.
+
+**Decidido por Claude** — Ninguna. Tarea de verificación.
+
+**Cambios**
+- Eliminado SubidaArchivos.tsx legacy en C1-10 (reemplazado por PanelSubidas con cola multi-upload).
+
+**Compromisos**
+- Verificación end-to-end del flujo de subida requiere el servicio IA en producción/dev. Sin SERVICIO_IA_URL todo se clasifica como confidencial (fail-safe ya existente).
+
+**A revisar (acciones del usuario)**
+
+Smoke test manual de C.1 (npm run dev, abrir http://localhost:3001/mis-documentos):
+
+1. **Multi-upload**
+   - [ ] Arrastra 5 archivos válidos a la vez al panel.
+   - [ ] 5 filas aparecen en "Subidas en curso", 3 procesando, 2 "en_cola" con ✕ "cancelar".
+   - [ ] Conforme cada uno termina, el siguiente arranca.
+   - [ ] Al completar: ✓ "listo", visible 5 s, fade-out.
+   - [ ] La tabla se actualiza en tiempo real con cada documento nuevo.
+
+2. **Validaciones**
+   - [ ] 15 archivos válidos → solo 10 se aceptan, toast warn con descarte.
+   - [ ] .mp3 → toast err "formato no soportado".
+   - [ ] >10 MB → toast err "más grande que 10 MB".
+
+3. **Cancelar y reintentar**
+   - [ ] Mientras "en_cola", ✕ → desaparece sin procesarse.
+   - [ ] (Si tienes IA apagada para forzar error) fila roja con "reintentar" y "quitar".
+
+4. **Tabla y filtros**
+   - [ ] Filtros "Privados/Públicos/Todos" filtran bien.
+   - [ ] Pill "privado" click → modal "¿Hacer público?". Botón empieza disabled.
+   - [ ] Checkbox → botón se habilita. Confirmar → toast ok, tag pasa a "público".
+   - [ ] Pill "público" click → cambio directo a "privado" sin modal.
+
+5. **Renombrar inline**
+   - [ ] Click en nombre → input editable. Enter guarda, Escape cancela.
+   - [ ] Vacío o >200 chars → toast error.
+
+6. **Eliminar**
+   - [ ] ⋯ → menú con "Ver detalle" + "Eliminar".
+   - [ ] Eliminar → modal danger. Confirmar → toast ok, documento desaparece.
+
+7. **KPIs**
+   - [ ] Tras cambios, los 4 KPIs cuadran (Total = Privados + Públicos), anillos correctos, "+N hoy" si aplica.
+
+8. **/inicio**
+   - [ ] Saludo con tu nombre, 3 atajos navegan bien.
+
+9. **Dark mode**
+   - [ ] DevTools → Rendering → prefers-color-scheme: dark → todo coherente.
+
+**Resumen del sub-bloque C.1**
+
+11 commits implementados (C1-01 a C1-11):
+
+- C1-01 a C1-04: 5 componentes UI nuevos (Kpi, KpiAnillo, StageChip, DropZone, PipelineRow).
+- C1-05: 3 server actions de documentos (actualizar, renombrar, eliminar).
+- C1-06: PanelSubidas con cola en cliente, concurrencia 3 y SSE.
+- C1-07: RenombrarInline para edición rápida.
+- C1-08: 2 modales (hacer público + eliminar).
+- C1-09: TablaDocumentos con filtros, tags clickables y menú de acciones.
+- C1-10: /mis-documentos rediseñada completa.
+- C1-11: /inicio rediseñada.
+
+Spec de C.1 cerrada al 100%.
+
+Verificación final: npm test → 13/13. npm run build → éxito con 20 rutas.
