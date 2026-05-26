@@ -1,26 +1,117 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================================ */
+/*  Tokens del sistema de diseño "Esmeralda biblioteca"          */
+/*  Fuente de verdad visual: design/04-sistema.html              */
+/* ============================================================ */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  /* Superficies y bordes */
+  --paper: #ECEAD8;
+  --card: #F8F6E4;
+  --soft: #E2DEC5;
+  --rule: #CCC8AB;
+  --rule-soft: #DDD7B8;
+
+  /* Tinta */
+  --ink: #0F1C18;
+  --ink-soft: #1D2E27;
+  --mute: #6A7268;
+
+  /* Acento (esmeralda) */
+  --accent: #0F5A45;
+  --accent-hover: #0C4836;
+  --accent-soft: #C9DDD2;
+  --accent-soft-hover: #B8CFC2;
+  --accent-tint: #E6EFE9;
+
+  /* Soporte (oro) */
+  --oro: #A5701E;
+  --oro-soft: #F1DEB0;
+  --oro-tint: #F8EAD2;
+
+  /* Estado destructivo */
+  --danger: #8C2A20;
+  --danger-soft: #EFD2CD;
+  --danger-tint: #F8E3DF;
+
+  /* Sombras */
+  --shadow-1: 0 1px 0 rgba(15, 28, 24, 0.04);
+  --shadow-2: 0 4px 12px -2px rgba(15, 28, 24, 0.06), 0 1px 0 rgba(15, 28, 24, 0.04);
+  --shadow-3: 0 12px 32px -8px rgba(15, 28, 24, 0.18), 0 1px 0 rgba(15, 28, 24, 0.04);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #0E1816;
+    --card: #141F1B;
+    --soft: #1B2823;
+    --rule: #283831;
+    --rule-soft: #1F2D27;
+
+    --ink: #EBE3CA;
+    --ink-soft: #D2C8AB;
+    --mute: #8A9388;
+
+    --accent: #46B891;
+    --accent-hover: #5FC7A1;
+    --accent-soft: #1E3A30;
+    --accent-soft-hover: #295244;
+    --accent-tint: #16291F;
+
+    --oro: #E0A65A;
+    --oro-soft: #3A2D14;
+    --oro-tint: #2A2110;
+
+    --danger: #E08070;
+    --danger-soft: #3F1E17;
+    --danger-tint: #2A140E;
+
+    --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4);
+    --shadow-2: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(0, 0, 0, 0.4);
+    --shadow-3: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(0, 0, 0, 0.4);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Mapear las custom properties como utilidades de Tailwind v4 */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-soft: var(--soft);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-mute: var(--mute);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-hover: var(--accent-soft-hover);
+  --color-accent-tint: var(--accent-tint);
+
+  --color-oro: var(--oro);
+  --color-oro-soft: var(--oro-soft);
+  --color-oro-tint: var(--oro-tint);
+
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-tint: var(--danger-tint);
+
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
 }
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Helpers tipográficos para uso fuera de componentes */
+.font-display { font-family: var(--font-display), serif; letter-spacing: -0.02em; }
+.font-mono    { font-family: var(--font-mono), monospace; }
