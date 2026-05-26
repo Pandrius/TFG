@@ -1117,3 +1117,22 @@ Verificación: npx tsc --noEmit → 0 errores.
 **A revisar** — Verificación al integrarse en /mis-documentos (C1-10) con subidas reales en paralelo.
 
 Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
+## 2026-05-27 — C1-07: RenombrarInline
+
+**Pedido**
+- Edición inline del nombre del documento: click → input con ✓/✕, Enter guarda, Escape cancela.
+
+**Decidido por Claude** — Ninguna.
+
+**Cambios** — Ninguno.
+
+**Compromisos** —
+  - Si el server devuelve error, restauramos el valor original y mostramos toast.
+  - El input se autofocus + select-all al entrar.
+
+**A revisar** — Probar UX al integrarse en tabla (C1-09).
+
+Verificación: npx tsc --noEmit → 0 errores.
