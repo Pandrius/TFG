@@ -1173,3 +1173,32 @@ Verificación: npx tsc --noEmit → 0 errores.
 **A revisar** — Verificación al integrarse en TablaDocumentos (C1-09).
 
 Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
+## 2026-05-27 — C1-10: Pantalla /mis-documentos rediseñada
+
+**Pedido**
+- Reemplazar página con Server Component que calcule KPIs, integre PanelSubidas, TablaDocumentos y empty state.
+- Aplicar sistema Esmeralda (Kpi, KpiAnillo, clases de diseño).
+- Eliminar componente legacy SubidaArchivos.tsx.
+
+**Decidido por Claude**
+- Límite de 100 documentos en SELECT (sin paginación todavía).
+- Espacio total de 500 MB es un placeholder (no hay sistema de cuotas implementado).
+- Tiempo relativo (e.g. "hace 3 min") se implementa a mano en español en lugar de usar date-fns.
+- HOY_INICIO_MS calcula el inicio del día en UTC para filtrar documentos de hoy.
+
+**Cambios**
+- Sin paginación: compromiso de TFG (100 docs es límite razonable para la demostración).
+
+**Compromisos**
+- 100 documentos es un límite práctico sin necesidad de paginación backend todavía.
+- Espacio 500 MB es placeholder (se puede parametrizar cuando haya sistema de cuotas real).
+
+**A revisar**
+- Probar comportamiento con 0, 1, varios y >100 documentos.
+- Verificar que los KPIs cuadran con los datos (privados/públicos, espacio, fecha).
+- Validar que el empty state muestra correctamente cuando no hay documentos.
+
+Verificación: npx tsc --noEmit → 0 errores. grep -r SubidaArchivos src/ → ningún resultado.
