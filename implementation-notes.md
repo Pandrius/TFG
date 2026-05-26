@@ -1014,3 +1014,20 @@ Verificación final: `npm test` 13/13. `npm run build` éxito (18 rutas).
 **A revisar** — Verificación visual al usarse en /mis-documentos (C1-10).
 
 Verificación: npx tsc --noEmit → 0 errores.
+
+---
+
+## 2026-05-27 — C1-02: Componente StageChip
+
+**Pedido**
+- Chip pequeño para una fase del pipeline (4 variantes: pending/done/now/err), dot que pulsa en "now".
+
+**Decidido por Claude** — Ninguna.
+
+**Cambios** — Ninguno.
+
+**Compromisos** — Ninguno.
+
+**A revisar** — Verificación al integrarse en PipelineRow (C1-04).
+
+Verificación: npx tsc --noEmit → 0 errores.
