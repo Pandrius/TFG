@@ -616,3 +616,17 @@ Verificación: npx tsc --noEmit → 0 errores.
 
 Verificación: npx tsc --noEmit → 0 errores.
 
+---
+
+## 2026-05-26 — B-11: Componente Alert
+
+**Pedido**
+- Alert.tsx banner inline con 4 variantes (info/warn/err/ok) y título opcional.
+
+**Decidido por Claude** — Ninguna.
+**Cambios** — Ninguno.
+**Compromisos** — Sin botón de cerrar (es un banner estático, no una notificación). Para notificaciones temporales usar Toast (B-09).
+**A revisar** — Verificación visual en pantallas de auth (B-14, B-15) y perfil (B-21).
+
+Verificación: npx tsc --noEmit → 0 errores.
+
