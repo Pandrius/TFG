@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { alternarBloqueo, alternarFavorito } from "./acciones";
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 export default async function PaginaUsuarios({
   searchParams,
@@ -37,81 +40,61 @@ export default async function PaginaUsuarios({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">Usuarios</h1>
+    <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col gap-8">
+
+      {/* Cabecera */}
+      <div>
+        <p className="font-display italic text-accent text-sm mb-1">— comunidad</p>
+        <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
+          <em className="italic text-accent">Usuarios</em>
+        </h1>
+      </div>
 
       {/* Buscador */}
       <form method="GET" className="flex gap-2">
-        <input
-          type="search"
-          name="buscar"
-          defaultValue={buscar ?? ""}
-          placeholder="Buscar por nombre o usuario…"
-          className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900"
-        />
-        <button
-          type="submit"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          Buscar
-        </button>
+        <Input type="search" name="buscar" defaultValue={buscar ?? ""} placeholder="Buscar por nombre o @usuario…" className="flex-1" />
+        <Button type="submit" variant="primary" size="md">Buscar</Button>
+        {buscar && <a href="/usuarios"><Button type="button" variant="ghost" size="md">Limpiar</Button></a>}
       </form>
 
-      {/* Resultados */}
+      {/* Resultados de búsqueda */}
       {buscar && buscar.trim().length >= 2 && (
-        <section>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-            Resultados ({resultados.length})
-          </h2>
+        <section className="flex flex-col gap-3">
+          <p className="text-mute text-[12px] font-mono">Resultados ({resultados.length})</p>
           {resultados.length > 0 ? (
-            <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
+            <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
               {resultados.map((u) => {
                 const esFavorito = favoritosIds.has(u.id);
                 const estaBloqueado = bloqueadosIds.has(u.id);
                 return (
-                  <li key={u.id} className="flex items-center gap-3 px-4 py-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">{u.nombre_completo || u.nombre_usuario}</p>
-                      <p className="text-xs text-gray-400">@{u.nombre_usuario}</p>
+                  <div key={u.id} className="flex items-center gap-3 px-5 py-3 border-b border-rule last:border-b-0">
+                    <Avatar nombreCompleto={u.nombre_completo} nombreUsuario={u.nombre_usuario} avatarUrl={null} size="sm" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-[13px]">{u.nombre_completo || u.nombre_usuario}</p>
+                      <p className="text-mute text-[11px] font-mono">@{u.nombre_usuario}</p>
                     </div>
                     <form action={alternarFavorito.bind(null, u.id)}>
-                      <button
-                        type="submit"
-                        className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                          esFavorito
-                            ? "border-yellow-400 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
-                            : "border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                        }`}
-                      >
+                      <Button type="submit" variant="ghost" size="sm" className={esFavorito ? "text-accent bg-accent-tint border-accent-soft" : ""}>
                         {esFavorito ? "Quitar favorito" : "Favorito"}
-                      </button>
+                      </Button>
                     </form>
                     <form action={alternarBloqueo.bind(null, u.id)}>
-                      <button
-                        type="submit"
-                        className={`rounded-md border px-3 py-1.5 text-xs transition-colors ${
-                          estaBloqueado
-                            ? "border-red-400 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-700 dark:bg-red-950 dark:text-red-300"
-                            : "border-gray-300 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                        }`}
-                      >
+                      <Button type="submit" variant="ghost" size="sm" className={estaBloqueado ? "text-danger bg-danger-tint border-danger-soft" : ""}>
                         {estaBloqueado ? "Desbloquear" : "Bloquear"}
-                      </button>
+                      </Button>
                     </form>
-                  </li>
+                  </div>
                 );
               })}
-            </ul>
+            </div>
           ) : (
-            <p className="text-sm text-gray-500">No se encontraron usuarios.</p>
+            <p className="text-mute text-sm">No se encontraron usuarios.</p>
           )}
         </section>
       )}
 
       {/* Mis favoritos */}
-      {favoritosIds.size > 0 && (
-        <FavoritosActuales ids={[...favoritosIds]} />
-      )}
+      {favoritosIds.size > 0 && <FavoritosActuales ids={[...favoritosIds]} />}
     </div>
   );
 }
@@ -127,28 +110,24 @@ async function FavoritosActuales({ ids }: { ids: string[] }) {
   if (!perfiles?.length) return null;
 
   return (
-    <section>
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
-        Mis favoritos
-      </h2>
-      <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
+    <section className="flex flex-col gap-3">
+      <p className="text-mute text-[12px] font-mono uppercase tracking-wider">Mis favoritos</p>
+      <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
         {perfiles.map((u) => (
-          <li key={u.id} className="flex items-center gap-3 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <p className="font-medium">{u.nombre_completo || u.nombre_usuario}</p>
-              <p className="text-xs text-gray-400">@{u.nombre_usuario}</p>
+          <div key={u.id} className="flex items-center gap-3 px-5 py-3 border-b border-rule last:border-b-0">
+            <Avatar nombreCompleto={u.nombre_completo} nombreUsuario={u.nombre_usuario} avatarUrl={null} size="sm" />
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-[13px]">{u.nombre_completo || u.nombre_usuario}</p>
+              <p className="text-mute text-[11px] font-mono">@{u.nombre_usuario}</p>
             </div>
             <form action={alternarFavorito.bind(null, u.id)}>
-              <button
-                type="submit"
-                className="rounded-md border border-yellow-400 bg-yellow-50 px-3 py-1.5 text-xs text-yellow-700 hover:bg-yellow-100 dark:border-yellow-700 dark:bg-yellow-950 dark:text-yellow-300"
-              >
+              <Button type="submit" variant="ghost" size="sm" className="text-accent bg-accent-tint border-accent-soft">
                 Quitar favorito
-              </button>
+              </Button>
             </form>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }
