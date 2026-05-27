@@ -1371,3 +1371,58 @@ Verificación final: npm test → 13/13. npm run build → éxito con 20 rutas.
 **Compromisos**: Eliminar carpeta con docs los deja con carpeta_id=null (comportamiento documentado, FK tiene ON DELETE SET NULL). Form action "quitar documento" usa inline server function (arrow + "use server") para evitar error de tipo al pasar una función que retorna Resultado a un form action que espera void.
 
 **A revisar**: Confirmar que el rol en organizaciones se muestra correctamente si la tabla miembros tiene campo "rol". Verificar visualmente que los grids de 4 columnas no desborden en pantallas < 400px.
+
+---
+
+## 2026-05-27 — Rediseño del layout principal al panel lateral
+
+**Pedido**: Que el panel de navegación use el mismo diseño que el sistema Esmeralda (`design/04-sistema.html`): sidebar lateral de 232 px con menú en grupos, buscador y cuenta del usuario abajo a la izquierda.
+
+**Decidido por Claude**:
+- Creado `SidebarNav.tsx` como componente cliente separado (necesita `usePathname` para detectar el enlace activo).
+- Se mantiene "Cerrar sesión" como botón de texto discreto bajo el usuario (el diseño no lo especifica, pero es funcionalidad necesaria).
+- Los grupos de navegación definidos: Personal (Mis documentos, Carpetas), Colaboración (Compartidos, Organizaciones, Explorar), Cuenta (Ajustes → `/perfil`). No se incluyeron Favoritos ni Papelera porque las rutas aún no existen.
+- Sidebar con `sticky top-0 h-screen overflow-y-auto` para que quede fija mientras el contenido principal hace scroll.
+- El área principal recibe `bg-card` (vs `bg-paper` del sidebar) tal como el mockup del diseño.
+
+**Cambios**: Eliminado el `<header>` horizontal que existía antes. El botón de Avatar y enlace a perfil que estaban en el header pasaron al pie del sidebar.
+
+**Compromisos**: Al no tener contadores de documentos en el sidebar (el diseño los muestra), se simplificó eliminando esa consulta adicional para no añadir latencia al layout.
+
+**A revisar**: Verificar visualmente que el scroll de la página principal no se vea afectado por el layout grid. Confirmar que Favoritos y Papelera deben añadirse al sidebar cuando se implementen esas rutas.
+
+---
+
+## 2026-05-27 — Fix modo oscuro + ajustes + buscador global
+
+**Pedido**: Que los fondos sean crema (no verdes). Que la página de ajustes funcione. Que el buscador del sidebar busque documentos, usuarios y organizaciones.
+
+**Decidido por Claude**:
+- Modo oscuro cambiado de `@media (prefers-color-scheme: dark)` a clase `.dark` en `globals.css`. La app siempre muestra la paleta crema a menos que se añada `.dark` al `<html>` explícitamente.
+- El buscador se implementó como modal tipo command palette (no como página separada): `Buscador.tsx` + `BuscadorTrigger.tsx`. El trigger está en el sidebar y registra ⌘K/Ctrl+K globalmente.
+- API route GET `/api/buscar?q=` que consulta en paralelo: `Documentos` (propios del usuario), `profiles` (otros usuarios), `organizaciones` (vía `org_miembros`). Mínimo 2 caracteres para buscar.
+- Navegación por teclado (↑↓ Enter Escape) en el modal.
+- Resultado de "usuario" navega a `/usuarios` (no a perfil individual, que no existe).
+
+**Cambios**: Bug en `FormularioPerfil.tsx`: `mostrar()` se llamaba durante el render (fuera de efecto), causando re-renders infinitos. Movido a `useEffect` con dependencia en el estado de cada action.
+
+**Compromisos**: La búsqueda de organizaciones hace un filtrado en memoria sobre los resultados de `org_miembros` porque Supabase no soporta fácilmente `ilike` en relaciones anidadas en una sola query. Para volúmenes grandes habría que añadir una query directa a la tabla `organizaciones`.
+
+**A revisar**: Confirmar que el nombre de la tabla de organizaciones es `organizaciones` (no `orgs` u otro). Confirmar que `org_miembros.organizaciones` devuelve el campo `nombre` correctamente (la query usa join implícito de Supabase).
+
+---
+
+## 2026-05-27 — Fix bucle de redirección en /perfil
+
+**Pedido**: La página `/perfil` redirigía al usuario a `/inicio` en lugar de mostrar el formulario de ajustes.
+
+**Decidido por Claude**:
+- Causa raíz: `perfil/page.tsx` llamaba a `.single()` en la tabla `profiles` y, si la fila no existía (trigger de Supabase ausente o fallido), devolvía error → el código anterior hacía `redirect("/login")` → la página de login detecta sesión activa → redirige a `/inicio`. Bucle completo.
+- Solución en dos pasos: (1) cambiar `.single()` por `.maybeSingle()` para obtener `null` sin error cuando no hay fila; (2) si `perfil === null`, hacer un `upsert` en `profiles` usando los metadatos del usuario de `auth.users.raw_user_meta_data` (nombre_usuario, nombre_completo). Así la primera visita a `/perfil` crea la fila si el trigger no lo hizo.
+- En `acciones.ts`, cambiar `.update()` por `.upsert()` para que `actualizarPerfil` funcione aunque la fila no exista previamente.
+
+**Cambios**: Eliminado el `redirect("/login")` que existía cuando `perfil` era null. Ahora la página siempre renderiza el formulario, creando la fila si hace falta.
+
+**Compromisos**: El `upsert` en `acciones.ts` lleva `.eq("id", user.id)` encadenado, que en Supabase JS es redundante con un upsert sobre PK — no tiene efecto adverso pero tampoco hace falta; se mantiene por legibilidad.
+
+**A revisar**: Si el trigger de Supabase existe y funciona, el upsert en page.tsx no hace nada (sin efecto). Si no existe, crea la fila en el primer acceso a `/perfil`. Confirmar cuál es el estado real del trigger en producción.
