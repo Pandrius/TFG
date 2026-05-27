@@ -1426,3 +1426,5 @@ Verificación final: npm test → 13/13. npm run build → éxito con 20 rutas.
 **Compromisos**: El `upsert` en `acciones.ts` lleva `.eq("id", user.id)` encadenado, que en Supabase JS es redundante con un upsert sobre PK — no tiene efecto adverso pero tampoco hace falta; se mantiene por legibilidad.
 
 **A revisar**: Si el trigger de Supabase existe y funciona, el upsert en page.tsx no hace nada (sin efecto). Si no existe, crea la fila en el primer acceso a `/perfil`. Confirmar cuál es el estado real del trigger en producción.
+
+<!-- test deploy -->
