@@ -3,19 +3,12 @@ import { redirect } from "next/navigation";
 
 import { cerrarSesion } from "@/app/(auth)/acciones";
 import { Avatar } from "@/components/ui/Avatar";
-import { Button } from "@/components/ui/Button";
 import { ToastProvider } from "@/components/ui/Toast";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 
-const enlacesNav = [
-  { href: "/mis-documentos", label: "Mis documentos" },
-  { href: "/explorar", label: "Explorar" },
-  { href: "/compartidos", label: "Compartidos" },
-  { href: "/usuarios", label: "Usuarios" },
-  { href: "/carpetas", label: "Carpetas" },
-  { href: "/organizaciones", label: "Organizaciones" },
-];
+import { BuscadorTrigger } from "./BuscadorTrigger";
+import { SidebarNav } from "./SidebarNav";
 
 export default async function LayoutApp({
   children,
@@ -35,31 +28,31 @@ export default async function LayoutApp({
     .eq("id", user.id)
     .single();
 
+  const nombreMostrado =
+    perfil?.nombre_completo ?? perfil?.nombre_usuario ?? user.email ?? "";
+  const emailMostrado = user.email ?? "";
+
   return (
     <ToastProvider>
-      <div className="flex min-h-full flex-col bg-paper">
-        <header className="flex items-center gap-5 border-b border-rule bg-card px-6 py-3">
+      <div className="flex-1 grid grid-cols-[232px_1fr]">
+        {/* ── Sidebar ─────────────────────────────────────── */}
+        <aside className="sticky top-0 h-screen overflow-y-auto bg-paper border-r border-rule flex flex-col px-4 py-[22px]">
           <Link
             href="/inicio"
-            className="font-display font-medium text-lg tracking-tight"
+            className="font-display font-semibold text-[22px] tracking-tight mb-[22px] px-1 block"
           >
             Dr<em className="italic text-accent">es</em>.
           </Link>
-          <nav className="flex items-center gap-4 text-sm">
-            {enlacesNav.map((e) => (
-              <Link
-                key={e.href}
-                href={e.href}
-                className="text-mute hover:text-ink"
-              >
-                {e.label}
-              </Link>
-            ))}
-          </nav>
-          <div className="ml-auto flex items-center gap-3">
+
+          <BuscadorTrigger />
+
+          <SidebarNav />
+
+          {/* ── Usuario / pie de sidebar ── */}
+          <div className="mt-auto pt-[18px] border-t border-rule">
             <Link
               href="/perfil"
-              className="flex items-center gap-2 hover:opacity-80"
+              className="flex items-center gap-[10px] px-1 py-2 rounded-[10px] hover:bg-soft transition-colors"
             >
               <Avatar
                 nombreCompleto={perfil?.nombre_completo ?? null}
@@ -67,18 +60,28 @@ export default async function LayoutApp({
                 avatarUrl={perfil?.avatar_url ?? null}
                 size="md"
               />
-              <span className="text-sm font-medium">
-                {perfil?.nombre_usuario ?? user.email}
-              </span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-medium truncate">
+                  {nombreMostrado}
+                </div>
+                <div className="text-mute text-[11px] truncate">
+                  {emailMostrado}
+                </div>
+              </div>
             </Link>
             <form action={cerrarSesion}>
-              <Button type="submit" variant="ghost" size="sm">
+              <button
+                type="submit"
+                className="w-full text-left px-[10px] py-[7px] text-[13px] text-mute hover:text-ink rounded-[10px] hover:bg-soft transition-colors"
+              >
                 Cerrar sesión
-              </Button>
+              </button>
             </form>
           </div>
-        </header>
-        <main className="flex-1">{children}</main>
+        </aside>
+
+        {/* ── Contenido principal ────────────────────────── */}
+        <main className="bg-card min-h-screen">{children}</main>
       </div>
     </ToastProvider>
   );
