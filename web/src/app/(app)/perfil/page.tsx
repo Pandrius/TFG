@@ -13,13 +13,26 @@ export default async function PaginaPerfil() {
   if (!user) redirect("/login");
 
   const admin = crearClienteAdmin();
-  const { data: perfil } = await admin
+  let { data: perfil } = await admin
     .from("profiles")
     .select("nombre_usuario, nombre_completo, avatar_url")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
-  if (!perfil) redirect("/login");
+  // Si no existe la fila (el trigger de Supabase no la creó), la creamos
+  // a partir de los metadatos del usuario de auth.
+  if (!perfil) {
+    const meta = user.user_metadata ?? {};
+    const nombreUsuario: string =
+      meta.nombre_usuario ?? user.email?.split("@")[0] ?? `user_${user.id.slice(0, 8)}`;
+    await admin.from("profiles").upsert({
+      id: user.id,
+      nombre_usuario: nombreUsuario,
+      nombre_completo: meta.nombre_completo ?? null,
+      avatar_url: null,
+    });
+    perfil = { nombre_usuario: nombreUsuario, nombre_completo: meta.nombre_completo ?? null, avatar_url: null };
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-8 flex flex-col gap-10">

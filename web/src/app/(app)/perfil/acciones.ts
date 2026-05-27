@@ -27,7 +27,7 @@ export async function actualizarPerfil(
 
   const { error } = await supabase
     .from("profiles")
-    .update({ nombre_completo: nombreCompleto || null })
+    .upsert({ id: user.id, nombre_completo: nombreCompleto || null })
     .eq("id", user.id);
   if (error) return { error: error.message };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 
 import { Alert } from "@/components/ui/Alert";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
@@ -37,13 +37,15 @@ export function FormularioPerfil({
     undefined,
   );
 
-  // Mostrar feedback de las actions vía toast.
-  if (estadoPerfil && "ok" in estadoPerfil) {
-    mostrar({ variant: "ok", titulo: estadoPerfil.ok });
-  }
-  if (estadoPass && "ok" in estadoPass) {
-    mostrar({ variant: "ok", titulo: estadoPass.ok });
-  }
+  useEffect(() => {
+    if (estadoPerfil && "ok" in estadoPerfil)
+      mostrar({ variant: "ok", titulo: estadoPerfil.ok });
+  }, [estadoPerfil]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (estadoPass && "ok" in estadoPass)
+      mostrar({ variant: "ok", titulo: estadoPass.ok });
+  }, [estadoPass]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const errCampo = (e: typeof estadoPass, c: string) =>
     e && "error" in e && e.campo === c ? e.error : undefined;
