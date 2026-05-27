@@ -1,14 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Tag } from "@/components/ui/Tag";
+import { Button } from "@/components/ui/Button";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-
-const ETIQUETA_TIPO: Record<string, string> = {
-  pdf: "PDF", docx: "DOC", xlsx: "XLS", csv: "CSV", pptx: "PPT", txt: "TXT",
-};
-const ETIQUETA: Record<number, { texto: string; clases: string }> = {
-  0: { texto: "Público", clases: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" },
-  1: { texto: "Confidencial", clases: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" },
-};
 
 export default async function PaginaCompartidos() {
   const supabase = await crearClienteServidor();
@@ -61,7 +56,10 @@ export default async function PaginaCompartidos() {
 
   // Perfiles de los propietarios
   const userIds = [...new Set(documentos.map((d) => d.user_id))];
-  const perfilesById: Record<string, { nombre_completo: string | null; nombre_usuario: string | null }> = {};
+  const perfilesById: Record<
+    string,
+    { nombre_completo: string | null; nombre_usuario: string | null }
+  > = {};
   if (userIds.length > 0) {
     const { data: perfiles } = await supabase
       .from("profiles")
@@ -71,54 +69,60 @@ export default async function PaginaCompartidos() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-bold">Compartidos conmigo</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Documentos a los que tienes acceso por permiso o favorito
+        <p className="font-display italic text-accent text-sm mb-1">— acceso compartido</p>
+        <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
+          Compartidos <em className="italic text-accent">conmigo</em>
+        </h1>
+        <p className="text-mute text-[13px] mt-1">
+          {documentos.length} documento{documentos.length !== 1 ? "s" : ""}
         </p>
       </div>
 
-      {documentos.length > 0 ? (
-        <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
+      {documentos.length === 0 ? (
+        <div className="py-16 text-center">
+          <p className="font-display italic text-accent text-lg mb-1">Sin documentos</p>
+          <p className="text-mute text-sm">Nadie ha compartido documentos contigo todavía.</p>
+        </div>
+      ) : (
+        <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
           {documentos.map((doc) => {
             const perfil = perfilesById[doc.user_id];
             const autor = perfil?.nombre_completo || perfil?.nombre_usuario || "—";
-            const etiqueta = ETIQUETA[doc.confidencialidad ?? 1] ?? ETIQUETA[1];
             const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
             const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
-            const tipoLabel = ETIQUETA_TIPO[doc.tipo_archivo ?? ""] ?? doc.tipo_archivo ?? "—";
-
+            const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+            const esPublico = (doc.confidencialidad ?? 1) === 0;
             return (
-              <li key={doc.id} className="flex items-center gap-4 px-4 py-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-bold text-gray-500 dark:bg-gray-800">
-                  {tipoLabel}
+              <div
+                key={doc.id}
+                className="grid grid-cols-[44px_1fr_120px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
+              >
+                <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
+                  {tipo.slice(0, 3) || "?"}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{doc.nombre}</p>
-                  <p className="text-xs text-gray-400">
+                <div className="min-w-0">
+                  <Link
+                    href={`/documentos/${doc.id}`}
+                    className="font-medium hover:text-accent transition-colors truncate block"
+                  >
+                    {doc.nombre}
+                  </Link>
+                  <p className="text-mute text-[11px] font-mono mt-0.5">
                     {autor} · {fecha}{kb ? ` · ${kb} KB` : ""}
                   </p>
                 </div>
-                <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${etiqueta.clases}`}>
-                  {etiqueta.texto}
-                </span>
-                <a
-                  href={`/api/documentos/${doc.id}/url`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                >
-                  Descargar
+                <Tag variant={esPublico ? "pub" : "priv"}>
+                  {esPublico ? "público" : "privado"}
+                </Tag>
+                <a href={`/api/documentos/${doc.id}/url`}>
+                  <Button variant="ghost" size="sm">Descargar</Button>
                 </a>
-              </li>
+              </div>
             );
           })}
-        </ul>
-      ) : (
-        <p className="text-sm text-gray-500">
-          Nadie ha compartido documentos contigo todavía.
-        </p>
+        </div>
       )}
     </div>
   );
