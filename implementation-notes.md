@@ -1357,3 +1357,17 @@ Verificación final: npm test → 13/13. npm run build → éxito con 20 rutas.
 **Compromisos**: El ZIP se genera completamente en memoria en el servidor. Aceptable para 20 docs en TFG; en producción requeriría streaming.
 
 **A revisar**: Confirmar que el límite de 20 docs es adecuado para el uso real.
+
+---
+
+## 2026-05-27 — C.3 Carpetas, compartidos, organizaciones
+
+**Pedido**: Rediseño de /carpetas, /carpetas/[id], /compartidos, /organizaciones, /organizaciones/[id] al sistema Esmeralda + rename inline de carpetas + quitar documento de carpeta + mover a carpeta desde /mis-documentos.
+
+**Decidido por Claude**: FilaCarpeta es un client component separado para el rename inline. Eliminar carpeta usa window.confirm (sin modal propio, suficiente para TFG). ModalMoverACarpeta recibe la lista de carpetas como prop desde page.tsx (evita fetch cliente adicional). quitarDocumentoDeCarpeta acepta docId directamente (no FormData) porque se usa con .bind(); como la firma retorna Resultado (no void), se envuelve en inline async arrow con "use server" para que TypeScript lo acepte como form action. Conteo de miembros en /organizaciones se obtiene con una query adicional a org_miembros. FormularioMiembro rediseñado usando componentes Input y Button del sistema.
+
+**Cambios**: Adaptaciones menores en firmas de server actions según lo encontrado al leer los archivos actuales: crearCarpeta ya tenía la firma (_previo, datos) pero devolvía {id} — se cambió a Resultado = {ok}|{error}|undefined para uniformidad. eliminarCarpeta ahora devuelve Resultado en lugar de void. Se eliminó ResultadoCarpeta (sustituida por Resultado unificado) y se actualizó FormularioCarpeta.tsx para usar el nuevo tipo.
+
+**Compromisos**: Eliminar carpeta con docs los deja con carpeta_id=null (comportamiento documentado, FK tiene ON DELETE SET NULL). Form action "quitar documento" usa inline server function (arrow + "use server") para evitar error de tipo al pasar una función que retorna Resultado a un form action que espera void.
+
+**A revisar**: Confirmar que el rol en organizaciones se muestra correctamente si la tabla miembros tiene campo "rol". Verificar visualmente que los grids de 4 columnas no desborden en pantallas < 400px.
