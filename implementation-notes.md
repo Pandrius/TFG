@@ -98,6 +98,45 @@ Verificación: `npm run build` → 16 rutas, 0 errores. `supabase db push` → 1
 
 ---
 
+## 2026-05-27 — C.4 Explorar y usuarios
+
+**Pedido**
+- Rediseño de `/explorar` y `/usuarios` al sistema de diseño Esmeralda Biblioteca.
+- Conservar toda la lógica de datos y las server actions.
+- Solo reescribir el JSX aplicando tokens CSS y componentes existentes.
+
+**Decidido por Claude**
+- `/explorar` muestra dos vistas condicionales: grid de tarjetas cuando no hay búsqueda
+  activa (feed de documentos públicos), y lista de filas cuando hay búsqueda (para máxima
+  densidad de información).
+- Los botones de favorito/bloqueo en `/usuarios` conservan su patrón `<form action={fn.bind(null, id)}>`
+  sin refactorizar ni convertir a Client Component.
+- Avatar sin `avatarUrl` real porque la tabla `profiles` en este contexto no expone ese campo
+  en el select. El componente Avatar calcula iniciales automáticamente del nombre completo.
+- Tokens CSS utilizados: `text-accent`, `bg-paper`, `border-rule`, `bg-card`, `text-mute`,
+  `font-display`, `font-mono`, `bg-accent-tint`, `border-accent-soft`, `bg-danger-tint`,
+  `border-danger-soft`, según el sistema de variables en `globals.css`.
+
+**Cambios**
+- Ninguno respecto al plan. La especificación fue suficientemente clara.
+
+**Compromisos**
+- No se añade paginación en `/explorar`: la RLS devuelve máximo 100 documentos más recientes,
+  suficiente para un TFG. En producción sería necesario implementar cursor-based pagination.
+
+**A revisar**
+- Si se requiere mostrar foto de avatar en `/usuarios`, hay que (1) añadir `avatar_url` al select
+  de `profiles`, y (2) confirmar que el bucket de Storage está accesible. Actualmente se muestra
+  solo inicial del nombre.
+- Los estilos condicionales para botones favorito/bloqueado usan `className` directamente;
+  verificar que el componente `Button` acepta esta prop (lo hace con `forwardRef`).
+
+Verificación: `npx tsc --noEmit` sin errores en ambos archivos. Commits:
+- `c04081d` — rediseño /explorar
+- `8eba2ed` — rediseño /usuarios
+
+---
+
 ## 2026-05-27 — C1-11: Pantalla /inicio rediseñada
 
 **Pedido**
