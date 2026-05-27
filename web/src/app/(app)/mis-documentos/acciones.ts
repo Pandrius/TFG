@@ -87,6 +87,37 @@ export async function renombrarDocumento(
   return { ok: "Nombre actualizado." };
 }
 
+/** Mueve un documento del usuario a una carpeta (o lo saca de todas). */
+export async function moverDocumentoACarpeta(
+  _previo: Resultado,
+  datos: FormData,
+): Promise<Resultado> {
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sesión expirada." };
+  const docId = String(datos.get("doc_id") ?? "");
+  const carpetaIdRaw = String(datos.get("carpeta_id") ?? "");
+  const carpetaId = carpetaIdRaw || null;
+  if (!docId) return { error: "Documento no válido." };
+  const admin = crearClienteAdmin();
+  const { data: doc, error: errSel } = await admin
+    .from("Documentos")
+    .select("user_id")
+    .eq("id", docId)
+    .single();
+  if (errSel || !doc) return { error: "Documento no encontrado." };
+  if (doc.user_id !== user.id) return { error: "No autorizado." };
+  const { error } = await admin
+    .from("Documentos")
+    .update({ carpeta_id: carpetaId })
+    .eq("id", docId);
+  if (error) return { error: error.message };
+  revalidatePath("/mis-documentos");
+  return { ok: carpetaId ? "Documento movido a la carpeta." : "Documento sin carpeta." };
+}
+
 /** Elimina un documento del usuario (storage + BD). */
 export async function eliminarDocumento(
   _previo: Resultado,

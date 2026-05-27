@@ -9,6 +9,7 @@ import { useToast } from "@/components/ui/Toast";
 import { actualizarConfidencialidad } from "./acciones";
 import { ModalHacerPublico } from "./ModalHacerPublico";
 import { ModalEliminar } from "./ModalEliminar";
+import { ModalMoverACarpeta } from "./ModalMoverACarpeta";
 import { RenombrarInline } from "./RenombrarInline";
 
 export interface DocumentoFila {
@@ -22,6 +23,7 @@ export interface DocumentoFila {
 
 interface Props {
   documentos: DocumentoFila[];
+  carpetas: { id: string; nombre: string }[];
 }
 
 type Filtro = "todos" | "privados" | "publicos";
@@ -32,11 +34,12 @@ const ETIQUETAS_FILTRO: { id: Filtro; label: string }[] = [
   { id: "publicos", label: "Públicos" },
 ];
 
-export function TablaDocumentos({ documentos }: Props) {
+export function TablaDocumentos({ documentos, carpetas }: Props) {
   const { mostrar } = useToast();
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [modalPublico, setModalPublico] = useState<DocumentoFila | null>(null);
   const [modalBorrar, setModalBorrar] = useState<DocumentoFila | null>(null);
+  const [modalMover, setModalMover] = useState<DocumentoFila | null>(null);
   const [menuAbierto, setMenuAbierto] = useState<string | null>(null);
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
   const [descargando, setDescargando] = useState(false);
@@ -237,6 +240,13 @@ export function TablaDocumentos({ documentos }: Props) {
                       </Link>
                       <button
                         type="button"
+                        onClick={() => { setModalMover(doc); setMenuAbierto(null); }}
+                        className="block w-full text-left px-3 py-1.5 text-[13px] hover:bg-soft"
+                      >
+                        Mover a carpeta
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => {
                           setModalBorrar(doc);
                           setMenuAbierto(null);
@@ -270,6 +280,15 @@ export function TablaDocumentos({ documentos }: Props) {
           onClose={() => setModalBorrar(null)}
           docId={modalBorrar.id}
           nombre={modalBorrar.nombre}
+        />
+      )}
+      {modalMover && (
+        <ModalMoverACarpeta
+          abierto={modalMover !== null}
+          onClose={() => setModalMover(null)}
+          docId={modalMover.id}
+          nombre={modalMover.nombre}
+          carpetas={carpetas}
         />
       )}
 

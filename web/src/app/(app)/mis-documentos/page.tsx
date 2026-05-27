@@ -31,6 +31,12 @@ export default async function PaginaMisDocumentos() {
     .limit(100);
 
   const documentos: DocumentoFila[] = data ?? [];
+
+  const { data: carpetas } = await supabase
+    .from("carpetas")
+    .select("id, nombre")
+    .eq("user_id", user.id)
+    .order("nombre");
   const total = documentos.length;
   const privados = documentos.filter((d) => (d.confidencialidad ?? 1) === 1).length;
   const publicos = total - privados;
@@ -126,7 +132,7 @@ export default async function PaginaMisDocumentos() {
           </p>
         </div>
       ) : (
-        <TablaDocumentos documentos={documentos} />
+        <TablaDocumentos documentos={documentos} carpetas={carpetas ?? []} />
       )}
     </div>
   );
