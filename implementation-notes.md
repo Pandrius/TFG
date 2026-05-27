@@ -1331,3 +1331,17 @@ Smoke test manual de C.1 (npm run dev, abrir http://localhost:3001/mis-documento
 Spec de C.1 cerrada al 100%.
 
 Verificación final: npm test → 13/13. npm run build → éxito con 20 rutas.
+
+---
+
+## 2026-05-27 — C.2 Detalle de documento
+
+**Pedido**: Rediseño de /documentos/[id] al sistema Esmeralda + reclasificación desde esta página.
+
+**Decidido por Claude**: AccionesClasificacion es un client component separado (no se puede mezclar useState con server component). ModalHacerPublico se importa desde mis-documentos sin duplicar. El botón de descarga es un `<a>` nativo (el endpoint /api/documentos/[id]/url ya hace redirect a signed URL). FormularioInvitacion usa e.preventDefault + llamada manual (no useActionState) para poder limpiar el campo tras éxito; invitarUsuario tiene firma `(documentoId, previo, fd)` así que se llama directamente pasando los tres argumentos.
+
+**Cambios**: Ninguno respecto al plan.
+
+**Compromisos**: FormularioInvitacion usa e.preventDefault + llamada manual en lugar de useActionState para permitir limpiar el campo de texto tras éxito (useActionState no da control sobre el estado del input no controlado).
+
+**A revisar**: Confirmar que Avatar size="sm" tiene el tamaño correcto visualmente. Verificar que reclasificar desde esta página actualiza la UI (puede requerir router.refresh() o revalidatePath en acciones de mis-documentos).
