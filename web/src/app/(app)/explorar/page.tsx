@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-
-const ETIQUETA_TIPO: Record<string, string> = {
-  pdf: "PDF", docx: "DOC", xlsx: "XLS", csv: "CSV", pptx: "PPT", txt: "TXT",
-};
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Tag } from "@/components/ui/Tag";
 
 type Doc = {
   id: string;
@@ -70,81 +70,100 @@ export default async function PaginaExplorar({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
+      {/* Cabecera */}
       <div>
-        <h1 className="text-2xl font-bold">Explorar</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {termino ? `Resultados para "${termino}"` : "Documentos públicos de otros usuarios"}
+        <p className="font-display italic text-accent text-sm mb-1">— explorar</p>
+        <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
+          Documentos <em className="italic text-accent">públicos</em>
+        </h1>
+        <p className="text-mute text-[13px] mt-1">
+          {termino
+            ? `${documentos.length} resultado${documentos.length !== 1 ? "s" : ""} para "${termino}"`
+            : "Busca entre los documentos que la comunidad ha compartido."}
         </p>
       </div>
 
-      {/* Buscador */}
+      {/* Buscador — form GET que ya funciona */}
       <form method="GET" className="flex gap-2">
-        <input
-          type="search"
-          name="q"
-          defaultValue={termino}
-          placeholder="Buscar en documentos…"
-          className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-900"
-        />
-        <button
-          type="submit"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          Buscar
-        </button>
+        <Input type="search" name="q" defaultValue={termino} placeholder="Buscar documentos…" className="flex-1" />
+        <Button type="submit" variant="primary" size="md">Buscar</Button>
         {termino && (
-          <a
-            href="/explorar"
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-          >
-            Limpiar
-          </a>
+          <a href="/explorar"><Button type="button" variant="ghost" size="md">Limpiar</Button></a>
         )}
       </form>
 
-      {documentos.length > 0 ? (
-        <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
+      {/* Resultados */}
+      {documentos.length === 0 ? (
+        <div className="py-16 text-center">
+          <p className="font-display italic text-accent text-lg mb-1">Sin resultados</p>
+          <p className="text-mute text-sm">
+            {termino ? "Prueba con otro término de búsqueda." : "No hay documentos públicos disponibles."}
+          </p>
+        </div>
+      ) : termino ? (
+        // Lista para búsqueda
+        <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
           {documentos.map((doc) => {
             const perfil = perfilesById[doc.user_id];
-            const autor = perfil?.nombre_completo || perfil?.nombre_usuario || "—";
+            const autor = doc.user_id === user.id ? "Tú" : (perfil?.nombre_completo || perfil?.nombre_usuario || "—");
             const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
             const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
-            const tipoLabel = ETIQUETA_TIPO[doc.tipo_archivo ?? ""] ?? doc.tipo_archivo ?? "—";
-            const esPropio = doc.user_id === user.id;
-
+            const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+            const esPublico = doc.confidencialidad === 0;
             return (
-              <li key={doc.id} className="flex items-center gap-4 px-4 py-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-bold text-gray-500 dark:bg-gray-800">
-                  {tipoLabel}
+              <div key={doc.id} className="grid grid-cols-[44px_1fr_120px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]">
+                <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
+                  {tipo.slice(0, 3) || "?"}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{doc.nombre}</p>
-                  <p className="text-xs text-gray-400">
-                    {esPropio ? "Tú" : autor} · {fecha}{kb ? ` · ${kb} KB` : ""}
+                <div className="min-w-0">
+                  <Link href={`/documentos/${doc.id}`} className="font-medium hover:text-accent transition-colors truncate block">
+                    {doc.nombre}
+                  </Link>
+                  <p className="text-mute text-[11px] font-mono mt-0.5">
+                    {autor} · {fecha}{kb ? ` · ${kb} KB` : ""}
                   </p>
                 </div>
-                {doc.confidencialidad === 1 && (
-                  <span className="shrink-0 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800 dark:bg-red-900 dark:text-red-300">
-                    Confidencial
-                  </span>
-                )}
-                <a
-                  href={`/api/documentos/${doc.id}/url`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                >
-                  Descargar
+                <Tag variant={esPublico ? "pub" : "priv"}>{esPublico ? "público" : "privado"}</Tag>
+                <a href={`/api/documentos/${doc.id}/url`}>
+                  <Button variant="ghost" size="sm">Descargar</Button>
                 </a>
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
       ) : (
-        <p className="text-sm text-gray-500">
-          {termino ? "No se encontraron resultados." : "No hay documentos públicos disponibles."}
-        </p>
+        // Grid de tarjetas para feed sin búsqueda
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {documentos.map((doc) => {
+            const perfil = perfilesById[doc.user_id];
+            const autor = doc.user_id === user.id ? "Tú" : (perfil?.nombre_completo || perfil?.nombre_usuario || "—");
+            const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
+            const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
+            const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+            return (
+              <div key={doc.id} className="rounded-[14px] border border-rule bg-paper p-4 flex gap-4 items-start">
+                <span className="w-10 h-12 shrink-0 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[12px]">
+                  {tipo.slice(0, 3) || "?"}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <Link href={`/documentos/${doc.id}`} className="font-display font-medium text-[15px] hover:text-accent transition-colors truncate block leading-snug">
+                    {doc.nombre}
+                  </Link>
+                  <p className="text-mute text-[11px] font-mono mt-0.5 mb-3">
+                    {autor} · {fecha}{kb ? ` · ${kb} KB` : ""}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Tag variant="pub">público</Tag>
+                    <a href={`/api/documentos/${doc.id}/url`} className="ml-auto">
+                      <Button variant="ghost" size="sm">Descargar</Button>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
