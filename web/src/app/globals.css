@@ -41,36 +41,36 @@
   --shadow-3: 0 12px 32px -8px rgba(15, 28, 24, 0.18), 0 1px 0 rgba(15, 28, 24, 0.04);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #0E1816;
-    --card: #141F1B;
-    --soft: #1B2823;
-    --rule: #283831;
-    --rule-soft: #1F2D27;
+/* Modo oscuro: se activa solo con clase .dark en <html>
+   (no sigue la preferencia del SO para evitar cambios no esperados) */
+.dark {
+  --paper: #0E1816;
+  --card: #141F1B;
+  --soft: #1B2823;
+  --rule: #283831;
+  --rule-soft: #1F2D27;
 
-    --ink: #EBE3CA;
-    --ink-soft: #D2C8AB;
-    --mute: #8A9388;
+  --ink: #EBE3CA;
+  --ink-soft: #D2C8AB;
+  --mute: #8A9388;
 
-    --accent: #46B891;
-    --accent-hover: #5FC7A1;
-    --accent-soft: #1E3A30;
-    --accent-soft-hover: #295244;
-    --accent-tint: #16291F;
+  --accent: #46B891;
+  --accent-hover: #5FC7A1;
+  --accent-soft: #1E3A30;
+  --accent-soft-hover: #295244;
+  --accent-tint: #16291F;
 
-    --oro: #E0A65A;
-    --oro-soft: #3A2D14;
-    --oro-tint: #2A2110;
+  --oro: #E0A65A;
+  --oro-soft: #3A2D14;
+  --oro-tint: #2A2110;
 
-    --danger: #E08070;
-    --danger-soft: #3F1E17;
-    --danger-tint: #2A140E;
+  --danger: #E08070;
+  --danger-soft: #3F1E17;
+  --danger-tint: #2A140E;
 
-    --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4);
-    --shadow-2: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(0, 0, 0, 0.4);
-    --shadow-3: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(0, 0, 0, 0.4);
-  }
+  --shadow-1: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 4px 12px -2px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 1px 0 rgba(0, 0, 0, 0.4);
 }
 
 /* Mapear las custom properties como utilidades de Tailwind v4 */
