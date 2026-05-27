@@ -11,7 +11,7 @@ import { actualizarConfidencialidad } from "./acciones";
 interface Props {
   abierto: boolean;
   onClose: () => void;
-  docId: number;
+  docId: string;
   nombre: string;
   tipo: string;
 }
@@ -30,7 +30,7 @@ export function ModalHacerPublico({
   const confirmar = async () => {
     setEnviando(true);
     const fd = new FormData();
-    fd.append("doc_id", String(docId));
+    fd.append("doc_id", docId);
     fd.append("nueva", "0");
     const res = await actualizarConfidencialidad(undefined, fd);
     setEnviando(false);

@@ -12,7 +12,7 @@ import { ModalEliminar } from "./ModalEliminar";
 import { RenombrarInline } from "./RenombrarInline";
 
 export interface DocumentoFila {
-  id: number;
+  id: string;
   nombre: string;
   tipo_archivo: string | null;
   confidencialidad: number | null;
@@ -37,7 +37,7 @@ export function TablaDocumentos({ documentos }: Props) {
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [modalPublico, setModalPublico] = useState<DocumentoFila | null>(null);
   const [modalBorrar, setModalBorrar] = useState<DocumentoFila | null>(null);
-  const [menuAbierto, setMenuAbierto] = useState<number | null>(null);
+  const [menuAbierto, setMenuAbierto] = useState<string | null>(null);
 
   const filtrados = documentos.filter((d) => {
     if (filtro === "privados") return (d.confidencialidad ?? 1) === 1;
@@ -47,7 +47,7 @@ export function TablaDocumentos({ documentos }: Props) {
 
   const cambiarAPrivado = async (doc: DocumentoFila) => {
     const fd = new FormData();
-    fd.append("doc_id", String(doc.id));
+    fd.append("doc_id", doc.id);
     fd.append("nueva", "1");
     const res = await actualizarConfidencialidad(undefined, fd);
     if (res && "ok" in res) mostrar({ variant: "ok", titulo: res.ok });

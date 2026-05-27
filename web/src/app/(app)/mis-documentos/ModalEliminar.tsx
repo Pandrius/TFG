@@ -11,7 +11,7 @@ import { eliminarDocumento } from "./acciones";
 interface Props {
   abierto: boolean;
   onClose: () => void;
-  docId: number;
+  docId: string;
   nombre: string;
 }
 
@@ -22,7 +22,7 @@ export function ModalEliminar({ abierto, onClose, docId, nombre }: Props) {
   const confirmar = async () => {
     setEnviando(true);
     const fd = new FormData();
-    fd.append("doc_id", String(docId));
+    fd.append("doc_id", docId);
     const res = await eliminarDocumento(undefined, fd);
     setEnviando(false);
     if (res && "ok" in res) {

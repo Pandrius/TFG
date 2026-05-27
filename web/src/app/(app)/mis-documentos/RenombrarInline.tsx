@@ -6,7 +6,7 @@ import { renombrarDocumento } from "./acciones";
 import { useToast } from "@/components/ui/Toast";
 
 interface Props {
-  docId: number;
+  docId: string;
   nombre: string;
 }
 
@@ -32,7 +32,7 @@ export function RenombrarInline({ docId, nombre: nombreInicial }: Props) {
     }
     setGuardando(true);
     const fd = new FormData();
-    fd.append("doc_id", String(docId));
+    fd.append("doc_id", docId);
     fd.append("nombre", valor);
     const res = await renombrarDocumento(undefined, fd);
     setGuardando(false);

@@ -24,9 +24,9 @@ export async function actualizarConfidencialidad(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión expirada." };
 
-  const docId = Number(datos.get("doc_id"));
+  const docId = String(datos.get("doc_id") ?? "");
   const nueva = Number(datos.get("nueva"));
-  if (!Number.isFinite(docId) || (nueva !== 0 && nueva !== 1)) {
+  if (!docId || (nueva !== 0 && nueva !== 1)) {
     return { error: "Datos no válidos." };
   }
 
@@ -62,9 +62,9 @@ export async function renombrarDocumento(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión expirada." };
 
-  const docId = Number(datos.get("doc_id"));
+  const docId = String(datos.get("doc_id") ?? "");
   const nombre = String(datos.get("nombre") ?? "").trim();
-  if (!Number.isFinite(docId)) return { error: "Documento no válido." };
+  if (!docId) return { error: "Documento no válido." };
   if (!nombre) return { error: "El nombre no puede estar vacío." };
   if (nombre.length > 200) return { error: "Máximo 200 caracteres." };
 
@@ -98,8 +98,8 @@ export async function eliminarDocumento(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión expirada." };
 
-  const docId = Number(datos.get("doc_id"));
-  if (!Number.isFinite(docId)) return { error: "Documento no válido." };
+  const docId = String(datos.get("doc_id") ?? "");
+  if (!docId) return { error: "Documento no válido." };
 
   const admin = crearClienteAdmin();
   const { data: doc, error: errSel } = await admin
