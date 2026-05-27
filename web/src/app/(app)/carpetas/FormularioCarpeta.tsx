@@ -3,10 +3,10 @@
 import { useActionState } from "react";
 
 import { crearCarpeta } from "./acciones";
-import type { ResultadoCarpeta } from "./acciones";
+import type { Resultado } from "./acciones";
 
 export default function FormularioCarpeta() {
-  const [estado, dispatch, pending] = useActionState<ResultadoCarpeta | undefined, FormData>(
+  const [estado, dispatch, pending] = useActionState<Resultado, FormData>(
     crearCarpeta,
     undefined,
   );

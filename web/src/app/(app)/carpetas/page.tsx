@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
-
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import FormularioCarpeta from "./FormularioCarpeta";
-import { eliminarCarpeta } from "./acciones";
+import { FormularioInlineCarpeta } from "./FormularioInlineCarpeta";
+import { FilaCarpeta } from "./FilaCarpeta";
 
 export default async function PaginaCarpetas() {
   const supabase = await crearClienteServidor();
@@ -18,7 +16,6 @@ export default async function PaginaCarpetas() {
     .eq("user_id", user.id)
     .order("nombre");
 
-  // Contar documentos por carpeta
   const { data: conteos } = await supabase
     .from("Documentos")
     .select("carpeta_id")
@@ -33,50 +30,38 @@ export default async function PaginaCarpetas() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold">Carpetas</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {carpetas?.length ?? 0} carpeta{carpetas?.length !== 1 ? "s" : ""}
-        </p>
+    <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
+      <div className="flex items-end justify-between">
+        <div>
+          <p className="font-display italic text-accent text-sm mb-1">— organización</p>
+          <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
+            Mis <em className="italic text-accent">carpetas</em>
+          </h1>
+          <p className="text-mute text-[12px] font-mono mt-1">
+            {carpetas?.length ?? 0} carpeta{carpetas?.length !== 1 ? "s" : ""}
+          </p>
+        </div>
       </div>
 
-      <FormularioCarpeta />
+      <FormularioInlineCarpeta />
 
-      {carpetas && carpetas.length > 0 ? (
-        <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
-          {carpetas.map((c) => {
-            const ndocs = conteosPorCarpeta[c.id] ?? 0;
-            return (
-              <li key={c.id} className="flex items-center gap-4 px-4 py-3">
-                <div className="min-w-0 flex-1">
-                  <Link
-                    href={`/carpetas/${c.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {c.nombre}
-                  </Link>
-                  <p className="text-xs text-gray-400">
-                    {ndocs} documento{ndocs !== 1 ? "s" : ""}
-                  </p>
-                </div>
-                <form action={eliminarCarpeta.bind(null, c.id)}>
-                  <button
-                    type="submit"
-                    className="rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                  >
-                    Eliminar
-                  </button>
-                </form>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p className="text-sm text-gray-500">
-          No tienes carpetas todavía. Crea una para organizar tus documentos.
-        </p>
-      )}
+      <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
+        <div className="grid grid-cols-[1fr_100px_80px_80px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
+          <div>Carpeta</div>
+          <div>Documentos</div>
+          <div></div>
+          <div></div>
+        </div>
+        {!carpetas || carpetas.length === 0 ? (
+          <div className="px-5 py-10 text-center text-mute text-sm">
+            No tienes carpetas todavía.
+          </div>
+        ) : (
+          carpetas.map((c) => (
+            <FilaCarpeta key={c.id} carpeta={c} ndocs={conteosPorCarpeta[c.id] ?? 0} />
+          ))
+        )}
+      </div>
     </div>
   );
 }
