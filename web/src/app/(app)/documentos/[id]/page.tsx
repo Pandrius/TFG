@@ -1,9 +1,14 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { Tag } from "@/components/ui/Tag";
+import { Button } from "@/components/ui/Button";
+import { Avatar } from "@/components/ui/Avatar";
 import FormularioInvitacion from "./FormularioInvitacion";
 import { quitarPermiso } from "./acciones";
+import AccionesClasificacion from "./AccionesClasificacion";
 
 export default async function PaginaDocumento({
   params,
@@ -56,73 +61,115 @@ export default async function PaginaDocumento({
     }
   }
 
+  const esPublico = doc.confidencialidad === 0;
+  const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+
   return (
-    <div className="flex flex-col gap-6 max-w-2xl">
+    <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col gap-8">
+      {/* Breadcrumb */}
+      <Link href="/mis-documentos" className="text-mute text-sm hover:text-ink transition-colors inline-flex items-center gap-1">
+        ‹ Mis documentos
+      </Link>
+
+      {/* Cabecera */}
       <div>
-        <h1 className="text-2xl font-bold break-words">{doc.nombre}</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {doc.tipo_archivo?.toUpperCase()} · {fecha}{kb ? ` · ${kb} KB` : ""}
+        <p className="font-display italic text-accent text-sm mb-1">— tu archivo personal</p>
+        <h1 className="font-display font-medium text-[26px] tracking-[-0.02em] break-words leading-tight">
+          {doc.nombre}
+        </h1>
+        <p className="text-mute text-[12px] font-mono mt-1.5">
+          {tipo || "—"} · {fecha}{kb ? ` · ${kb} KB` : ""}
         </p>
       </div>
 
-      {/* Clasificación */}
-      <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-800">
-        <span
-          className={`rounded-full px-3 py-1 text-sm font-medium ${
-            doc.confidencialidad === 0
-              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-              : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
-          }`}
-        >
-          {doc.confidencialidad === 0 ? "Público" : "Confidencial"}
-        </span>
-        {doc.probabilidad !== null && (
-          <span className="text-sm text-gray-400">
-            Confianza: {Math.round(doc.probabilidad * 100)} %
-          </span>
-        )}
-        <a
-          href={`/api/documentos/${id}/url`}
-          target="_blank"
-          rel="noreferrer"
-          className="ml-auto rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          Descargar
-        </a>
+      {/* Bloque clasificación + acciones */}
+      <div className="rounded-[14px] border border-rule bg-paper p-5 flex flex-col sm:flex-row sm:items-start gap-5">
+        {/* Clasificación */}
+        <div className="flex-1 flex flex-col gap-3">
+          <div className="flex items-center gap-2">
+            <Tag variant={esPublico ? "pub" : "priv"}>
+              {esPublico ? "Público" : "Privado"}
+            </Tag>
+          </div>
+          {doc.probabilidad !== null && (
+            <div className="flex flex-col gap-1">
+              <p className="text-mute text-[11px]">
+                Confianza del modelo: {Math.round(doc.probabilidad * 100)} %
+              </p>
+              <div className="h-1 bg-rule rounded-full overflow-hidden w-48">
+                <div
+                  className="h-full bg-accent rounded-full"
+                  style={{ width: `${Math.round(doc.probabilidad * 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Acciones */}
+        <div className="flex flex-col gap-2 sm:items-end">
+          <a href={`/api/documentos/${id}/url`}>
+            <Button variant="primary" size="md">
+              Descargar
+            </Button>
+          </a>
+          {esPropietario && (
+            <AccionesClasificacion
+              docId={id}
+              nombre={doc.nombre}
+              tipo={doc.tipo_archivo ?? ""}
+              esPublico={esPublico}
+            />
+          )}
+        </div>
       </div>
 
-      {/* Gestión de permisos (solo propietario) */}
+      {/* Permisos (solo propietario) */}
       {esPropietario && (
         <section className="flex flex-col gap-4">
-          <h2 className="text-lg font-semibold">Permisos de acceso</h2>
+          <h2 className="font-display font-medium text-lg tracking-[-0.01em]">
+            Permisos de <em className="italic text-accent">acceso</em>
+          </h2>
 
-          {permisos.length > 0 ? (
-            <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
-              {permisos.map((p) => {
+          <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
+            {permisos.length === 0 ? (
+              <p className="px-5 py-6 text-mute text-sm text-center">
+                Nadie tiene acceso explícito todavía.
+              </p>
+            ) : (
+              permisos.map((p) => {
                 const perfil = perfilesById[p.inv_user_id];
                 return (
-                  <li key={p.id} className="flex items-center gap-3 px-4 py-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">{perfil?.nombre_completo || perfil?.nombre_usuario || "—"}</p>
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 px-5 py-3 border-b border-rule last:border-b-0"
+                  >
+                    <Avatar
+                      nombreCompleto={perfil?.nombre_completo ?? null}
+                      nombreUsuario={perfil?.nombre_usuario ?? ""}
+                      avatarUrl={null}
+                      size="sm"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-[13px]">
+                        {perfil?.nombre_completo || perfil?.nombre_usuario || "—"}
+                      </p>
                       {perfil?.nombre_usuario && (
-                        <p className="text-xs text-gray-400">@{perfil.nombre_usuario}</p>
+                        <p className="text-mute text-[11px] font-mono">
+                          @{perfil.nombre_usuario}
+                        </p>
                       )}
                     </div>
                     <form action={quitarPermiso.bind(null, id, p.id)}>
-                      <button
-                        type="submit"
-                        className="rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                      >
+                      <Button type="submit" variant="ghost" size="sm">
                         Revocar
-                      </button>
+                      </Button>
                     </form>
-                  </li>
+                  </div>
                 );
-              })}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-500">Nadie tiene acceso explícito todavía.</p>
-          )}
+              })
+            )}
+          </div>
 
           <FormularioInvitacion documentoId={id} />
         </section>

@@ -1,43 +1,45 @@
 "use client";
 
-import { useActionState } from "react";
+import { useState } from "react";
 
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { useToast } from "@/components/ui/Toast";
 import { invitarUsuario } from "./acciones";
-import type { ResultadoAccion } from "./acciones";
 
 export default function FormularioInvitacion({ documentoId }: { documentoId: string }) {
-  const accion = invitarUsuario.bind(null, documentoId);
-  const [estado, dispatch, pending] = useActionState<ResultadoAccion | undefined, FormData>(
-    accion,
-    undefined,
-  );
+  const [username, setUsername] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const { mostrar } = useToast();
+
+  const enviar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim()) return;
+    setEnviando(true);
+    const fd = new FormData();
+    fd.append("nombre_usuario", username.trim());
+    const res = await invitarUsuario(documentoId, undefined, fd);
+    setEnviando(false);
+    if (res && "ok" in res) {
+      mostrar({ variant: "ok", titulo: "Permiso concedido." });
+      setUsername("");
+    } else if (res && "error" in res) {
+      mostrar({ variant: "err", titulo: res.error });
+    }
+  };
 
   return (
-    <form action={dispatch} className="flex flex-col gap-3">
-      <h3 className="text-sm font-medium">Invitar usuario</h3>
-      <div className="flex gap-2">
-        <input
-          type="text"
-          name="nombre_usuario"
-          placeholder="Nombre de usuario"
-          required
-          disabled={pending}
-          className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900"
-        />
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {pending ? "Invitando…" : "Invitar"}
-        </button>
-      </div>
-      {estado && "error" in estado && (
-        <p className="text-sm text-red-600 dark:text-red-400">{estado.error}</p>
-      )}
-      {estado && "ok" in estado && (
-        <p className="text-sm text-green-600 dark:text-green-400">Permiso concedido.</p>
-      )}
+    <form onSubmit={enviar} className="flex gap-2">
+      <Input
+        placeholder="Buscar por @usuario…"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        disabled={enviando}
+        className="flex-1"
+      />
+      <Button type="submit" variant="primary" size="md" loading={enviando} disabled={!username.trim()}>
+        Invitar
+      </Button>
     </form>
   );
 }
