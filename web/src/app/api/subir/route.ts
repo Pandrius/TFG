@@ -6,6 +6,21 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 const FORMATOS_PERMITIDOS = new Set(["pdf", "docx", "txt", "xlsx", "csv", "pptx"]);
 const TAMANO_MAX = 10 * 1024 * 1024;
 
+/**
+ * Convierte el nombre del archivo en un slug seguro para Supabase Storage
+ * (sin tildes, espacios ni caracteres especiales). El nombre original se
+ * conserva en la columna Documentos.nombre.
+ */
+const REGEX_DIACRITICOS = new RegExp("[\\u0300-\\u036f]", "g");
+function slugificar(nombre: string): string {
+  return nombre
+    .normalize("NFD")
+    .replace(REGEX_DIACRITICOS, "") // quitar diacríticos
+    .replace(/[^a-zA-Z0-9._-]+/g, "_") // sustituir lo no permitido por _
+    .replace(/_+/g, "_") // colapsar guiones bajos repetidos
+    .replace(/^_+|_+$/g, ""); // recortar _ al inicio/fin
+}
+
 export async function POST(request: NextRequest) {
   const encoder = new TextEncoder();
 
@@ -14,6 +29,8 @@ export async function POST(request: NextRequest) {
       const emit = (datos: Record<string, unknown>) => {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(datos)}\n\n`));
       };
+
+      let nombreActual = "<sin nombre>"; // para logs
 
       try {
         const supabase = await crearClienteServidor();
@@ -32,6 +49,7 @@ export async function POST(request: NextRequest) {
           emit({ fase: "error", error: "No se recibió archivo" });
           return;
         }
+        nombreActual = archivo.name;
         if (archivo.size > TAMANO_MAX) {
           emit({ fase: "error", error: "El archivo supera los 10 MB" });
           return;
@@ -66,9 +84,17 @@ export async function POST(request: NextRequest) {
               probabilidad = iaData.probabilidad ?? null;
               textoExtraido = iaData.texto_extraido ?? null;
               tipoArchivo = iaData.tipo_archivo ?? extension;
+            } else {
+              console.warn(
+                `[/api/subir] servicio IA respondio ${iaResp.status} · archivo="${nombreActual}" · fail-safe a confidencial`,
+              );
             }
-          } catch {
-            // fail-safe: confidencial
+          } catch (err) {
+            console.warn(
+              `[/api/subir] llamada al servicio IA fallo · archivo="${nombreActual}" · ${
+                err instanceof Error ? err.message : String(err)
+              } · fail-safe a confidencial`,
+            );
           }
         } else {
           emit({ fase: "clasificando" });
@@ -77,7 +103,8 @@ export async function POST(request: NextRequest) {
         emit({ fase: "guardando" });
 
         const admin = crearClienteAdmin();
-        const rutaObjeto = `${user.id}/${Date.now()}_${archivo.name}`;
+        const nombreSlug = slugificar(archivo.name) || `archivo.${extension}`;
+        const rutaObjeto = `${user.id}/${Date.now()}_${nombreSlug}`;
         const buffer = await archivo.arrayBuffer();
 
         const { error: errorStorage } = await admin.storage
@@ -85,7 +112,13 @@ export async function POST(request: NextRequest) {
           .upload(rutaObjeto, buffer, { contentType: archivo.type, upsert: false });
 
         if (errorStorage) {
-          emit({ fase: "error", error: "Error al guardar el archivo en el almacén" });
+          console.error(
+            `[/api/subir] storage upload fallo · archivo="${nombreActual}" · ruta="${rutaObjeto}" · ${errorStorage.message}`,
+          );
+          emit({
+            fase: "error",
+            error: `Error al guardar en el almacén: ${errorStorage.message}`,
+          });
           return;
         }
 
@@ -105,14 +138,24 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (errorDb) {
+          console.error(
+            `[/api/subir] insert BD fallo · archivo="${nombreActual}" · ${errorDb.message}`,
+          );
           await admin.storage.from("almacen_documentos").remove([rutaObjeto]);
-          emit({ fase: "error", error: "Error al registrar el documento" });
+          emit({
+            fase: "error",
+            error: `Error al registrar el documento: ${errorDb.message}`,
+          });
           return;
         }
 
         emit({ fase: "completado", doc });
-      } catch {
-        emit({ fase: "error", error: "Error interno del servidor" });
+      } catch (err) {
+        const mensaje = err instanceof Error ? err.message : String(err);
+        console.error(
+          `[/api/subir] excepcion interna · archivo="${nombreActual}" · ${mensaje}`,
+        );
+        emit({ fase: "error", error: `Error interno: ${mensaje}` });
       } finally {
         controller.close();
       }
