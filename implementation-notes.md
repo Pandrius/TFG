@@ -1345,3 +1345,15 @@ Verificación final: npm test → 13/13. npm run build → éxito con 20 rutas.
 **Compromisos**: FormularioInvitacion usa e.preventDefault + llamada manual en lugar de useActionState para permitir limpiar el campo de texto tras éxito (useActionState no da control sobre el estado del input no controlado).
 
 **A revisar**: Confirmar que Avatar size="sm" tiene el tamaño correcto visualmente. Verificar que reclasificar desde esta página actualiza la UI (puede requerir router.refresh() o revalidatePath en acciones de mis-documentos).
+
+## 2026-05-27 — C.5 Descarga masiva
+
+**Pedido**: Selección múltiple de documentos y descarga como ZIP.
+
+**Decidido por Claude**: jszip (puro JS, sin dependencias nativas). Límite de 20 docs por petición para proteger el servidor. La selección se limpia al cambiar filtro para evitar confusión. Nombres duplicados en ZIP se resuelven con sufijo " (2)", " (3)", etc. Se usó `uint8array` en lugar de `nodebuffer` como tipo de salida de JSZip, y se convierte a `ArrayBuffer` para la `Response`, por incompatibilidad de tipos TypeScript en este entorno Next.js.
+
+**Cambios**: Ninguno respecto al plan, salvo el ajuste de tipos en la respuesta HTTP (uint8array + .buffer en vez de nodebuffer directo).
+
+**Compromisos**: El ZIP se genera completamente en memoria en el servidor. Aceptable para 20 docs en TFG; en producción requeriría streaming.
+
+**A revisar**: Confirmar que el límite de 20 docs es adecuado para el uso real.
