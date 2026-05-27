@@ -1,11 +1,10 @@
-import { redirect } from "next/navigation";
-
+import Link from "next/link";
+import { redirect, notFound } from "next/navigation";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { moverDocumento } from "../acciones";
-
-const ETIQUETA_TIPO: Record<string, string> = {
-  pdf: "PDF", docx: "DOC", xlsx: "XLS", csv: "CSV", pptx: "PPT", txt: "TXT",
-};
+import { crearClienteAdmin } from "@/lib/supabase/admin";
+import { Tag } from "@/components/ui/Tag";
+import { Button } from "@/components/ui/Button";
+import { quitarDocumentoDeCarpeta } from "../acciones";
 
 export default async function PaginaCarpeta({
   params,
@@ -19,101 +18,97 @@ export default async function PaginaCarpeta({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Verificar propiedad de la carpeta
-  const { data: carpeta } = await supabase
+  const admin = crearClienteAdmin();
+  const { data: carpeta } = await admin
     .from("carpetas")
-    .select("id, nombre")
+    .select("id, nombre, user_id")
     .eq("id", id)
-    .eq("user_id", user.id)
     .single();
+  if (!carpeta || carpeta.user_id !== user.id) notFound();
 
-  if (!carpeta) redirect("/carpetas");
-
-  // Documentos en esta carpeta
-  const { data: docsEnCarpeta } = await supabase
+  const { data: docs } = await admin
     .from("Documentos")
     .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha")
-    .eq("user_id", user.id)
     .eq("carpeta_id", id)
+    .eq("user_id", user.id)
     .order("fecha", { ascending: false });
 
-  // Documentos sin carpeta (para poder moverlos aquí)
-  const { data: docsSinCarpeta } = await supabase
-    .from("Documentos")
-    .select("id, nombre, tipo_archivo")
-    .eq("user_id", user.id)
-    .is("carpeta_id", null)
-    .order("nombre");
-
   return (
-    <div className="flex flex-col gap-6">
+    <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
+      <Link
+        href="/carpetas"
+        className="text-mute text-sm hover:text-ink transition-colors inline-flex items-center gap-1"
+      >
+        ‹ Carpetas
+      </Link>
       <div>
-        <h1 className="text-2xl font-bold">{carpeta.nombre}</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {docsEnCarpeta?.length ?? 0} documento{docsEnCarpeta?.length !== 1 ? "s" : ""}
+        <p className="font-display italic text-accent text-sm mb-1">— carpeta</p>
+        <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
+          {carpeta.nombre}
+        </h1>
+        <p className="text-mute text-[12px] font-mono mt-1">
+          {docs?.length ?? 0} documento{docs?.length !== 1 ? "s" : ""}
         </p>
       </div>
-
-      {/* Documentos en la carpeta */}
-      {docsEnCarpeta && docsEnCarpeta.length > 0 ? (
-        <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
-          {docsEnCarpeta.map((doc) => {
-            const tipoLabel = ETIQUETA_TIPO[doc.tipo_archivo ?? ""] ?? doc.tipo_archivo ?? "—";
+      <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
+        <div className="grid grid-cols-[44px_1fr_120px_100px_120px_auto] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
+          <div></div>
+          <div>Documento</div>
+          <div>Estado</div>
+          <div>Tamaño</div>
+          <div>Fecha</div>
+          <div></div>
+        </div>
+        {!docs || docs.length === 0 ? (
+          <div className="px-5 py-10 text-center text-mute text-sm">
+            Esta carpeta está vacía. Mueve documentos desde{" "}
+            <Link href="/mis-documentos" className="text-accent hover:underline">
+              Mis documentos
+            </Link>
+            .
+          </div>
+        ) : (
+          docs.map((doc) => {
+            const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+            const esPublico = (doc.confidencialidad ?? 1) === 0;
             const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
+            const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
             return (
-              <li key={doc.id} className="flex items-center gap-4 px-4 py-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-bold text-gray-500 dark:bg-gray-800">
-                  {tipoLabel}
+              <div
+                key={doc.id}
+                className="grid grid-cols-[44px_1fr_120px_100px_120px_auto] items-center px-5 py-3 gap-3 border-b border-rule last:border-b-0 text-[13px]"
+              >
+                <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
+                  {tipo.slice(0, 3) || "?"}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{doc.nombre}</p>
-                  {kb && <p className="text-xs text-gray-400">{kb} KB</p>}
-                </div>
-                <form action={moverDocumento.bind(null, doc.id, null)}>
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                  >
+                <Link
+                  href={`/documentos/${doc.id}`}
+                  className="font-medium hover:text-accent transition-colors truncate"
+                >
+                  {doc.nombre}
+                </Link>
+                <Tag variant={esPublico ? "pub" : "priv"}>
+                  {esPublico ? "público" : "privado"}
+                </Tag>
+                <span className="text-mute font-mono text-[12px]">
+                  {kb !== null ? `${kb} KB` : "—"}
+                </span>
+                <span className="text-mute font-mono text-[12px]">{fecha}</span>
+                <form
+                  action={async () => {
+                    "use server";
+                    await quitarDocumentoDeCarpeta(doc.id);
+                  }}
+                >
+                  <Button type="submit" variant="ghost" size="sm">
                     Quitar
-                  </button>
+                  </Button>
                 </form>
-              </li>
+              </div>
             );
-          })}
-        </ul>
-      ) : (
-        <p className="text-sm text-gray-500">Esta carpeta está vacía.</p>
-      )}
-
-      {/* Mover documentos sin carpeta a esta */}
-      {docsSinCarpeta && docsSinCarpeta.length > 0 && (
-        <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-            Añadir documentos
-          </h2>
-          <ul className="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-800 dark:border-gray-800">
-            {docsSinCarpeta.map((doc) => {
-              const tipoLabel = ETIQUETA_TIPO[doc.tipo_archivo ?? ""] ?? doc.tipo_archivo ?? "—";
-              return (
-                <li key={doc.id} className="flex items-center gap-4 px-4 py-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-gray-100 text-xs font-bold text-gray-500 dark:bg-gray-800">
-                    {tipoLabel}
-                  </span>
-                  <p className="min-w-0 flex-1 truncate font-medium">{doc.nombre}</p>
-                  <form action={moverDocumento.bind(null, doc.id, id)}>
-                    <button
-                      type="submit"
-                      className="shrink-0 rounded-md border border-gray-300 px-3 py-1.5 text-xs hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                    >
-                      Añadir
-                    </button>
-                  </form>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      )}
+          })
+        )}
+      </div>
     </div>
   );
 }
