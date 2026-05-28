@@ -146,7 +146,7 @@ export function Buscador({ abierto, onCerrar }: Props) {
   return createPortal(
     /* backdrop */
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] px-4"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-[15vh] px-4"
       style={{ background: "rgba(15,28,24,0.35)" }}
       onMouseDown={(e) => { if (e.target === e.currentTarget) onCerrar(); }}
     >

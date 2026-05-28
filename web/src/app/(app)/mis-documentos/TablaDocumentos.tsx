@@ -135,134 +135,138 @@ export function TablaDocumentos({ documentos, carpetas }: Props) {
       </div>
 
       {/* Cabecera tabla */}
-      <div className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_30px] items-center px-5 py-2.5 gap-3.5 bg-soft text-mute font-display italic text-xs border-b border-rule">
-        <div className="flex items-center justify-center">
-          <input
-            type="checkbox"
-            checked={filtrados.length > 0 && seleccionados.size === filtrados.length}
-            onChange={toggleTodos}
-            className="w-4 h-4 cursor-pointer accent-[var(--accent)]"
-            aria-label="Seleccionar todos"
-          />
-        </div>
-        <div></div>
-        <div>Documento</div>
-        <div>Estado</div>
-        <div>Tamaño</div>
-        <div>Modificado</div>
-        <div></div>
-      </div>
-
-      {/* Filas */}
-      {filtrados.length === 0 ? (
-        <div className="px-5 py-10 text-center text-mute text-sm">
-          No hay documentos en este filtro.
-        </div>
-      ) : (
-        filtrados.map((doc) => {
-          const tipo = (doc.tipo_archivo ?? "").toUpperCase();
-          const esPublico = (doc.confidencialidad ?? 1) === 0;
-          const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
-          const kb = doc.tamano_bytes
-            ? Math.round(doc.tamano_bytes / 1024)
-            : null;
-
-          return (
-            <div
-              key={doc.id}
-              className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_30px] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
-            >
-              <div className="flex items-center justify-center">
-                <input
-                  type="checkbox"
-                  checked={seleccionados.has(doc.id)}
-                  onChange={() => toggleSeleccion(doc.id)}
-                  className="w-4 h-4 cursor-pointer accent-[var(--accent)]"
-                  aria-label={`Seleccionar ${doc.nombre}`}
-                />
-              </div>
-              <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent">
-                {tipo.slice(0, 3) || "?"}
-              </span>
-              <div className="min-w-0">
-                <RenombrarInline docId={doc.id} nombre={doc.nombre} />
-                <div className="text-mute text-[11px] font-mono mt-0.5">
-                  /personal · {tipo.toLowerCase() || "—"}
-                </div>
-              </div>
-              <div>
-                {esPublico ? (
-                  <button
-                    type="button"
-                    onClick={() => void cambiarAPrivado(doc)}
-                    title="Click para hacer privado"
-                  >
-                    <Tag variant="pub">público</Tag>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setModalPublico(doc)}
-                    title="Click para hacer público"
-                  >
-                    <Tag variant="priv">privado</Tag>
-                  </button>
-                )}
-              </div>
-              <div className="text-mute font-mono text-[12px]">
-                {kb !== null ? `${kb} KB` : "—"}
-              </div>
-              <div className="text-mute font-mono text-[12px]">{fecha}</div>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setMenuAbierto(menuAbierto === doc.id ? null : doc.id)
-                  }
-                  className="text-mute hover:text-ink px-1.5 py-1 rounded-[6px] hover:bg-soft"
-                  aria-label="Más acciones"
-                >
-                  ⋯
-                </button>
-                {menuAbierto === doc.id && (
-                  <>
-                    <div
-                      className="fixed inset-0 z-10"
-                      onClick={() => setMenuAbierto(null)}
-                    />
-                    <div className="absolute right-0 top-full mt-1 z-20 bg-card border border-rule rounded-[10px] shadow-[var(--shadow-2)] py-1 min-w-[160px]">
-                      <Link
-                        href={`/documentos/${doc.id}`}
-                        className="block px-3 py-1.5 text-[13px] hover:bg-soft"
-                        onClick={() => setMenuAbierto(null)}
-                      >
-                        Ver detalle
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => { setModalMover(doc); setMenuAbierto(null); }}
-                        className="block w-full text-left px-3 py-1.5 text-[13px] hover:bg-soft"
-                      >
-                        Mover a carpeta
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setModalBorrar(doc);
-                          setMenuAbierto(null);
-                        }}
-                        className="block w-full text-left px-3 py-1.5 text-[13px] text-danger hover:bg-danger-tint"
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+      <div className="overflow-x-auto">
+        <div className="min-w-[800px]">
+          <div className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_30px] items-center px-5 py-2.5 gap-3.5 bg-soft text-mute font-display italic text-xs border-b border-rule">
+            <div className="flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={filtrados.length > 0 && seleccionados.size === filtrados.length}
+                onChange={toggleTodos}
+                className="w-4 h-4 cursor-pointer accent-[var(--accent)]"
+                aria-label="Seleccionar todos"
+              />
             </div>
-          );
-        })
-      )}
+            <div></div>
+            <div>Documento</div>
+            <div>Estado</div>
+            <div>Tamaño</div>
+            <div>Modificado</div>
+            <div></div>
+          </div>
+
+          {/* Filas */}
+          {filtrados.length === 0 ? (
+            <div className="px-5 py-10 text-center text-mute text-sm">
+              No hay documentos en este filtro.
+            </div>
+          ) : (
+            filtrados.map((doc) => {
+              const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+              const esPublico = (doc.confidencialidad ?? 1) === 0;
+              const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
+              const kb = doc.tamano_bytes
+                ? Math.round(doc.tamano_bytes / 1024)
+                : null;
+
+              return (
+                <div
+                  key={doc.id}
+                  className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_30px] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
+                >
+                  <div className="flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={seleccionados.has(doc.id)}
+                      onChange={() => toggleSeleccion(doc.id)}
+                      className="w-4 h-4 cursor-pointer accent-[var(--accent)]"
+                      aria-label={`Seleccionar ${doc.nombre}`}
+                    />
+                  </div>
+                  <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent">
+                    {tipo.slice(0, 3) || "?"}
+                  </span>
+                  <div className="min-w-0">
+                    <RenombrarInline docId={doc.id} nombre={doc.nombre} />
+                    <div className="text-mute text-[11px] font-mono mt-0.5">
+                      /personal · {tipo.toLowerCase() || "—"}
+                    </div>
+                  </div>
+                  <div>
+                    {esPublico ? (
+                      <button
+                        type="button"
+                        onClick={() => void cambiarAPrivado(doc)}
+                        title="Click para hacer privado"
+                      >
+                        <Tag variant="pub">público</Tag>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setModalPublico(doc)}
+                        title="Click para hacer público"
+                      >
+                        <Tag variant="priv">privado</Tag>
+                      </button>
+                    )}
+                  </div>
+                  <div className="text-mute font-mono text-[12px]">
+                    {kb !== null ? `${kb} KB` : "—"}
+                  </div>
+                  <div className="text-mute font-mono text-[12px]">{fecha}</div>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setMenuAbierto(menuAbierto === doc.id ? null : doc.id)
+                      }
+                      className="text-mute hover:text-ink px-1.5 py-1 rounded-[6px] hover:bg-soft"
+                      aria-label="Más acciones"
+                    >
+                      ⋯
+                    </button>
+                    {menuAbierto === doc.id && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={() => setMenuAbierto(null)}
+                        />
+                        <div className="absolute right-0 top-full mt-1 z-20 bg-card border border-rule rounded-[10px] shadow-[var(--shadow-2)] py-1 min-w-[160px]">
+                          <Link
+                            href={`/documentos/${doc.id}`}
+                            className="block px-3 py-1.5 text-[13px] hover:bg-soft"
+                            onClick={() => setMenuAbierto(null)}
+                          >
+                            Ver detalle
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => { setModalMover(doc); setMenuAbierto(null); }}
+                            className="block w-full text-left px-3 py-1.5 text-[13px] hover:bg-soft"
+                          >
+                            Mover a carpeta
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setModalBorrar(doc);
+                              setMenuAbierto(null);
+                            }}
+                            className="block w-full text-left px-3 py-1.5 text-[13px] text-danger hover:bg-danger-tint"
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
 
       {/* Modales */}
       {modalPublico && (

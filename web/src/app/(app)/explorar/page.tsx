@@ -104,33 +104,37 @@ export default async function PaginaExplorar({
       ) : termino ? (
         // Lista para búsqueda
         <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
-          {documentos.map((doc) => {
-            const perfil = perfilesById[doc.user_id];
-            const autor = doc.user_id === user.id ? "Tú" : (perfil?.nombre_completo || perfil?.nombre_usuario || "—");
-            const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
-            const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
-            const tipo = (doc.tipo_archivo ?? "").toUpperCase();
-            const esPublico = doc.confidencialidad === 0;
-            return (
-              <div key={doc.id} className="grid grid-cols-[44px_1fr_120px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]">
-                <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
-                  {tipo.slice(0, 3) || "?"}
-                </span>
-                <div className="min-w-0">
-                  <Link href={`/documentos/${doc.id}`} className="font-medium hover:text-accent transition-colors truncate block">
-                    {doc.nombre}
-                  </Link>
-                  <p className="text-mute text-[11px] font-mono mt-0.5">
-                    {autor} · {fecha}{kb ? ` · ${kb} KB` : ""}
-                  </p>
-                </div>
-                <Tag variant={esPublico ? "pub" : "priv"}>{esPublico ? "público" : "privado"}</Tag>
-                <a href={`/api/documentos/${doc.id}/url`}>
-                  <Button variant="ghost" size="sm">Descargar</Button>
-                </a>
-              </div>
-            );
-          })}
+          <div className="overflow-x-auto">
+            <div className="min-w-[500px]">
+              {documentos.map((doc) => {
+                const perfil = perfilesById[doc.user_id];
+                const autor = doc.user_id === user.id ? "Tú" : (perfil?.nombre_completo || perfil?.nombre_usuario || "—");
+                const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
+                const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
+                const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+                const esPublico = doc.confidencialidad === 0;
+                return (
+                  <div key={doc.id} className="grid grid-cols-[44px_1fr_120px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]">
+                    <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
+                      {tipo.slice(0, 3) || "?"}
+                    </span>
+                    <div className="min-w-0">
+                      <Link href={`/documentos/${doc.id}`} className="font-medium hover:text-accent transition-colors truncate block">
+                        {doc.nombre}
+                      </Link>
+                      <p className="text-mute text-[11px] font-mono mt-0.5">
+                        {autor} · {fecha}{kb ? ` · ${kb} KB` : ""}
+                      </p>
+                    </div>
+                    <Tag variant={esPublico ? "pub" : "priv"}>{esPublico ? "público" : "privado"}</Tag>
+                    <a href={`/api/documentos/${doc.id}/url`}>
+                      <Button variant="ghost" size="sm">Descargar</Button>
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       ) : (
         // Grid de tarjetas para feed sin búsqueda

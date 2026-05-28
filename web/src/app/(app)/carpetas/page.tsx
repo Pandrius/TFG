@@ -46,21 +46,25 @@ export default async function PaginaCarpetas() {
       <FormularioInlineCarpeta />
 
       <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
-        <div className="grid grid-cols-[1fr_100px_80px_80px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
-          <div>Carpeta</div>
-          <div>Documentos</div>
-          <div></div>
-          <div></div>
-        </div>
-        {!carpetas || carpetas.length === 0 ? (
-          <div className="px-5 py-10 text-center text-mute text-sm">
-            No tienes carpetas todavía.
+        <div className="overflow-x-auto">
+          <div className="min-w-[500px]">
+            <div className="grid grid-cols-[1fr_100px_80px_80px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
+              <div>Carpeta</div>
+              <div>Documentos</div>
+              <div></div>
+              <div></div>
+            </div>
+            {!carpetas || carpetas.length === 0 ? (
+              <div className="px-5 py-10 text-center text-mute text-sm">
+                No tienes carpetas todavía.
+              </div>
+            ) : (
+              carpetas.map((c) => (
+                <FilaCarpeta key={c.id} carpeta={c} ndocs={conteosPorCarpeta[c.id] ?? 0} />
+              ))
+            )}
           </div>
-        ) : (
-          carpetas.map((c) => (
-            <FilaCarpeta key={c.id} carpeta={c} ndocs={conteosPorCarpeta[c.id] ?? 0} />
-          ))
-        )}
+        </div>
       </div>
     </div>
   );

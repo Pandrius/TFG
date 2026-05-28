@@ -57,41 +57,45 @@ export default async function PaginaOrganizaciones() {
       <FormularioInlineOrg />
 
       <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
-        <div className="grid grid-cols-[1fr_120px_80px_80px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
-          <div>Organización</div>
-          <div>Miembros</div>
-          <div></div>
-          <div></div>
-        </div>
-        {!misOrgs || misOrgs.length === 0 ? (
-          <div className="px-5 py-10 text-center text-mute text-sm">
-            No perteneces a ninguna organización todavía.
-          </div>
-        ) : (
-          misOrgs.map((m) => {
-            const org = Array.isArray(m.organizaciones) ? m.organizaciones[0] : m.organizaciones;
-            if (!org) return null;
-            const nmiembros = conteosMap[org.id] ?? 1;
-            return (
-              <div
-                key={org.id}
-                className="grid grid-cols-[1fr_120px_80px_80px] items-center px-5 py-3 gap-3 border-b border-rule last:border-b-0 text-[13px]"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium truncate">{org.nombre}</p>
-                  <p className="text-mute text-[11px] font-mono capitalize mt-0.5">{m.rol}</p>
-                </div>
-                <span className="text-mute font-mono text-[12px]">
-                  {nmiembros} miembro{nmiembros !== 1 ? "s" : ""}
-                </span>
-                <Link href={`/organizaciones/${org.id}`}>
-                  <Button variant="ghost" size="sm">Ver</Button>
-                </Link>
-                <div></div>
+        <div className="overflow-x-auto">
+          <div className="min-w-[500px]">
+            <div className="grid grid-cols-[1fr_120px_80px_80px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
+              <div>Organización</div>
+              <div>Miembros</div>
+              <div></div>
+              <div></div>
+            </div>
+            {!misOrgs || misOrgs.length === 0 ? (
+              <div className="px-5 py-10 text-center text-mute text-sm">
+                No perteneces a ninguna organización todavía.
               </div>
-            );
-          })
-        )}
+            ) : (
+              misOrgs.map((m) => {
+                const org = Array.isArray(m.organizaciones) ? m.organizaciones[0] : m.organizaciones;
+                if (!org) return null;
+                const nmiembros = conteosMap[org.id] ?? 1;
+                return (
+                  <div
+                    key={org.id}
+                    className="grid grid-cols-[1fr_120px_80px_80px] items-center px-5 py-3 gap-3 border-b border-rule last:border-b-0 text-[13px]"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-medium truncate">{org.nombre}</p>
+                      <p className="text-mute text-[11px] font-mono capitalize mt-0.5">{m.rol}</p>
+                    </div>
+                    <span className="text-mute font-mono text-[12px]">
+                      {nmiembros} miembro{nmiembros !== 1 ? "s" : ""}
+                    </span>
+                    <Link href={`/organizaciones/${org.id}`}>
+                      <Button variant="ghost" size="sm">Ver</Button>
+                    </Link>
+                    <div></div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

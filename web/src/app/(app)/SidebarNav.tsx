@@ -25,7 +25,7 @@ const grupos = [
   },
 ];
 
-export function SidebarNav() {
+export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
   const pathname = usePathname();
 
   return (
@@ -42,6 +42,7 @@ export function SidebarNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={onItemClick}
                 className={[
                   "flex items-center px-[10px] py-[7px] rounded-[10px] text-[14px] transition-colors",
                   activo
