@@ -14,6 +14,7 @@ prompts-log.md
 __pycache__/
 *.pyc
 .pytest_cache/
+.venv/
 
 # Modelo entrenado (se entrega aparte; puede ser grande)
 servicio-ia/modelo/*.pkl
@@ -23,6 +24,9 @@ servicio-ia/modelo/*.pkl
 *.npy
 ml/*.csv
 ml/*.npy
+
+# Resultados locales (gráficas y logs de entrenamiento)
+ml/results/
 
 # Supabase temp
 supabase/.temp/
