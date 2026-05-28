@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { Button } from "@/components/ui/Button";
 import { FormularioInlineOrg } from "./FormularioInlineOrg";
@@ -12,7 +13,10 @@ export default async function PaginaOrganizaciones() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: misOrgs } = await supabase
+  // Usamos el cliente admin para evitar problemas de RLS en el JOIN complejo,
+  // filtrando siempre por el ID del usuario actual por seguridad.
+  const admin = crearClienteAdmin();
+  const { data: misOrgs } = await admin
     .from("org_miembros")
     .select("rol, organizaciones ( id, nombre )")
     .eq("user_id", user.id);
@@ -27,7 +31,7 @@ export default async function PaginaOrganizaciones() {
 
   const conteosMap: Record<string, number> = {};
   if (orgIds.length > 0) {
-    const { data: conteos } = await supabase
+    const { data: conteos } = await admin
       .from("org_miembros")
       .select("org_id")
       .in("org_id", orgIds);

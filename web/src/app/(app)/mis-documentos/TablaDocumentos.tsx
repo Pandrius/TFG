@@ -109,7 +109,7 @@ export function TablaDocumentos({ documentos, carpetas }: Props) {
   };
 
   return (
-    <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
+    <div className="rounded-[14px] border border-rule bg-paper">
       {/* Cabecera con filtros */}
       <div className="flex justify-between items-center px-5 py-4 border-b border-rule">
         <h3 className="font-display font-medium text-lg tracking-[-0.01em] m-0">

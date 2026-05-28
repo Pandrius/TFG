@@ -1,0 +1,67 @@
+import pandas as pd
+from datasets import load_dataset
+
+def crear_dataset_limpio_tfg(n_objetivo=41523):
+    # ==========================================
+    # 1. DATOS PRIVADOS (Etiqueta 1)
+    # ==========================================
+    print("⏳ Cargando datos PRIVADOS (ai4privacy - ES)...")
+    try:
+        # Cargamos el dataset y filtramos por español
+        ds_priv = load_dataset("ai4privacy/pii-masking-400k", split='train+validation')
+        df_priv = ds_priv.filter(lambda x: x["language"] == "es").to_pandas()
+        
+        # Limpiamos y tomamos la muestra exacta
+        df_priv = df_priv[['source_text']].rename(columns={'source_text': 'texto'})
+        df_priv = df_priv.sample(n=min(len(df_priv), n_objetivo), random_state=42)
+        df_priv['label'] = 1
+        print(f"✅ Privados listos: {len(df_priv)} filas.")
+    except Exception as e:
+        print(f"❌ Error en Privados: {e}")
+        return
+
+    # ==========================================
+    # 2. DATOS PÚBLICOS (Etiqueta 0)
+    # ==========================================
+    print("\n⏳ Cargando datos PÚBLICOS (BNE News - ES)...")
+    try:
+        # Este dataset es enorme y "seguro" (formato Parquet)
+        ds_pub = load_dataset("PlanTL-GOB-ES/bne-news-dataset-v1", split='train')
+        
+        # Convertimos a pandas y tomamos solo la columna de texto
+        # Usamos un chunk o sample para no saturar la RAM si es muy grande
+        df_pub = ds_pub.to_pandas()[['text']].rename(columns={'text': 'texto'})
+        
+        # Filtramos textos muy cortos y tomamos la muestra exacta
+        df_pub = df_pub[df_pub['texto'].str.len() > 50]
+        df_pub = df_pub.sample(n=n_objetivo, random_state=42)
+        df_pub['label'] = 0
+        print(f"✅ Públicos listos: {len(df_pub)} filas.")
+    except Exception as e:
+        print(f"❌ Error en Públicos: {e}")
+        return
+
+    # ==========================================
+    # 3. UNIÓN Y EXPORTACIÓN
+    # ==========================================
+    print("\n⏳ Mezclando datasets...")
+    df_final = pd.concat([df_priv, df_pub], ignore_index=True)
+    
+    # Mezcla aleatoria (Shuffle)
+    df_final = df_final.sample(frac=1, random_state=42).reset_index(drop=True)
+    
+    # Limpieza final de saltos de línea y nulos
+    df_final = df_final.dropna(subset=['texto'])
+    df_final['texto'] = df_final['texto'].str.replace(r'\n', ' ', regex=True).strip()
+
+    # Guardar
+    nombre_archivo = "dataset_tfg_final_espanol.csv"
+    df_final.to_csv(nombre_archivo, index=False, encoding='utf-8-sig')
+    
+    print("-" * 50)
+    print(f"✨ ¡ÉXITO! Archivo generado: {nombre_archivo}")
+    print(f"📊 Total: {len(df_final)} filas (50% Privado / 50% Público)")
+    print("-" * 50)
+
+if __name__ == "__main__":
+    crear_dataset_definitivo_tfg = crear_dataset_limpio_tfg(41523)

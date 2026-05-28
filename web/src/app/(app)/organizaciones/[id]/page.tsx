@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
+import { Tag } from "@/components/ui/Tag";
+import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import {
   desvincularDocumento,
@@ -10,6 +12,7 @@ import {
   vincularDocumento,
 } from "../acciones";
 import FormularioMiembro from "./FormularioMiembro";
+import { FormularioInlineCarpeta } from "../../carpetas/FormularioInlineCarpeta";
 
 export default async function PaginaOrganizacion({
   params,
@@ -23,8 +26,10 @@ export default async function PaginaOrganizacion({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  // Verificar membresía
-  const { data: miMembresia } = await supabase
+  const admin = crearClienteAdmin();
+
+  // Verificar membresía usando admin para evitar fallos de RLS en el check
+  const { data: miMembresia } = await admin
     .from("org_miembros")
     .select("rol")
     .eq("org_id", id)
@@ -35,7 +40,7 @@ export default async function PaginaOrganizacion({
 
   const esAdmin = miMembresia.rol === "admin";
 
-  const { data: org } = await supabase
+  const { data: org } = await admin
     .from("organizaciones")
     .select("id, nombre")
     .eq("id", id)
@@ -44,20 +49,27 @@ export default async function PaginaOrganizacion({
   if (!org) redirect("/organizaciones");
 
   // Miembros de la org
-  const { data: miembros } = await supabase
+  const { data: miembros } = await admin
     .from("org_miembros")
     .select("user_id, rol, profiles ( nombre_completo, nombre_usuario )")
     .eq("org_id", id);
 
+  // Carpetas de la org
+  const { data: carpetas } = await admin
+    .from("carpetas")
+    .select("id, nombre")
+    .eq("org_id", id)
+    .order("nombre");
+
   // Documentos vinculados a la org
-  const { data: orgDocs } = await supabase
+  const { data: orgDocs } = await admin
     .from("org_documentos")
-    .select("documento_id, Documentos ( id, nombre, tipo_archivo )")
+    .select("documento_id, Documentos ( id, nombre, tipo_archivo, carpeta_id )")
     .eq("org_id", id);
 
   // Mis documentos no vinculados a esta org (para poder añadirlos)
   const vinculadosIds = new Set(orgDocs?.map((od) => od.documento_id) ?? []);
-  const { data: misDocumentos } = await supabase
+  const { data: misDocumentos } = await admin
     .from("Documentos")
     .select("id, nombre, tipo_archivo")
     .eq("user_id", user.id)
@@ -74,14 +86,16 @@ export default async function PaginaOrganizacion({
         ‹ Organizaciones
       </Link>
 
-      <div>
-        <p className="font-display italic text-accent text-sm mb-1">— equipo</p>
-        <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
-          {org.nombre}
-        </h1>
-        <p className="text-mute text-[12px] font-mono mt-1">
-          {miembros?.length ?? 0} miembro{miembros?.length !== 1 ? "s" : ""}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="font-display italic text-accent text-sm mb-1">— equipo</p>
+          <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
+            {org.nombre}
+          </h1>
+          <p className="text-mute text-[12px] font-mono mt-1">
+            {miembros?.length ?? 0} miembro{miembros?.length !== 1 ? "s" : ""} · {carpetas?.length ?? 0} carpeta{carpetas?.length !== 1 ? "s" : ""}
+          </p>
+        </div>
       </div>
 
       {/* Miembros */}
@@ -138,10 +152,37 @@ export default async function PaginaOrganizacion({
         {esAdmin && <FormularioMiembro orgId={id} />}
       </section>
 
+      {/* Carpetas */}
+      <section className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display font-medium text-[18px] tracking-[-0.01em]">
+            Carpetas del equipo
+          </h2>
+          <FormularioInlineCarpeta orgId={id} />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          {carpetas?.map((c) => (
+            <Link
+              key={c.id}
+              href={`/carpetas/${c.id}`}
+              className="flex items-center gap-3 px-4 py-3 bg-paper border border-rule rounded-[12px] hover:border-accent transition-colors"
+            >
+              <span className="w-8 h-8 rounded-[8px] bg-accent-tint text-accent grid place-items-center font-display italic font-bold">
+                C
+              </span>
+              <span className="font-medium text-[13px] truncate">{c.nombre}</span>
+            </Link>
+          ))}
+          {(!carpetas || carpetas.length === 0) && (
+            <p className="col-span-full text-mute text-sm italic py-4">No hay carpetas creadas.</p>
+          )}
+        </div>
+      </section>
+
       {/* Documentos vinculados */}
       <section className="flex flex-col gap-4">
         <h2 className="font-display font-medium text-[18px] tracking-[-0.01em]">
-          Documentos de la organización
+          Documentos compartidos
         </h2>
         <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
           {!orgDocs || orgDocs.length === 0 ? (
@@ -161,7 +202,14 @@ export default async function PaginaOrganizacion({
                   <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px] shrink-0">
                     {tipo.slice(0, 3) || "?"}
                   </span>
-                  <p className="min-w-0 flex-1 truncate font-medium">{doc.nombre}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{doc.nombre}</p>
+                    {doc.carpeta_id && (
+                      <p className="text-mute text-[10px] font-mono">
+                        en carpeta: {carpetas?.find(c => c.id === doc.carpeta_id)?.nombre || "..."}
+                      </p>
+                    )}
+                  </div>
                   {esAdmin && (
                     <form
                       action={async () => {
@@ -183,7 +231,7 @@ export default async function PaginaOrganizacion({
         {esAdmin && docsSinVincular.length > 0 && (
           <details className="rounded-[14px] border border-rule bg-paper overflow-hidden">
             <summary className="cursor-pointer px-5 py-3 text-[13px] font-medium hover:bg-soft transition-colors">
-              Añadir mis documentos ({docsSinVincular.length})
+              Vincular mis documentos ({docsSinVincular.length})
             </summary>
             <div className="border-t border-rule">
               {docsSinVincular.map((doc) => {

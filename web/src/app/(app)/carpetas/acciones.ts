@@ -12,6 +12,8 @@ export async function crearCarpeta(
   datos: FormData,
 ): Promise<Resultado> {
   const nombre = String(datos.get("nombre") ?? "").trim();
+  const orgId = datos.get("org_id") ? String(datos.get("org_id")) : null;
+
   if (!nombre) return { error: "El nombre es obligatorio." };
   if (nombre.length > 100) return { error: "Máximo 100 caracteres." };
 
@@ -23,11 +25,12 @@ export async function crearCarpeta(
 
   const { error } = await supabase
     .from("carpetas")
-    .insert({ nombre, user_id: user.id });
+    .insert({ nombre, user_id: user.id, org_id: orgId });
 
   if (error) return { error: "Error al crear la carpeta." };
 
   revalidatePath("/carpetas");
+  if (orgId) revalidatePath(`/organizaciones/${orgId}`);
   return { ok: "Carpeta creada." };
 }
 

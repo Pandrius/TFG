@@ -18,4 +18,13 @@ __pycache__/
 # Modelo entrenado (se entrega aparte; puede ser grande)
 servicio-ia/modelo/*.pkl
 
+# Archivos de datos y embeddings (pesados)
+*.csv
+*.npy
+ml/*.csv
+ml/*.npy
+
+# Supabase temp
+supabase/.temp/
+
 .vercel

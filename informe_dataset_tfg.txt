@@ -1,0 +1,21 @@
+==================================================
+ESTADÍSTICAS DEL DATASET PARA TFG
+==================================================
+
+[1] BALANCEO DE CLASES
+Total de registros: 83046
+- Público (0): 41523 filas (50.00%)
+- Confidencial (1): 41523 filas (50.00%)
+
+[2] ANÁLISIS DE LONGITUD (Caracteres)
+Media de caracteres (Público): 4352.31
+Media de caracteres (Confidencial): 150.76
+Documento más largo: 32746 caracteres
+
+[3] MUESTRAS ALEATORIAS PARA AUDITORÍA
+
+--- Ejemplo CONFIDENCIAL ---
+11/07/2023 | Pago de servicios | Barcelona Vallvidrera Tibidabo i les Planes | Número de póliza: PIULHE20394710 | Vehículo: CE 1677 WK...
+
+--- Ejemplo PÚBLICO ---
+para ser diputados y senador junqueras, rull, turull y romeva deberÃ¡n dar un sÃ­Â» cuando se les pregunte si juran o prometen la carta magna. despuÃ©s podrÃ¡n aÃ±adir cualquier referencia polÃ­tica o judicial. la xiii legislatura tendrÃ¡ la sesiÃ³n inaugural mÃ¡s atÃ­pica de nuestra historia democrÃ¡tica. todos los focos estarÃ¡n puestos en los cinco polÃ­ticos catalanes presos que irÃ¡n a las cortes a tomar posesiÃ³n de su escaÃ±o. cuatro en el congreso âoriol junqueras, jordi sÃ nchez, jord...

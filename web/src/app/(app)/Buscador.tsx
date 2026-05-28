@@ -18,13 +18,15 @@ function iconoTipo(tipo: string | null) {
 
 /* ── tipos de ítem para navegación con teclado ───────────── */
 type Item =
-  | { tipo: "doc"; id: string; nombre: string; ext: string | null }
+  | { tipo: "doc"; id: string; nombre: string; ext: string | null; username: string }
+  | { tipo: "carpeta"; id: string; nombre: string; username: string }
   | { tipo: "usuario"; id: string; nombre_usuario: string; nombre_completo: string | null }
   | { tipo: "org"; id: string; nombre: string };
 
 function hrefItem(item: Item) {
   if (item.tipo === "doc") return `/documentos/${item.id}`;
-  if (item.tipo === "usuario") return `/usuarios`;
+  if (item.tipo === "carpeta") return `/carpetas/${item.id}`;
+  if (item.tipo === "usuario") return `/usuarios/${item.id}`;
   return `/organizaciones/${item.id}`;
 }
 
@@ -96,6 +98,13 @@ export function Buscador({ abierto, onCerrar }: Props) {
       id: d.id,
       nombre: d.nombre,
       ext: d.tipo_archivo,
+      username: d.username,
+    })),
+    ...(resultados?.carpetas ?? []).map((c) => ({
+      tipo: "carpeta" as const,
+      id: c.id,
+      nombre: c.nombre,
+      username: c.username,
     })),
     ...(resultados?.usuarios ?? []).map((u) => ({
       tipo: "usuario" as const,
@@ -130,7 +139,7 @@ export function Buscador({ abierto, onCerrar }: Props) {
   };
 
   const hayResultados = resultados &&
-    (resultados.documentos.length + resultados.usuarios.length + resultados.organizaciones.length) > 0;
+    (resultados.documentos.length + resultados.carpetas.length + resultados.usuarios.length + resultados.organizaciones.length) > 0;
 
   if (!montado || !abierto) return null;
 
@@ -182,16 +191,42 @@ export function Buscador({ abierto, onCerrar }: Props) {
                     <FilaResultado
                       key={d.id}
                       activo={cursor === idx}
-                      onClick={() => navegar({ tipo: "doc", id: d.id, nombre: d.nombre, ext: d.tipo_archivo })}
+                      onClick={() => navegar({ tipo: "doc", id: d.id, nombre: d.nombre, ext: d.tipo_archivo, username: d.username })}
                     >
                       <span className="w-7 h-8 rounded-[5px] bg-card border border-rule grid place-items-center font-display italic text-accent text-xs flex-shrink-0">
                         {iconoTipo(d.tipo_archivo)}
                       </span>
                       <span className="flex-1 min-w-0">
                         <span className="block font-medium text-[13px] truncate">{d.nombre}</span>
-                        {d.tipo_archivo && (
-                          <span className="font-mono text-[10px] text-mute">{d.tipo_archivo}</span>
-                        )}
+                        <span className="font-mono text-[10px] text-mute truncate block">
+                          por @{d.username} {d.tipo_archivo ? `· ${d.tipo_archivo}` : ""}
+                        </span>
+                      </span>
+                    </FilaResultado>
+                  );
+                })}
+              </GrupoResultados>
+            )}
+
+            {/* carpetas */}
+            {(resultados?.carpetas.length ?? 0) > 0 && (
+              <GrupoResultados titulo="Carpetas">
+                {resultados!.carpetas.map((c, i) => {
+                  const idx = (resultados?.documentos.length ?? 0) + i;
+                  return (
+                    <FilaResultado
+                      key={c.id}
+                      activo={cursor === idx}
+                      onClick={() => navegar({ tipo: "carpeta", id: c.id, nombre: c.nombre, username: c.username })}
+                    >
+                      <span className="w-7 h-7 rounded-[8px] bg-accent-tint text-accent grid place-items-center font-display italic text-xs flex-shrink-0">
+                        C
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block font-medium text-[13px] truncate">{c.nombre}</span>
+                        <span className="font-mono text-[10px] text-mute truncate block">
+                          por @{c.username}
+                        </span>
                       </span>
                     </FilaResultado>
                   );
@@ -203,7 +238,7 @@ export function Buscador({ abierto, onCerrar }: Props) {
             {(resultados?.usuarios.length ?? 0) > 0 && (
               <GrupoResultados titulo="Usuarios">
                 {resultados!.usuarios.map((u, i) => {
-                  const idx = (resultados?.documentos.length ?? 0) + i;
+                  const idx = (resultados?.documentos.length ?? 0) + (resultados?.carpetas.length ?? 0) + i;
                   const inicial = (u.nombre_completo ?? u.nombre_usuario)[0]?.toUpperCase() ?? "?";
                   return (
                     <FilaResultado
@@ -232,6 +267,7 @@ export function Buscador({ abierto, onCerrar }: Props) {
                 {resultados!.organizaciones.map((o, i) => {
                   const idx =
                     (resultados?.documentos.length ?? 0) +
+                    (resultados?.carpetas.length ?? 0) +
                     (resultados?.usuarios.length ?? 0) +
                     i;
                   return (

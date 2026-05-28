@@ -1,0 +1,22 @@
+# Explicación de Hiperparámetros para el modelo SVM (SVC)
+
+Para la implementación del modelo SVM (Support Vector Classification) en este proyecto, se han seleccionado los siguientes hiperparámetros:
+
+## 1. kernel='linear'
+**¿Por qué se eligió?**
+Los embeddings (como los generados por BERT u otros modelos de lenguaje) suelen tener una alta dimensionalidad. En espacios de tantas dimensiones, es muy probable que las clases sean linealmente separables. El kernel lineal es más eficiente computacionalmente y menos propenso al sobreajuste (overfitting) en estos casos que kernels más complejos como el RBF.
+
+**¿Cómo afecta modificarlo?**
+- **Cambiar a 'rbf' o 'poly':** Si los datos no son linealmente separables, un kernel no lineal podría capturar relaciones más complejas. Sin embargo, esto aumentaría significativamente el tiempo de entrenamiento y el riesgo de sobreajuste si no se ajustan bien otros parámetros.
+
+## 2. C=1.0
+**¿Por qué se eligió?**
+Es el valor por defecto y proporciona un buen equilibrio entre la maximización del margen y la minimización del error de clasificación en el conjunto de entrenamiento (regularización equilibrada).
+
+**¿Cómo afecta modificarlo?**
+- **Aumentar C (ej. 10.0):** El modelo intentará clasificar correctamente todos los ejemplos de entrenamiento, permitiendo un margen más estrecho. Esto puede llevar a un mejor ajuste en el entrenamiento pero aumenta el riesgo de **sobreajuste** (el modelo no generalizará bien a datos nuevos).
+- **Disminuir C (ej. 0.1):** El modelo será más tolerante a errores de clasificación en el entrenamiento a cambio de un margen más ancho. Esto favorece la **generalización** y hace al modelo más robusto frente a ruido o valores atípicos, pero si es demasiado bajo, puede caer en **subajuste** (underfitting).
+
+## 3. random_state=42
+**¿Por qué se eligió?**
+Para asegurar que los resultados sean reproducibles en cada ejecución del script.
