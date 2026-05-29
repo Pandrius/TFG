@@ -26,7 +26,12 @@ export function FormularioInlineCarpeta({ orgId }: { orgId?: string }) {
       mostrar({ variant: "ok", titulo: res.ok });
       setNombre("");
       setAbierto(false);
-      router.refresh();
+      if (orgId) {
+        router.refresh();
+      } else {
+        router.replace("/carpetas");
+        router.refresh();
+      }
     } else if (res && "error" in res) {
       mostrar({ variant: "err", titulo: res.error });
     }

@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { FormularioInlineCarpeta } from "./FormularioInlineCarpeta";
 import { FilaCarpeta } from "./FilaCarpeta";
@@ -10,13 +11,16 @@ export default async function PaginaCarpetas() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: carpetas } = await supabase
+  const admin = crearClienteAdmin();
+
+  const { data: carpetas } = await admin
     .from("carpetas")
     .select("id, nombre")
     .eq("user_id", user.id)
+    .is("org_id", null)
     .order("nombre");
 
-  const { data: conteos } = await supabase
+  const { data: conteos } = await admin
     .from("Documentos")
     .select("carpeta_id")
     .eq("user_id", user.id)
