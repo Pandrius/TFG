@@ -53,11 +53,12 @@ export async function crearOrganizacion(
 
 export async function agregarMiembro(
   orgId: string,
-  _previo: { error: string } | undefined,
+  _previo: { error: string } | { ok: true } | undefined,
   datos: FormData,
-): Promise<{ error: string } | undefined> {
+): Promise<{ error: string } | { ok: true } | undefined> {
+  const userId = String(datos.get("user_id") ?? "").trim();
   const nombreUsuario = String(datos.get("nombre_usuario") ?? "").trim();
-  if (!nombreUsuario) return { error: "Introduce un nombre de usuario" };
+  if (!userId && !nombreUsuario) return { error: "Selecciona un usuario" };
 
   const supabase = await crearClienteServidor();
   const {
@@ -67,14 +68,14 @@ export async function agregarMiembro(
 
   const admin = crearClienteAdmin();
 
-  // Buscar el perfil del usuario a añadir
-  const { data: perfil } = await admin
+  // Buscar el perfil por id seleccionado o, como fallback, por nombre exacto.
+  let query = admin
     .from("profiles")
-    .select("id")
-    .eq("nombre_usuario", nombreUsuario)
-    .single();
+    .select("id, nombre_usuario");
+  query = userId ? query.eq("id", userId) : query.eq("nombre_usuario", nombreUsuario);
+  const { data: perfil } = await query.single();
 
-  if (!perfil) return { error: `Usuario "${nombreUsuario}" no encontrado` };
+  if (!perfil) return { error: "Usuario no encontrado" };
   if (perfil.id === user.id) return { error: "Ya eres miembro de esta organización" };
 
   // Insertar como admin para evitar fallos de RLS
@@ -88,7 +89,9 @@ export async function agregarMiembro(
     return { error: "Error al añadir el miembro" };
   }
 
+  revalidatePath("/organizaciones");
   revalidatePath(`/organizaciones/${orgId}`);
+  return { ok: true };
 }
 
 export async function expulsarMiembro(orgId: string, userId: string): Promise<void> {
@@ -97,14 +100,89 @@ export async function expulsarMiembro(orgId: string, userId: string): Promise<vo
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return;
+  if (user.id === userId) return;
 
-  await supabase
+  const admin = crearClienteAdmin();
+  const { data: membresia } = await admin
+    .from("org_miembros")
+    .select("rol")
+    .eq("org_id", orgId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (membresia?.rol !== "admin") return;
+
+  const { error } = await admin
     .from("org_miembros")
     .delete()
     .eq("org_id", orgId)
     .eq("user_id", userId);
 
+  if (error) {
+    console.error("Error removing org member:", error);
+    return;
+  }
+
+  revalidatePath("/organizaciones");
   revalidatePath(`/organizaciones/${orgId}`);
+  redirect(`/organizaciones/${orgId}`);
+}
+
+export async function transferirCreador(
+  orgId: string,
+  nuevoAdminUserId: string,
+): Promise<void> {
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  if (user.id === nuevoAdminUserId) return;
+
+  const admin = crearClienteAdmin();
+  const { data: miMembresia } = await admin
+    .from("org_miembros")
+    .select("rol")
+    .eq("org_id", orgId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (miMembresia?.rol !== "admin") return;
+
+  const { data: nuevoAdmin } = await admin
+    .from("org_miembros")
+    .select("user_id")
+    .eq("org_id", orgId)
+    .eq("user_id", nuevoAdminUserId)
+    .single();
+
+  if (!nuevoAdmin) return;
+
+  const { error: errorNuevoAdmin } = await admin
+    .from("org_miembros")
+    .update({ rol: "admin" })
+    .eq("org_id", orgId)
+    .eq("user_id", nuevoAdminUserId);
+
+  if (errorNuevoAdmin) {
+    console.error("Error promoting org member:", errorNuevoAdmin);
+    return;
+  }
+
+  const { error: errorActual } = await admin
+    .from("org_miembros")
+    .update({ rol: "miembro" })
+    .eq("org_id", orgId)
+    .eq("user_id", user.id);
+
+  if (errorActual) {
+    console.error("Error demoting previous org admin:", errorActual);
+    return;
+  }
+
+  revalidatePath("/organizaciones");
+  revalidatePath(`/organizaciones/${orgId}`);
+  redirect(`/organizaciones/${orgId}`);
 }
 
 export async function vincularDocumento(
@@ -112,8 +190,36 @@ export async function vincularDocumento(
   documentoId: string,
 ): Promise<void> {
   const supabase = await crearClienteServidor();
-  await supabase.from("org_documentos").insert({ org_id: orgId, documento_id: documentoId });
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const admin = crearClienteAdmin();
+  const { data: membresia } = await admin
+    .from("org_miembros")
+    .select("rol")
+    .eq("org_id", orgId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (membresia?.rol !== "admin") return;
+
+  const { error } = await admin
+    .from("org_documentos")
+    .upsert(
+      { org_id: orgId, documento_id: documentoId },
+      { onConflict: "org_id,documento_id" },
+    );
+
+  if (error) {
+    console.error("Error linking document to org:", error);
+    return;
+  }
+
+  revalidatePath("/organizaciones");
   revalidatePath(`/organizaciones/${orgId}`);
+  redirect(`/organizaciones/${orgId}`);
 }
 
 export async function desvincularDocumento(
@@ -121,10 +227,33 @@ export async function desvincularDocumento(
   documentoId: string,
 ): Promise<void> {
   const supabase = await crearClienteServidor();
-  await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const admin = crearClienteAdmin();
+  const { data: membresia } = await admin
+    .from("org_miembros")
+    .select("rol")
+    .eq("org_id", orgId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (membresia?.rol !== "admin") return;
+
+  const { error } = await admin
     .from("org_documentos")
     .delete()
     .eq("org_id", orgId)
     .eq("documento_id", documentoId);
+
+  if (error) {
+    console.error("Error unlinking document from org:", error);
+    return;
+  }
+
+  revalidatePath("/organizaciones");
   revalidatePath(`/organizaciones/${orgId}`);
+  redirect(`/organizaciones/${orgId}`);
 }

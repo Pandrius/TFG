@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
-import { Tag } from "@/components/ui/Tag";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import {
@@ -12,6 +11,7 @@ import {
   vincularDocumento,
 } from "../acciones";
 import FormularioMiembro from "./FormularioMiembro";
+import ResumenMiembros, { type MiembroResumen } from "./ResumenMiembros";
 import { FormularioInlineCarpeta } from "../../carpetas/FormularioInlineCarpeta";
 
 export default async function PaginaOrganizacion({
@@ -51,8 +51,18 @@ export default async function PaginaOrganizacion({
   // Miembros de la org
   const { data: miembros } = await admin
     .from("org_miembros")
-    .select("user_id, rol, profiles ( nombre_completo, nombre_usuario )")
+    .select("user_id, rol")
     .eq("org_id", id);
+
+  const miembroIds = new Set(miembros?.map((m) => m.user_id) ?? []);
+  const { data: perfiles } = await admin
+    .from("profiles")
+    .select("id, nombre_usuario, nombre_completo")
+    .order("nombre_usuario");
+
+  const usuariosDisponibles =
+    perfiles?.filter((perfil) => !miembroIds.has(perfil.id)) ?? [];
+  const perfilesPorId = new Map((perfiles ?? []).map((perfil) => [perfil.id, perfil]));
 
   // Carpetas de la org
   const { data: carpetas } = await admin
@@ -67,6 +77,18 @@ export default async function PaginaOrganizacion({
     .select("documento_id, Documentos ( id, nombre, tipo_archivo, carpeta_id )")
     .eq("org_id", id);
 
+  const totalCarpetas = carpetas?.length ?? 0;
+  const [{ count: totalMiembros }, { count: totalDocumentos }] = await Promise.all([
+    admin
+      .from("org_miembros")
+      .select("user_id", { count: "exact", head: true })
+      .eq("org_id", id),
+    admin
+      .from("org_documentos")
+      .select("documento_id", { count: "exact", head: true })
+      .eq("org_id", id),
+  ]);
+
   // Mis documentos no vinculados a esta org (para poder añadirlos)
   const vinculadosIds = new Set(orgDocs?.map((od) => od.documento_id) ?? []);
   const { data: misDocumentos } = await admin
@@ -76,6 +98,16 @@ export default async function PaginaOrganizacion({
     .order("nombre");
 
   const docsSinVincular = misDocumentos?.filter((d) => !vinculadosIds.has(d.id)) ?? [];
+  const miembrosResumen: MiembroResumen[] =
+    miembros?.map((m) => {
+      const perfil = perfilesPorId.get(m.user_id);
+      return {
+        user_id: m.user_id,
+        rol: m.rol,
+        nombre_completo: perfil?.nombre_completo ?? null,
+        nombre_usuario: perfil?.nombre_usuario ?? null,
+      };
+    }) ?? [];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
@@ -92,9 +124,15 @@ export default async function PaginaOrganizacion({
           <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
             {org.nombre}
           </h1>
-          <p className="text-mute text-[12px] font-mono mt-1">
-            {miembros?.length ?? 0} miembro{miembros?.length !== 1 ? "s" : ""} · {carpetas?.length ?? 0} carpeta{carpetas?.length !== 1 ? "s" : ""}
-          </p>
+          <ResumenMiembros
+            orgId={id}
+            miembros={miembrosResumen}
+            userId={user.id}
+            esAdmin={esAdmin}
+            totalMiembros={totalMiembros ?? 0}
+            totalDocumentos={totalDocumentos ?? 0}
+            totalCarpetas={totalCarpetas}
+          />
         </div>
       </div>
 
@@ -105,7 +143,7 @@ export default async function PaginaOrganizacion({
         </h2>
         <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
           {miembros?.map((m) => {
-            const perfil = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+            const perfil = perfilesPorId.get(m.user_id);
             const esYo = m.user_id === user.id;
             const nombreCompleto = perfil?.nombre_completo ?? null;
             const nombreUsuario = perfil?.nombre_usuario ?? null;
@@ -149,7 +187,7 @@ export default async function PaginaOrganizacion({
             );
           })}
         </div>
-        {esAdmin && <FormularioMiembro orgId={id} />}
+        {esAdmin && <FormularioMiembro orgId={id} usuarios={usuariosDisponibles} />}
       </section>
 
       {/* Carpetas */}

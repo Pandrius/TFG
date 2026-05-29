@@ -27,6 +27,7 @@ interface Props {
 }
 
 type Filtro = "todos" | "privados" | "publicos";
+type MenuAcciones = { id: string; x: number; y: number } | null;
 
 const ETIQUETAS_FILTRO: { id: Filtro; label: string }[] = [
   { id: "todos", label: "Todos" },
@@ -40,7 +41,7 @@ export function TablaDocumentos({ documentos, carpetas }: Props) {
   const [modalPublico, setModalPublico] = useState<DocumentoFila | null>(null);
   const [modalBorrar, setModalBorrar] = useState<DocumentoFila | null>(null);
   const [modalMover, setModalMover] = useState<DocumentoFila | null>(null);
-  const [menuAbierto, setMenuAbierto] = useState<string | null>(null);
+  const [menuAbierto, setMenuAbierto] = useState<MenuAcciones>(null);
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
   const [descargando, setDescargando] = useState(false);
 
@@ -106,6 +107,21 @@ export function TablaDocumentos({ documentos, carpetas }: Props) {
     } finally {
       setDescargando(false);
     }
+  };
+
+  const abrirMenu = (docId: string, boton: HTMLButtonElement) => {
+    if (menuAbierto?.id === docId) {
+      setMenuAbierto(null);
+      return;
+    }
+
+    const rect = boton.getBoundingClientRect();
+    const anchoMenu = 176;
+    setMenuAbierto({
+      id: docId,
+      x: Math.max(12, Math.min(rect.right - anchoMenu, window.innerWidth - anchoMenu - 12)),
+      y: Math.min(rect.bottom + 6, window.innerHeight - 140),
+    });
   };
 
   return (
@@ -218,21 +234,22 @@ export function TablaDocumentos({ documentos, carpetas }: Props) {
                   <div className="relative">
                     <button
                       type="button"
-                      onClick={() =>
-                        setMenuAbierto(menuAbierto === doc.id ? null : doc.id)
-                      }
+                      onClick={(e) => abrirMenu(doc.id, e.currentTarget)}
                       className="text-mute hover:text-ink px-1.5 py-1 rounded-[6px] hover:bg-soft"
                       aria-label="Más acciones"
                     >
                       ⋯
                     </button>
-                    {menuAbierto === doc.id && (
+                    {menuAbierto?.id === doc.id && (
                       <>
                         <div
-                          className="fixed inset-0 z-10"
+                          className="fixed inset-0 z-40"
                           onClick={() => setMenuAbierto(null)}
                         />
-                        <div className="absolute right-0 top-full mt-1 z-20 bg-card border border-rule rounded-[10px] shadow-[var(--shadow-2)] py-1 min-w-[160px]">
+                        <div
+                          className="fixed z-50 bg-card border border-rule rounded-[10px] shadow-[var(--shadow-2)] py-1 w-44"
+                          style={{ left: menuAbierto.x, top: menuAbierto.y }}
+                        >
                           <Link
                             href={`/documentos/${doc.id}`}
                             className="block px-3 py-1.5 text-[13px] hover:bg-soft"

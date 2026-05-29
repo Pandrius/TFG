@@ -116,6 +116,8 @@ export default async function PaginaMisDocumentos() {
         />
       </div>
 
+      <PanelSubidas />
+
       {documentos.length === 0 ? (
         <div className="rounded-[14px] border border-dashed border-rule bg-paper p-12 text-center">
           <div className="w-14 h-14 mx-auto rounded-[16px] bg-accent-tint text-accent grid place-items-center font-display italic font-semibold text-[26px] mb-4">
@@ -125,7 +127,7 @@ export default async function PaginaMisDocumentos() {
             Aún no hay <em className="italic text-accent">documentos</em>
           </h4>
           <p className="text-mute text-[13px] max-w-sm mx-auto mb-[18px] leading-[1.55]">
-            Sube tu primer archivo arrastrándolo al área de abajo. La plataforma
+            Sube tu primer archivo arrastrándolo al área superior. La plataforma
             lo clasificará automáticamente en pocos segundos.
           </p>
         </div>
@@ -133,7 +135,6 @@ export default async function PaginaMisDocumentos() {
         <TablaDocumentos documentos={documentos} carpetas={carpetas ?? []} />
       )}
 
-      <PanelSubidas />
     </div>
   );
 }
