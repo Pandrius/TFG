@@ -2,8 +2,9 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
+import { AvatarPerfilAmpliable } from "./AvatarPerfilAmpliable";
 
 export default async function PaginaPerfilUsuario({
   params,
@@ -46,11 +47,10 @@ export default async function PaginaPerfilUsuario({
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
       {/* Cabecera del Perfil */}
       <div className="flex items-center gap-6 bg-paper border border-rule rounded-[20px] p-6 shadow-[var(--shadow-1)]">
-        <Avatar
+        <AvatarPerfilAmpliable
           nombreCompleto={perfil.nombre_completo}
           nombreUsuario={perfil.nombre_usuario}
           avatarUrl={perfil.avatar_url}
-          size="lg"
         />
         <div className="flex-1">
           <h1 className="font-display font-medium text-2xl tracking-tight">
@@ -113,29 +113,5 @@ export default async function PaginaPerfilUsuario({
         )}
       </div>
     </div>
-  );
-}
-
-function Button({
-  children,
-  variant = "primary",
-  size = "md",
-  className = "",
-  ...props
-}: any) {
-  const base = "inline-flex items-center justify-center rounded-full font-medium transition-all active:scale-[0.98] disabled:opacity-50";
-  const variants: any = {
-    primary: "bg-accent text-white hover:bg-accent-hover shadow-sm",
-    ghost: "text-mute hover:text-ink hover:bg-soft",
-  };
-  const sizes: any = {
-    sm: "px-3 py-1.5 text-[12px]",
-    md: "px-5 py-2.5 text-[14px]",
-  };
-
-  return (
-    <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
-      {children}
-    </button>
   );
 }

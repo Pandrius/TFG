@@ -5,6 +5,10 @@ import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
 import { quitarDocumentoDeCarpeta } from "../acciones";
+import {
+  AgregarDocumentosCarpeta,
+  type DocumentoDisponibleCarpeta,
+} from "./AgregarDocumentosCarpeta";
 
 export default async function PaginaCarpeta({
   params,
@@ -32,6 +36,21 @@ export default async function PaginaCarpeta({
     .eq("carpeta_id", id)
     .eq("user_id", user.id)
     .order("fecha", { ascending: false });
+  const { data: todosMisDocs } = await admin
+    .from("Documentos")
+    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, carpeta_id")
+    .eq("user_id", user.id)
+    .order("fecha", { ascending: false });
+  const docsDisponibles: DocumentoDisponibleCarpeta[] =
+    todosMisDocs
+      ?.filter((doc) => doc.carpeta_id !== id)
+      .map((doc) => ({
+        id: doc.id,
+        nombre: doc.nombre,
+        tipo_archivo: doc.tipo_archivo,
+        confidencialidad: doc.confidencialidad,
+        tamano_bytes: doc.tamano_bytes,
+      })) ?? [];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
@@ -41,14 +60,17 @@ export default async function PaginaCarpeta({
       >
         ‹ Carpetas
       </Link>
-      <div>
-        <p className="font-display italic text-accent text-sm mb-1">— carpeta</p>
-        <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
-          {carpeta.nombre}
-        </h1>
-        <p className="text-mute text-[12px] font-mono mt-1">
-          {docs?.length ?? 0} documento{docs?.length !== 1 ? "s" : ""}
-        </p>
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <p className="font-display italic text-accent text-sm mb-1">— carpeta</p>
+          <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
+            {carpeta.nombre}
+          </h1>
+          <p className="text-mute text-[12px] font-mono mt-1">
+            {docs?.length ?? 0} documento{docs?.length !== 1 ? "s" : ""}
+          </p>
+        </div>
+        <AgregarDocumentosCarpeta carpetaId={id} documentos={docsDisponibles} />
       </div>
       <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
         <div className="grid grid-cols-[44px_1fr_120px_100px_120px_auto] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
@@ -61,11 +83,7 @@ export default async function PaginaCarpeta({
         </div>
         {!docs || docs.length === 0 ? (
           <div className="px-5 py-10 text-center text-mute text-sm">
-            Esta carpeta está vacía. Mueve documentos desde{" "}
-            <Link href="/mis-documentos" className="text-accent hover:underline">
-              Mis documentos
-            </Link>
-            .
+            Esta carpeta está vacía. Usa el botón de agregar archivos para traer documentos.
           </div>
         ) : (
           docs.map((doc) => {

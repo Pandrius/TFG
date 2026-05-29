@@ -20,7 +20,13 @@ function iconoTipo(tipo: string | null) {
 type Item =
   | { tipo: "doc"; id: string; nombre: string; ext: string | null; username: string }
   | { tipo: "carpeta"; id: string; nombre: string; username: string }
-  | { tipo: "usuario"; id: string; nombre_usuario: string; nombre_completo: string | null }
+  | {
+      tipo: "usuario";
+      id: string;
+      nombre_usuario: string;
+      nombre_completo: string | null;
+      avatar_url: string | null;
+    }
   | { tipo: "org"; id: string; nombre: string };
 
 function hrefItem(item: Item) {
@@ -43,17 +49,28 @@ export function Buscador({ abierto, onCerrar }: Props) {
   const [cargando, setCargando] = useState(false);
   const [cursor, setCursor] = useState(-1);
   const [montado, setMontado] = useState(false);
+  const [avatarAmpliado, setAvatarAmpliado] = useState<{
+    nombre: string;
+    username: string;
+    avatarUrl: string | null;
+    inicial: string;
+  } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { setMontado(true); }, []);
+  useEffect(() => {
+    queueMicrotask(() => setMontado(true));
+  }, []);
 
   /* focus al abrir */
   useEffect(() => {
     if (abierto) {
-      setConsulta("");
-      setResultados(null);
-      setCursor(-1);
+      queueMicrotask(() => {
+        setConsulta("");
+        setResultados(null);
+        setCursor(-1);
+        setAvatarAmpliado(null);
+      });
       setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, [abierto]);
@@ -61,21 +78,28 @@ export function Buscador({ abierto, onCerrar }: Props) {
   /* cerrar con Escape */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onCerrar();
+      if (e.key !== "Escape") return;
+      if (avatarAmpliado) {
+        setAvatarAmpliado(null);
+        return;
+      }
+      onCerrar();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onCerrar]);
+  }, [avatarAmpliado, onCerrar]);
 
   /* búsqueda con debounce */
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     if (consulta.trim().length < 2) {
-      setResultados(null);
-      setCargando(false);
+      queueMicrotask(() => {
+        setResultados(null);
+        setCargando(false);
+      });
       return;
     }
-    setCargando(true);
+    queueMicrotask(() => setCargando(true));
     timerRef.current = setTimeout(async () => {
       try {
         const res = await fetch(`/api/buscar?q=${encodeURIComponent(consulta.trim())}`);
@@ -111,6 +135,7 @@ export function Buscador({ abierto, onCerrar }: Props) {
       id: u.id,
       nombre_usuario: u.nombre_usuario,
       nombre_completo: u.nombre_completo,
+      avatar_url: u.avatar_url,
     })),
     ...(resultados?.organizaciones ?? []).map((o) => ({
       tipo: "org" as const,
@@ -240,18 +265,52 @@ export function Buscador({ abierto, onCerrar }: Props) {
                 {resultados!.usuarios.map((u, i) => {
                   const idx = (resultados?.documentos.length ?? 0) + (resultados?.carpetas.length ?? 0) + i;
                   const inicial = (u.nombre_completo ?? u.nombre_usuario)[0]?.toUpperCase() ?? "?";
+                  const nombre = u.nombre_completo ?? u.nombre_usuario;
                   return (
                     <FilaResultado
                       key={u.id}
                       activo={cursor === idx}
-                      onClick={() => navegar({ tipo: "usuario", id: u.id, nombre_usuario: u.nombre_usuario, nombre_completo: u.nombre_completo })}
+                      onClick={() => navegar({ tipo: "usuario", id: u.id, nombre_usuario: u.nombre_usuario, nombre_completo: u.nombre_completo, avatar_url: u.avatar_url })}
                     >
-                      <span className="w-7 h-7 rounded-full bg-accent-soft text-accent grid place-items-center font-display italic text-xs flex-shrink-0">
-                        {inicial}
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        title="Ampliar foto de perfil"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAvatarAmpliado({
+                            nombre,
+                            username: u.nombre_usuario,
+                            avatarUrl: u.avatar_url,
+                            inicial,
+                          });
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key !== "Enter" && e.key !== " ") return;
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setAvatarAmpliado({
+                            nombre,
+                            username: u.nombre_usuario,
+                            avatarUrl: u.avatar_url,
+                            inicial,
+                          });
+                        }}
+                        className="w-7 h-7 rounded-full bg-accent-soft text-accent grid place-items-center font-display italic text-xs flex-shrink-0 overflow-hidden ring-offset-2 hover:ring-2 hover:ring-accent cursor-zoom-in"
+                      >
+                        {u.avatar_url ? (
+                          <img
+                            src={u.avatar_url}
+                            alt={nombre}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          inicial
+                        )}
                       </span>
                       <span className="flex-1 min-w-0">
                         <span className="block font-medium text-[13px] truncate">
-                          {u.nombre_completo ?? u.nombre_usuario}
+                          {nombre}
                         </span>
                         <span className="font-mono text-[10px] text-mute">@{u.nombre_usuario}</span>
                       </span>
@@ -295,6 +354,39 @@ export function Buscador({ abierto, onCerrar }: Props) {
           </p>
         )}
       </div>
+      {avatarAmpliado && (
+        <div
+          className="fixed inset-0 z-[60] grid place-items-center bg-ink/55 px-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setAvatarAmpliado(null);
+          }}
+        >
+          <div className="rounded-[18px] border border-rule bg-card shadow-[var(--shadow-3)] p-5 w-full max-w-[360px]">
+            <div className="w-64 h-64 max-w-full mx-auto rounded-full overflow-hidden bg-accent-soft text-accent grid place-items-center font-display italic text-7xl">
+              {avatarAmpliado.avatarUrl ? (
+                <img
+                  src={avatarAmpliado.avatarUrl}
+                  alt={avatarAmpliado.nombre}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                avatarAmpliado.inicial
+              )}
+            </div>
+            <div className="mt-4 text-center">
+              <p className="font-medium text-[15px]">{avatarAmpliado.nombre}</p>
+              <p className="font-mono text-[11px] text-mute">@{avatarAmpliado.username}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAvatarAmpliado(null)}
+              className="mt-4 w-full rounded-full border border-rule px-4 py-2 text-sm hover:bg-soft transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>,
     document.body,
   );

@@ -5,8 +5,20 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 export interface ResultadoBusqueda {
   documentos: { id: string; nombre: string; tipo_archivo: string | null; username: string }[];
   carpetas: { id: string; nombre: string; username: string }[];
-  usuarios: { id: string; nombre_usuario: string; nombre_completo: string | null }[];
+  usuarios: {
+    id: string;
+    nombre_usuario: string;
+    nombre_completo: string | null;
+    avatar_url: string | null;
+  }[];
   organizaciones: { id: string; nombre: string }[];
+}
+
+function nombreUsuarioRelacionado(profiles: unknown): string {
+  const perfil = Array.isArray(profiles) ? profiles[0] : profiles;
+  if (!perfil || typeof perfil !== "object") return "—";
+  const nombre = (perfil as { nombre_usuario?: unknown }).nombre_usuario;
+  return typeof nombre === "string" && nombre ? nombre : "—";
 }
 
 export async function GET(req: NextRequest) {
@@ -52,7 +64,7 @@ export async function GET(req: NextRequest) {
     // Buscar Usuarios
     supabase
       .from("profiles")
-      .select("id, nombre_usuario, nombre_completo")
+      .select("id, nombre_usuario, nombre_completo, avatar_url")
       .or(`nombre_usuario.ilike.${termino},nombre_completo.ilike.${termino}`)
       .neq("id", user.id)
       .limit(5),
@@ -69,13 +81,13 @@ export async function GET(req: NextRequest) {
     id: d.id,
     nombre: d.nombre,
     tipo_archivo: d.tipo_archivo,
-    username: (d.profiles as any)?.nombre_usuario || "—"
+    username: nombreUsuarioRelacionado(d.profiles)
   }));
 
   const capsFormateadas = (caps ?? []).map(c => ({
     id: c.id,
     nombre: c.nombre,
-    username: (c.profiles as any)?.nombre_usuario || "—"
+    username: nombreUsuarioRelacionado(c.profiles)
   }));
 
   // Filtrar orgs por nombre

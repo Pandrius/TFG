@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Fraunces, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -39,6 +40,15 @@ export default function RootLayout({
       className={`${inter.variable} ${fraunces.variable} ${mono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink">
+        <Script id="tema-inicial" strategy="beforeInteractive">
+          {`
+try {
+  if (localStorage.getItem("dres_tema") === "oscuro") {
+    document.documentElement.classList.add("dark");
+  }
+} catch {}
+`}
+        </Script>
         {children}
       </body>
     </html>

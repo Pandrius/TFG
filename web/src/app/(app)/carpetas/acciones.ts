@@ -104,6 +104,43 @@ export async function quitarDocumentoDeCarpeta(docId: string): Promise<Resultado
   return { ok: "Documento quitado de la carpeta." };
 }
 
+export async function agregarDocumentoACarpeta(
+  carpetaId: string,
+  documentoId: string,
+): Promise<Resultado> {
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "SesiÃ³n expirada." };
+
+  const admin = crearClienteAdmin();
+  const { data: carpeta } = await admin
+    .from("carpetas")
+    .select("id, user_id")
+    .eq("id", carpetaId)
+    .single();
+  if (!carpeta || carpeta.user_id !== user.id) return { error: "No autorizado." };
+
+  const { data: doc } = await admin
+    .from("Documentos")
+    .select("id, user_id")
+    .eq("id", documentoId)
+    .single();
+  if (!doc || doc.user_id !== user.id) return { error: "Documento no encontrado." };
+
+  const { error } = await admin
+    .from("Documentos")
+    .update({ carpeta_id: carpetaId })
+    .eq("id", documentoId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/carpetas");
+  revalidatePath(`/carpetas/${carpetaId}`);
+  revalidatePath("/mis-documentos");
+  return { ok: "Documento agregado a la carpeta." };
+}
+
 export async function moverDocumento(
   documentoId: string,
   carpetaId: string | null,
