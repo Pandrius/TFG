@@ -19,6 +19,6 @@ reportlab               # genera PDFs de prueba
 # --- Modelo real (Hito 9) ---
 transformers>=4.40
 torch>=2.2
-scikit-learn==1.8.0
+scikit-learn==1.7.2
 joblib>=1.3
 numpy>=1.26

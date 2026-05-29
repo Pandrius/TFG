@@ -76,6 +76,8 @@ def cargar_modelo() -> None:
 
         print(f"[modelo] Cargando clasificador desde {RUTA_MODELO}...")
         _clasificador = joblib.load(RUTA_MODELO)
+        if _clasificador.__class__.__name__ == "LogisticRegression" and not hasattr(_clasificador, "multi_class"):
+            _clasificador.multi_class = "ovr"
 
         print(f"[modelo] Cargando BETO ({BETO_NOMBRE})...")
         _tokenizer = AutoTokenizer.from_pretrained(BETO_NOMBRE)
