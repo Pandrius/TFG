@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useToast } from "@/components/ui/Toast";
@@ -10,6 +11,7 @@ export function FormularioInlineCarpeta({ orgId }: { orgId?: string }) {
   const [nombre, setNombre] = useState("");
   const [enviando, setEnviando] = useState(false);
   const { mostrar } = useToast();
+  const router = useRouter();
 
   const crear = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,6 +26,7 @@ export function FormularioInlineCarpeta({ orgId }: { orgId?: string }) {
       mostrar({ variant: "ok", titulo: res.ok });
       setNombre("");
       setAbierto(false);
+      router.refresh();
     } else if (res && "error" in res) {
       mostrar({ variant: "err", titulo: res.error });
     }

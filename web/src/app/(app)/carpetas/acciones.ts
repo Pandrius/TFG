@@ -23,11 +23,27 @@ export async function crearCarpeta(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sesión expirada." };
 
-  const { error } = await supabase
+  const admin = crearClienteAdmin();
+
+  if (orgId) {
+    const { data: membresia } = await admin
+      .from("org_miembros")
+      .select("user_id")
+      .eq("org_id", orgId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!membresia) return { error: "No autorizado." };
+  }
+
+  const { error } = await admin
     .from("carpetas")
     .insert({ nombre, user_id: user.id, org_id: orgId });
 
-  if (error) return { error: "Error al crear la carpeta." };
+  if (error) {
+    console.error("Error creating folder:", error);
+    return { error: "Error al crear la carpeta." };
+  }
 
   revalidatePath("/carpetas");
   if (orgId) revalidatePath(`/organizaciones/${orgId}`);
