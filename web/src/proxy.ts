@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Rutas accesibles sin haber iniciado sesión.
 const RUTAS_PUBLICAS = ["/", "/login", "/registro", "/recuperar", "/recuperar/confirmar"];
+const COOKIE_SESION_CACHE = "dres_sesion";
+const CACHE_SESION_MAX_AGE = 60 * 60 * 24 * 7;
 
 /**
  * Proxy (antes "middleware" en Next.js <16): refresca la sesión de Supabase
@@ -39,6 +41,12 @@ export async function proxy(request: NextRequest) {
 
   const ruta = request.nextUrl.pathname;
   const esPublica = RUTAS_PUBLICAS.includes(ruta);
+
+  respuesta.cookies.set(COOKIE_SESION_CACHE, user ? "1" : "0", {
+    path: "/",
+    sameSite: "lax",
+    maxAge: user ? CACHE_SESION_MAX_AGE : 60,
+  });
 
   // Sin sesión en una ruta protegida -> al login.
   if (!user && !esPublica) {

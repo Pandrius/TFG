@@ -37,13 +37,21 @@ export default async function PaginaMisDocumentos() {
     .select("id, nombre")
     .eq("user_id", user.id)
     .order("nombre");
+  const { data: objetosStorage } = await admin.storage
+    .from("almacen_documentos")
+    .list(user.id, { limit: 1000 });
   const total = documentos.length;
   const privados = documentos.filter((d) => (d.confidencialidad ?? 1) === 1).length;
   const publicos = total - privados;
-  const espacioBytes = documentos.reduce(
-    (acc, d) => acc + (d.tamano_bytes ?? 0),
+  const espacioBytesBd = documentos.reduce(
+    (acc, d) => acc + Number(d.tamano_bytes ?? 0),
     0,
   );
+  const espacioBytesStorage = (objetosStorage ?? []).reduce(
+    (acc, objeto) => acc + obtenerTamanoStorage(objeto.metadata),
+    0,
+  );
+  const espacioBytes = espacioBytesStorage > 0 ? espacioBytesStorage : espacioBytesBd;
   const espacioMB = espacioBytes / (1024 * 1024);
   const espacioPct = (espacioMB / ESPACIO_TOTAL_MB) * 100;
   const hoyN = documentos.filter(
@@ -150,4 +158,15 @@ function formatoTiempoRelativo(d: Date): string {
   const dias = Math.floor(h / 24);
   if (dias < 7) return `hace ${dias} días`;
   return d.toLocaleDateString("es-ES");
+}
+
+function obtenerTamanoStorage(metadata: unknown): number {
+  if (!metadata || typeof metadata !== "object") return 0;
+  const size = (metadata as { size?: unknown }).size;
+  if (typeof size === "number") return size;
+  if (typeof size === "string") {
+    const parsed = Number(size);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  return 0;
 }

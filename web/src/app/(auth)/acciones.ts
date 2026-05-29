@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -15,6 +16,9 @@ export type EstadoFormulario =
   | { error: string; campo?: string }
   | { ok: string }
   | undefined;
+
+const COOKIE_SESION_CACHE = "dres_sesion";
+const CACHE_SESION_MAX_AGE = 60 * 60 * 24 * 7;
 
 export async function registrarse(
   _previo: EstadoFormulario,
@@ -67,6 +71,7 @@ export async function registrarse(
   });
   if (error) return { error: traducirError(error.message) };
 
+  await guardarCacheSesion(true);
   redirect("/inicio");
 }
 
@@ -85,12 +90,14 @@ export async function iniciarSesion(
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return { error: traducirError(error.message) };
 
+  await guardarCacheSesion(true);
   redirect("/inicio");
 }
 
 export async function cerrarSesion() {
   const supabase = await crearClienteServidor();
   await supabase.auth.signOut();
+  await guardarCacheSesion(false);
   redirect("/login");
 }
 
@@ -130,4 +137,13 @@ function traducirError(mensaje: string): string {
     return "La contraseña no cumple los requisitos mínimos.";
   }
   return mensaje;
+}
+
+async function guardarCacheSesion(logueado: boolean) {
+  const store = await cookies();
+  store.set(COOKIE_SESION_CACHE, logueado ? "1" : "0", {
+    path: "/",
+    sameSite: "lax",
+    maxAge: logueado ? CACHE_SESION_MAX_AGE : 60,
+  });
 }

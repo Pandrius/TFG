@@ -1,8 +1,17 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
 
-export default function PaginaPrincipal() {
+const COOKIE_SESION_CACHE = "dres_sesion";
+
+export default async function PaginaPrincipal() {
+  const store = await cookies();
+  if (store.get(COOKIE_SESION_CACHE)?.value === "1") {
+    redirect("/inicio");
+  }
+
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-10 p-8 text-center">
       <header className="max-w-2xl flex flex-col gap-4">

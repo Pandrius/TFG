@@ -92,6 +92,20 @@ export function PanelSubidas() {
         const advertencias = Array.isArray(evento.advertencias)
           ? evento.advertencias.filter((a): a is string => typeof a === "string")
           : [];
+        const doc =
+          evento.doc && typeof evento.doc === "object"
+            ? (evento.doc as {
+                nombre?: unknown;
+                confidencialidad?: unknown;
+              })
+            : null;
+        const nombreDoc =
+          typeof doc?.nombre === "string" && doc.nombre.trim()
+            ? doc.nombre
+            : "Archivo";
+        const confidencialidad =
+          typeof doc?.confidencialidad === "number" ? doc.confidencialidad : 1;
+        const etiqueta = confidencialidad === 0 ? "publico" : "privado";
         actualizar(id, {
           estado: "listo",
           progreso: 100,
@@ -104,6 +118,12 @@ export function PanelSubidas() {
             variant: "warn",
             titulo: "Documento guardado como privado.",
             detalle: advertencias[0],
+          });
+        } else {
+          mostrar({
+            variant: confidencialidad === 0 ? "ok" : "warn",
+            titulo: "Clasificacion completada.",
+            detalle: `${nombreDoc} se ha clasificado como ${etiqueta}.`,
           });
         }
         router.refresh();
