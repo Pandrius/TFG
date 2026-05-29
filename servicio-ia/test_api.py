@@ -34,6 +34,17 @@ def test_procesar_txt():
     assert cuerpo["confidencialidad"] == 1
     assert cuerpo["tipo_archivo"] == "txt"
     assert "secreta" in cuerpo["texto_extraido"]
+    assert cuerpo["advertencias"] == []
+
+
+def test_procesar_sin_texto_clasifica_privado():
+    archivo = ("vacio.txt", b"   ", "text/plain")
+    respuesta = cliente.post("/procesar", files={"archivo": archivo})
+    assert respuesta.status_code == 200
+    cuerpo = respuesta.json()
+    assert cuerpo["confidencialidad"] == 1
+    assert cuerpo["texto_extraido"] == ""
+    assert any("No se pudo extraer texto" in aviso for aviso in cuerpo["advertencias"])
 
 
 def test_procesar_formato_no_soportado():

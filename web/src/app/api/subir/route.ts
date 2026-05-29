@@ -3,7 +3,18 @@ import { NextRequest } from "next/server";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 
-const FORMATOS_PERMITIDOS = new Set(["pdf", "docx", "txt", "xlsx", "csv", "pptx"]);
+const FORMATOS_PERMITIDOS = new Set([
+  "pdf",
+  "docx",
+  "txt",
+  "xlsx",
+  "csv",
+  "pptx",
+  "html",
+  "json",
+  "xml",
+  "zip",
+]);
 const TAMANO_MAX = 10 * 1024 * 1024;
 
 /**
@@ -66,6 +77,7 @@ export async function POST(request: NextRequest) {
         let probabilidad: number | null = null;
         let textoExtraido: string | null = null;
         let tipoArchivo: string = extension;
+        const advertencias: string[] = [];
 
         const iaUrl = process.env.SERVICIO_IA_URL;
         if (iaUrl) {
@@ -84,6 +96,11 @@ export async function POST(request: NextRequest) {
               probabilidad = iaData.probabilidad ?? null;
               textoExtraido = iaData.texto_extraido ?? null;
               tipoArchivo = iaData.tipo_archivo ?? extension;
+              if (Array.isArray(iaData.advertencias)) {
+                advertencias.push(
+                  ...iaData.advertencias.filter((a: unknown): a is string => typeof a === "string"),
+                );
+              }
             } else {
               console.warn(
                 `[/api/subir] servicio IA respondio ${iaResp.status} · archivo="${nombreActual}" · fail-safe a confidencial`,
@@ -100,7 +117,14 @@ export async function POST(request: NextRequest) {
           emit({ fase: "clasificando" });
         }
 
-        emit({ fase: "guardando" });
+        if (textoExtraido !== null && textoExtraido.trim().length === 0) {
+          confidencialidad = 1;
+          if (advertencias.length === 0) {
+            advertencias.push("No se pudo extraer texto. Clasificado como privado por seguridad.");
+          }
+        }
+
+        emit({ fase: "guardando", advertencias });
 
         const admin = crearClienteAdmin();
         const nombreSlug = slugificar(archivo.name) || `archivo.${extension}`;
@@ -149,7 +173,7 @@ export async function POST(request: NextRequest) {
           return;
         }
 
-        emit({ fase: "completado", doc });
+        emit({ fase: "completado", doc, advertencias });
       } catch (err) {
         const mensaje = err instanceof Error ? err.message : String(err);
         console.error(

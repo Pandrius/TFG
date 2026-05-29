@@ -1,14 +1,14 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import { DropZone } from "@/components/ui/DropZone";
 import { PipelineRow, type EstadoArchivo } from "@/components/ui/PipelineRow";
 import { useToast } from "@/components/ui/Toast";
 
-const FORMATOS = [".pdf", ".docx", ".txt", ".xlsx", ".csv", ".pptx"];
-const FORMATOS_OK = new Set(["pdf", "docx", "txt", "xlsx", "csv", "pptx"]);
+const FORMATOS = [".pdf", ".docx", ".txt", ".xlsx", ".csv", ".pptx", ".html", ".json", ".xml", ".zip"];
+const FORMATOS_OK = new Set(["pdf", "docx", "txt", "xlsx", "csv", "pptx", "html", "json", "xml", "zip"]);
 const TAMANO_MAX = 10 * 1024 * 1024; // 10 MB
 const MAX_POR_TANDA = 10;
 const CONCURRENCIA = 3;
@@ -35,32 +35,38 @@ export function PanelSubidas() {
   const [archivos, setArchivos] = useState<ArchivoEnCola[]>([]);
   /** IDs actualmente procesando (no en cola, no listos, no error). */
   const activos = useRef(new Set<string>());
+  /** Cola imperativa para evitar dobles despachos por reejecuciones de React en dev. */
+  const pendientes = useRef<string[]>([]);
+  const ficheros = useRef(new Map<string, File>());
+  const subirArchivoRef = useRef<(id: string, fichero: File) => void>(() => {});
 
   /** Despacha tantos archivos de la cola como permita la concurrencia. */
   const despachar = useCallback(() => {
-    setArchivos((actual) => {
-      let activosCount = activos.current.size;
-      if (activosCount >= CONCURRENCIA) return actual;
+    const proximos: Array<{ id: string; fichero: File }> = [];
 
-      const proximos = actual
-        .filter((a) => a.estado === "en_cola")
-        .slice(0, CONCURRENCIA - activosCount);
+    while (activos.current.size < CONCURRENCIA && pendientes.current.length > 0) {
+      const id = pendientes.current.shift();
+      if (!id || activos.current.has(id)) continue;
 
-      if (proximos.length === 0) return actual;
+      const fichero = ficheros.current.get(id);
+      if (!fichero) continue;
 
-      for (const p of proximos) {
-        activos.current.add(p.id);
-        // Lanzar la subida fuera del setState (efecto secundario).
-        queueMicrotask(() => subirArchivo(p.id, p.fichero));
-        activosCount++;
-      }
+      activos.current.add(id);
+      proximos.push({ id, fichero });
+    }
 
-      return actual.map((a) =>
-        proximos.some((p) => p.id === a.id)
-          ? { ...a, estado: "subido", progreso: 0 }
-          : a,
-      );
-    });
+    if (proximos.length === 0) return;
+
+    const ids = new Set(proximos.map((p) => p.id));
+    setArchivos((actual) =>
+      actual.map((a) =>
+        ids.has(a.id) ? { ...a, estado: "subido", progreso: 0 } : a,
+      ),
+    );
+
+    for (const p of proximos) {
+      queueMicrotask(() => subirArchivoRef.current(p.id, p.fichero));
+    }
   }, []);
 
   /** Actualiza un archivo por ID. */
@@ -71,6 +77,55 @@ export function PanelSubidas() {
       );
     },
     [],
+  );
+
+  /** Mapea un evento SSE del server al estado del cliente. */
+  const procesarEvento = useCallback(
+    (id: string, fase: string, evento: Record<string, unknown>) => {
+      if (fase === "extrayendo") {
+        actualizar(id, { estado: "texto", progreso: 33 });
+      } else if (fase === "clasificando") {
+        actualizar(id, { estado: "analizando", progreso: 66 });
+      } else if (fase === "guardando") {
+        actualizar(id, { estado: "guardado", progreso: 99 });
+      } else if (fase === "completado") {
+        const advertencias = Array.isArray(evento.advertencias)
+          ? evento.advertencias.filter((a): a is string => typeof a === "string")
+          : [];
+        actualizar(id, {
+          estado: "listo",
+          progreso: 100,
+          abort: undefined,
+        });
+        activos.current.delete(id);
+        ficheros.current.delete(id);
+        if (advertencias.length > 0) {
+          mostrar({
+            variant: "warn",
+            titulo: "Documento guardado como privado.",
+            detalle: advertencias[0],
+          });
+        }
+        router.refresh();
+        despachar();
+        // Fade-out a los 5 s.
+        setTimeout(() => {
+          actualizar(id, { saliendo: true });
+          setTimeout(() => {
+            setArchivos((actual) => actual.filter((a) => a.id !== id));
+          }, 500);
+        }, TIEMPO_FADE_LISTO);
+      } else if (fase === "error") {
+        actualizar(id, {
+          estado: "error",
+          error: String(evento.error ?? "Error al subir el archivo."),
+          abort: undefined,
+        });
+        activos.current.delete(id);
+        despachar();
+      }
+    },
+    [actualizar, despachar, mostrar, router],
   );
 
   /** Sube un archivo (abre SSE, parsea eventos, actualiza estado). */
@@ -147,46 +202,12 @@ export function PanelSubidas() {
         despachar();
       }
     },
-    [actualizar, despachar],
+    [actualizar, despachar, procesarEvento],
   );
 
-  /** Mapea un evento SSE del server al estado del cliente. */
-  const procesarEvento = useCallback(
-    (id: string, fase: string, evento: Record<string, unknown>) => {
-      if (fase === "extrayendo") {
-        actualizar(id, { estado: "texto", progreso: 33 });
-      } else if (fase === "clasificando") {
-        actualizar(id, { estado: "analizando", progreso: 66 });
-      } else if (fase === "guardando") {
-        actualizar(id, { estado: "guardado", progreso: 99 });
-      } else if (fase === "completado") {
-        actualizar(id, {
-          estado: "listo",
-          progreso: 100,
-          abort: undefined,
-        });
-        activos.current.delete(id);
-        router.refresh();
-        despachar();
-        // Fade-out a los 5 s.
-        setTimeout(() => {
-          actualizar(id, { saliendo: true });
-          setTimeout(() => {
-            setArchivos((actual) => actual.filter((a) => a.id !== id));
-          }, 500);
-        }, TIEMPO_FADE_LISTO);
-      } else if (fase === "error") {
-        actualizar(id, {
-          estado: "error",
-          error: String(evento.error ?? "Error al subir el archivo."),
-          abort: undefined,
-        });
-        activos.current.delete(id);
-        despachar();
-      }
-    },
-    [actualizar, despachar, router],
-  );
+  useEffect(() => {
+    subirArchivoRef.current = subirArchivo;
+  }, [subirArchivo]);
 
   /** Acepta un drop o picker. Valida formato + tamaño + límite, encola. */
   const aceptarArchivos = (lista: File[]) => {
@@ -209,19 +230,22 @@ export function PanelSubidas() {
         descartadosTamano++;
         continue;
       }
+      const id = crypto.randomUUID();
       aceptados.push({
-        id: crypto.randomUUID(),
+        id,
         fichero: f,
         estado: "en_cola",
         progreso: 0,
       });
+      ficheros.current.set(id, f);
+      pendientes.current.push(id);
     }
 
     if (descartadosFormato > 0) {
       mostrar({
         variant: "err",
         titulo: `${descartadosFormato} archivo${descartadosFormato === 1 ? "" : "s"} con formato no soportado.`,
-        detalle: "Solo PDF, DOCX, TXT, XLSX, CSV o PPTX.",
+        detalle: "Formatos: PDF, DOCX, TXT, XLSX, CSV, PPTX, HTML, JSON, XML o ZIP.",
       });
     }
     if (descartadosTamano > 0) {
@@ -241,23 +265,31 @@ export function PanelSubidas() {
     if (aceptados.length === 0) return;
 
     setArchivos((actual) => [...actual, ...aceptados]);
-    // Despachar tras el setState (en el siguiente tick).
-    queueMicrotask(despachar);
+    despachar();
   };
 
-  const cancelar = (id: string) =>
+  const cancelar = (id: string) => {
+    pendientes.current = pendientes.current.filter((pendiente) => pendiente !== id);
+    ficheros.current.delete(id);
     setArchivos((actual) => actual.filter((a) => a.id !== id));
+  };
 
-  const quitar = (id: string) =>
+  const quitar = (id: string) => {
+    pendientes.current = pendientes.current.filter((pendiente) => pendiente !== id);
+    ficheros.current.delete(id);
     setArchivos((actual) => actual.filter((a) => a.id !== id));
+  };
 
   const reintentar = (id: string) => {
+    if (!pendientes.current.includes(id) && !activos.current.has(id)) {
+      pendientes.current.push(id);
+    }
     actualizar(id, {
       estado: "en_cola",
       progreso: 0,
       error: undefined,
     });
-    queueMicrotask(despachar);
+    despachar();
   };
 
   const enCurso = archivos.length > 0;
@@ -279,7 +311,7 @@ export function PanelSubidas() {
           o haz click para seleccionarlos. Puedes subir varios a la vez.
         </div>
         <div className="font-mono text-[10px] text-mute uppercase tracking-[0.08em] mt-3.5">
-          PDF · DOCX · TXT · XLSX · CSV · PPTX · hasta 10 MB · máx {MAX_POR_TANDA} a la vez
+          PDF · DOCX · TXT · XLSX · CSV · PPTX · HTML · JSON · XML · ZIP · hasta 10 MB · máx {MAX_POR_TANDA} a la vez
         </div>
       </DropZone>
 

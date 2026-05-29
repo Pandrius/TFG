@@ -1,39 +1,21 @@
-# Servicio de IA
+---
+title: TFG IA Servicio
+emoji: 🛡️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
 
-Servicio FastAPI que **extrae texto** de documentos multiformato y los **clasifica**
-como público (0) o confidencial (1). Cubre los puntos 1 y 2 del objetivo O4.
+# Servicio de IA — Clasificación de Documentos (TFG)
 
-## Estado del modelo
+Este microservicio forma parte de un Trabajo Fin de Grado centrado en la gestión documental segura. 
 
-Funciona en **modo placeholder** (heurística de detección de datos sensibles) hasta
-integrar el modelo real entrenado (`texto → embedding BETO → clasificador sklearn`)
-en el Hito 9. El contrato de la API no cambiará al integrarlo.
+## Funcionalidades
+- **Extracción de texto:** Soporta PDF, DOCX, TXT, XLSX, CSV, PPTX, HTML, JSON, XML y ZIP (vía Microsoft MarkItDown).
+- **Embeddings:** Generados mediante el modelo `bert-base-multilingual-cased` (alineado con la fase de entrenamiento).
+- **Clasificación:** Identificación de documentos confidenciales mediante Regresión Logística con umbral optimizado (20%).
 
-## Formatos soportados
-
-`.pdf`, `.docx`, `.txt`, `.csv`, `.xlsx`, `.pptx`
-
-## Puesta en marcha
-
-```bash
-cd servicio-ia
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-Servicio en `http://localhost:8000`; documentación interactiva en `/docs`.
-
-## Endpoints
-
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET  | `/salud`      | Estado del servicio y formatos soportados. |
-| POST | `/procesar`   | Sube un archivo (`multipart`, campo `archivo`): extrae texto y clasifica. |
-| POST | `/clasificar` | Clasifica un texto ya extraído (JSON `{"texto": "..."}`). |
-
-## Pruebas
-
-```bash
-cd servicio-ia
-pytest
-```
+## API
+El servicio expone un endpoint principal en `/procesar` que recibe un archivo y devuelve la clasificación y la probabilidad.

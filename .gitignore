@@ -18,6 +18,7 @@ __pycache__/
 
 # Modelo entrenado (se entrega aparte; puede ser grande)
 servicio-ia/modelo/*.pkl
+!servicio-ia/modelo/clasificador.pkl
 
 # Archivos de datos y embeddings (pesados)
 *.csv
@@ -32,3 +33,6 @@ ml/results/
 supabase/.temp/
 
 .vercel
+
+# Documentación de la memoria del TFG (local)
+memoria/

@@ -1,16 +1,16 @@
-"""Clasificación de documentos: público (0) / confidencial (1).
+"""Clasificacion de documentos: publico (0) / confidencial (1).
 
 Pipeline: ``texto -> embedding BETO (768-d) -> clasificador sklearn -> etiqueta``.
 
-Mientras el clasificador entrenado no esté disponible, el servicio funciona en
-MODO PLACEHOLDER (heurística de patrones). Se activa el modo real en cuanto se
+Mientras el clasificador entrenado no este disponible, el servicio funciona en
+MODO PLACEHOLDER (heuristica de patrones). Se activa el modo real en cuanto se
 coloca el .pkl en ``servicio-ia/modelo/clasificador.pkl``.
 
 Variables de entorno opcionales (para el modo real):
-    RUTA_MODELO  — ruta al .pkl (por defecto: modelo/clasificador.pkl)
-    BETO_NOMBRE  — nombre del modelo HuggingFace (por defecto: dccuchile/bert-base-spanish-wwm-cased)
-    BETO_POOLING — estrategia de pooling: 'cls' o 'mean' (por defecto: cls)
-    BETO_MAX_LEN — longitud máxima de tokens (por defecto: 512)
+    RUTA_MODELO  - ruta al .pkl (por defecto: servicio-ia/modelo/clasificador.pkl)
+    BETO_NOMBRE  - nombre del modelo HuggingFace (por defecto: bert-base-multilingual-cased)
+    BETO_POOLING - estrategia de pooling: 'cls' o 'mean' (por defecto: cls)
+    BETO_MAX_LEN - longitud maxima de tokens (por defecto: 128)
 """
 from __future__ import annotations
 
@@ -18,10 +18,11 @@ import os
 import re
 import unicodedata
 
-RUTA_MODELO = os.environ.get("RUTA_MODELO", os.path.join("modelo", "clasificador.pkl"))
-BETO_NOMBRE = os.environ.get("BETO_NOMBRE", "dccuchile/bert-base-spanish-wwm-cased")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RUTA_MODELO = os.environ.get("RUTA_MODELO", os.path.join(BASE_DIR, "modelo", "clasificador.pkl"))
+BETO_NOMBRE = os.environ.get("BETO_NOMBRE", "bert-base-multilingual-cased")
 BETO_POOLING = os.environ.get("BETO_POOLING", "cls")   # 'cls' o 'mean'
-BETO_MAX_LEN = int(os.environ.get("BETO_MAX_LEN", "512"))
+BETO_MAX_LEN = int(os.environ.get("BETO_MAX_LEN", "128"))
 
 PUBLICO = 0
 CONFIDENCIAL = 1
@@ -33,7 +34,7 @@ _beto = None           # modelo de BETO (transformers)
 
 
 # ---------------------------------------------------------------------------
-# Heurística (modo placeholder)
+# Heuristica (modo placeholder)
 # ---------------------------------------------------------------------------
 _PATRONES = [
     re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+"),
@@ -58,9 +59,9 @@ def _normalizar(texto: str) -> str:
 # ---------------------------------------------------------------------------
 
 def cargar_modelo() -> None:
-    """Carga el modelo real si el .pkl está disponible; si no, modo placeholder.
+    """Carga el modelo real si el .pkl esta disponible; si no, modo placeholder.
 
-    Llama a esta función una sola vez al arrancar el servicio (lifespan).
+    Llama a esta funcion una sola vez al arrancar el servicio (lifespan).
     """
     global _modo, _clasificador, _tokenizer, _beto
 
@@ -73,10 +74,10 @@ def cargar_modelo() -> None:
         import torch
         from transformers import AutoModel, AutoTokenizer
 
-        print(f"[modelo] Cargando clasificador desde {RUTA_MODELO}…")
+        print(f"[modelo] Cargando clasificador desde {RUTA_MODELO}...")
         _clasificador = joblib.load(RUTA_MODELO)
 
-        print(f"[modelo] Cargando BETO ({BETO_NOMBRE})…")
+        print(f"[modelo] Cargando BETO ({BETO_NOMBRE})...")
         _tokenizer = AutoTokenizer.from_pretrained(BETO_NOMBRE)
         _beto = AutoModel.from_pretrained(BETO_NOMBRE)
         _beto.eval()
@@ -127,16 +128,25 @@ def _clasificar_modelo(texto: str) -> tuple[int, float | None]:
 
     emb = _embedding(texto).reshape(1, -1)
 
-    etiqueta = int(_clasificador.predict(emb)[0])
-
     probabilidad: float | None = None
+    etiqueta = 0  # por defecto publico (0)
+
     if hasattr(_clasificador, "predict_proba"):
         proba = _clasificador.predict_proba(emb)[0]
         # proba[1] = probabilidad de la clase confidencial (1)
         clases = list(_clasificador.classes_)
-        idx = clases.index(1) if 1 in clases else -1
-        if idx >= 0:
-            probabilidad = round(float(proba[idx]), 4)
+        idx_confidencial = clases.index(1) if 1 in clases else -1
+
+        if idx_confidencial >= 0:
+            probabilidad = round(float(proba[idx_confidencial]), 4)
+            # Umbral personalizado del 20% (0.2)
+            if probabilidad >= 0.2:
+                etiqueta = 1
+            else:
+                etiqueta = 0
+    else:
+        # Fallback si no tiene predict_proba
+        etiqueta = int(_clasificador.predict(emb)[0])
 
     return etiqueta, probabilidad
 
@@ -155,12 +165,13 @@ def clasificar(texto: str) -> tuple[int, float | None, str]:
     """Clasifica un texto.
 
     Devuelve ``(confidencialidad, probabilidad, modo)``.
-    - confidencialidad: 0 (público) o 1 (confidencial).
+    - confidencialidad: 0 (publico) o 1 (confidencial).
     - probabilidad: prob. de clase confidencial, o None si no disponible.
     - modo: 'modelo' o 'placeholder'.
     """
     if not texto or not texto.strip():
         return CONFIDENCIAL, None, _modo
+
     if _modo == "modelo":
         etiqueta, probabilidad = _clasificar_modelo(texto)
         return etiqueta, probabilidad, _modo

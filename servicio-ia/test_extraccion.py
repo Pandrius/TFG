@@ -9,15 +9,16 @@ TEXTO = "Informacion confidencial: el DNI es 12345678Z."
 
 
 def test_txt():
-    texto, tipo, truncado = extraer_texto("doc.txt", TEXTO.encode("utf-8"))
+    texto, tipo, truncado, advertencias = extraer_texto("doc.txt", TEXTO.encode("utf-8"))
     assert "confidencial" in texto
     assert tipo == "txt"
     assert truncado is False
+    assert advertencias == []
 
 
 def test_csv():
     datos = "nombre,dni\nAna,12345678Z\n".encode("utf-8")
-    texto, tipo, _ = extraer_texto("doc.csv", datos)
+    texto, tipo, _, _ = extraer_texto("doc.csv", datos)
     assert "12345678Z" in texto
     assert tipo == "csv"
 
@@ -29,7 +30,7 @@ def test_docx():
     doc.add_paragraph(TEXTO)
     buffer = io.BytesIO()
     doc.save(buffer)
-    texto, tipo, _ = extraer_texto("doc.docx", buffer.getvalue())
+    texto, tipo, _, _ = extraer_texto("doc.docx", buffer.getvalue())
     assert "confidencial" in texto
     assert tipo == "docx"
 
@@ -42,7 +43,7 @@ def test_xlsx():
     libro.active["B1"] = "12345678Z"
     buffer = io.BytesIO()
     libro.save(buffer)
-    texto, tipo, _ = extraer_texto("doc.xlsx", buffer.getvalue())
+    texto, tipo, _, _ = extraer_texto("doc.xlsx", buffer.getvalue())
     assert "12345678Z" in texto
     assert tipo == "xlsx"
 
@@ -57,7 +58,7 @@ def test_pptx():
     cuadro.text_frame.text = TEXTO
     buffer = io.BytesIO()
     pres.save(buffer)
-    texto, tipo, _ = extraer_texto("doc.pptx", buffer.getvalue())
+    texto, tipo, _, _ = extraer_texto("doc.pptx", buffer.getvalue())
     assert "confidencial" in texto
     assert tipo == "pptx"
 
@@ -69,7 +70,7 @@ def test_pdf():
     lienzo = canvas.Canvas(buffer)
     lienzo.drawString(100, 700, TEXTO)
     lienzo.save()
-    texto, tipo, _ = extraer_texto("doc.pdf", buffer.getvalue())
+    texto, tipo, _, _ = extraer_texto("doc.pdf", buffer.getvalue())
     assert "confidencial" in texto
     assert tipo == "pdf"
 

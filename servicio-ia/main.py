@@ -40,6 +40,7 @@ class RespuestaProcesar(BaseModel):
     num_caracteres: int
     truncado: bool
     modo_modelo: str
+    advertencias: list[str] = []
 
 
 class PeticionClasificar(BaseModel):
@@ -50,6 +51,7 @@ class RespuestaClasificar(BaseModel):
     confidencialidad: int
     probabilidad: float | None
     modo_modelo: str
+    advertencias: list[str] = []
 
 
 @app.get("/salud")
@@ -73,12 +75,21 @@ async def procesar(archivo: UploadFile = File(...)) -> RespuestaProcesar:
             status_code=413,
             detail=f"El archivo supera el límite de {MAX_BYTES // (1024 * 1024)} MB.",
         )
+    nombre_archivo = archivo.filename or ""
     try:
-        texto, tipo, truncado = extraer_texto(archivo.filename or "", datos)
+        texto, tipo, truncado, advertencias = extraer_texto(nombre_archivo, datos)
     except FormatoNoSoportado as e:
         raise HTTPException(status_code=415, detail=str(e))
     except Exception as e:  # noqa: BLE001
-        raise HTTPException(status_code=422, detail=f"No se pudo extraer el texto: {e}")
+        texto = ""
+        tipo = nombre_archivo.rsplit(".", 1)[-1].lower() if "." in nombre_archivo else ""
+        truncado = False
+        advertencias = [
+            f"No se pudo extraer el texto ({e}). Clasificado como privado por seguridad."
+        ]
+
+    if not texto or not texto.strip():
+        advertencias.append("No se pudo extraer texto. Clasificado como privado por seguridad.")
 
     confidencialidad, probabilidad, modo = ia.clasificar(texto)
     return RespuestaProcesar(
@@ -89,6 +100,7 @@ async def procesar(archivo: UploadFile = File(...)) -> RespuestaProcesar:
         num_caracteres=len(texto),
         truncado=truncado,
         modo_modelo=modo,
+        advertencias=advertencias,
     )
 
 
