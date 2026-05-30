@@ -25,7 +25,29 @@ export async function GET(
     .eq("id", id)
     .single();
 
-  const tieneAcceso = doc?.url && (doc.user_id === user.id || doc.confidencialidad === 0);
+  const [{ data: permisoActual }, { data: favoritoActual }] = doc
+    ? await Promise.all([
+        admin
+          .from("Permisos")
+          .select("id")
+          .eq("documento_id", id)
+          .eq("inv_user_id", user.id)
+          .maybeSingle(),
+        admin
+          .from("favoritos")
+          .select("propietario_id")
+          .eq("propietario_id", doc.user_id)
+          .eq("favorito_id", user.id)
+          .maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
+
+  const tieneAcceso =
+    doc?.url &&
+    (doc.user_id === user.id ||
+      doc.confidencialidad === 0 ||
+      !!permisoActual ||
+      !!favoritoActual);
   if (!tieneAcceso) {
     return NextResponse.json(
       { error: "Documento no encontrado o sin acceso" },

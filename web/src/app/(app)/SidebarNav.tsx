@@ -15,6 +15,7 @@ const grupos = [
     label: "Colaboración",
     items: [
       { href: "/compartidos", label: "Compartidos" },
+      { href: "/amigos", label: "Amigos" },
       { href: "/organizaciones", label: "Organizaciones" },
       { href: "/explorar", label: "Explorar" },
     ],

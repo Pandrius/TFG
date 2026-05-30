@@ -38,6 +38,7 @@ export default function RootLayout({
     <html
       lang="es"
       className={`${inter.variable} ${fraunces.variable} ${mono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-paper text-ink">
         <Script id="tema-inicial" strategy="beforeInteractive">

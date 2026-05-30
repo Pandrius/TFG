@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Avatar } from "./Avatar";
 import { Button } from "./Button";
 
@@ -27,8 +27,24 @@ export function AvatarUpload({
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [subiendo, setSubiendo] = useState(false);
+  const [ampliado, setAmpliado] = useState(false);
+  const nombre = nombreCompleto || nombreUsuario;
+  const inicial = nombre[0]?.toUpperCase() ?? "?";
 
   const elegir = () => inputRef.current?.click();
+
+  useEffect(() => {
+    if (!ampliado) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAmpliado(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [ampliado]);
 
   const procesar = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const fichero = e.target.files?.[0];
@@ -78,12 +94,20 @@ export function AvatarUpload({
   return (
     <div className="flex items-center gap-5">
       <div className="relative">
-        <Avatar
-          nombreCompleto={nombreCompleto}
-          nombreUsuario={nombreUsuario}
-          avatarUrl={avatarUrl}
-          size="xl"
-        />
+        <button
+          type="button"
+          onClick={() => setAmpliado(true)}
+          className="rounded-full cursor-zoom-in ring-offset-2 hover:ring-2 hover:ring-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          aria-label="Ampliar foto de perfil"
+          title="Ampliar foto de perfil"
+        >
+          <Avatar
+            nombreCompleto={nombreCompleto}
+            nombreUsuario={nombreUsuario}
+            avatarUrl={avatarUrl}
+            size="xl"
+          />
+        </button>
         {subiendo && (
           <span className="absolute inset-0 grid place-items-center rounded-full bg-ink/60">
             <span className="w-6 h-6 rounded-full border-2 border-white/30 border-t-white animate-spin" />
@@ -108,6 +132,39 @@ export function AvatarUpload({
         />
         <p className="text-xs text-mute">JPG, PNG o WEBP. Máximo 2 MB.</p>
       </div>
+      {ampliado && (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-ink/55 px-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setAmpliado(false);
+          }}
+        >
+          <div className="rounded-[18px] border border-rule bg-card shadow-[var(--shadow-3)] p-5 w-full max-w-[380px]">
+            <div className="w-72 h-72 max-w-full mx-auto rounded-full overflow-hidden bg-accent-soft text-accent grid place-items-center font-display italic text-7xl">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={nombre}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                inicial
+              )}
+            </div>
+            <div className="mt-4 text-center">
+              <p className="font-medium text-[15px]">{nombre}</p>
+              <p className="font-mono text-[11px] text-mute">@{nombreUsuario}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAmpliado(false)}
+              className="mt-4 w-full rounded-full border border-rule px-4 py-2 text-sm hover:bg-soft transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

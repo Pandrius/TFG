@@ -6,7 +6,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { Tag } from "@/components/ui/Tag";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
-import FormularioInvitacion from "./FormularioInvitacion";
+import FormularioInvitacion, { type UsuarioInvitable } from "./FormularioInvitacion";
 import { quitarPermiso } from "./acciones";
 import AccionesClasificacion from "./AccionesClasificacion";
 
@@ -29,8 +29,30 @@ export default async function PaginaDocumento({
     .eq("id", id)
     .single();
 
-  // Verificar acceso: propietario o documento público.
-  const tieneAcceso = doc && (doc.user_id === user.id || doc.confidencialidad === 0);
+  const [{ data: permisoActual }, { data: favoritoActual }] = doc
+    ? await Promise.all([
+        admin
+          .from("Permisos")
+          .select("id")
+          .eq("documento_id", id)
+          .eq("inv_user_id", user.id)
+          .maybeSingle(),
+        admin
+          .from("favoritos")
+          .select("propietario_id")
+          .eq("propietario_id", doc.user_id)
+          .eq("favorito_id", user.id)
+          .maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }];
+
+  // Verificar acceso: propietario, publico, permiso explicito o favorito del propietario.
+  const tieneAcceso =
+    doc &&
+    (doc.user_id === user.id ||
+      doc.confidencialidad === 0 ||
+      !!permisoActual ||
+      !!favoritoActual);
   if (!tieneAcceso) redirect("/mis-documentos");
 
   const esPropietario = doc.user_id === user.id;
@@ -41,7 +63,11 @@ export default async function PaginaDocumento({
 
   // Permisos actuales (solo para el propietario)
   let permisos: { id: string; inv_user_id: string }[] = [];
-  const perfilesById: Record<string, { nombre_usuario: string; nombre_completo: string | null }> = {};
+  const perfilesById: Record<
+    string,
+    { nombre_usuario: string; nombre_completo: string | null; avatar_url: string | null }
+  > = {};
+  let usuariosInvitables: UsuarioInvitable[] = [];
 
   if (esPropietario) {
     const { data: permisosData } = await admin
@@ -55,10 +81,18 @@ export default async function PaginaDocumento({
     if (invitadoIds.length > 0) {
       const { data: perfilesData } = await admin
         .from("profiles")
-        .select("id, nombre_usuario, nombre_completo")
+        .select("id, nombre_usuario, nombre_completo, avatar_url")
         .in("id", invitadoIds);
       for (const p of perfilesData ?? []) perfilesById[p.id] = p;
     }
+
+    const excluidos = new Set([user.id, ...invitadoIds]);
+    const { data: perfilesDisponibles } = await admin
+      .from("profiles")
+      .select("id, nombre_usuario, nombre_completo, avatar_url")
+      .order("nombre_usuario");
+    usuariosInvitables =
+      perfilesDisponibles?.filter((perfil) => !excluidos.has(perfil.id)) ?? [];
   }
 
   const esPublico = doc.confidencialidad === 0;
@@ -147,7 +181,7 @@ export default async function PaginaDocumento({
                     <Avatar
                       nombreCompleto={perfil?.nombre_completo ?? null}
                       nombreUsuario={perfil?.nombre_usuario ?? ""}
-                      avatarUrl={null}
+                      avatarUrl={perfil?.avatar_url ?? null}
                       size="sm"
                     />
                     <div className="flex-1 min-w-0">
@@ -171,7 +205,7 @@ export default async function PaginaDocumento({
             )}
           </div>
 
-          <FormularioInvitacion documentoId={id} />
+          <FormularioInvitacion documentoId={id} usuarios={usuariosInvitables} />
         </section>
       )}
     </div>

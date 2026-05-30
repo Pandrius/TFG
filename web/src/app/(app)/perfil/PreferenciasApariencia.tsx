@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 
 const CLAVE_TEMA = "dres_tema";
 
-function temaInicial() {
-  if (typeof window === "undefined") return false;
-  return window.localStorage.getItem(CLAVE_TEMA) === "oscuro";
-}
-
 export function PreferenciasApariencia() {
-  const [oscuro, setOscuro] = useState(temaInicial);
+  const [oscuro, setOscuro] = useState(false);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setOscuro(window.localStorage.getItem(CLAVE_TEMA) === "oscuro");
+    });
+  }, []);
 
   const cambiarTema = (activo: boolean) => {
     setOscuro(activo);

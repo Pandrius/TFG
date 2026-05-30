@@ -1,9 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 
+import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
+import { AccionesUsuario } from "./AccionesUsuario";
 import { AvatarPerfilAmpliable } from "./AvatarPerfilAmpliable";
 
 export default async function PaginaPerfilUsuario({
@@ -21,7 +23,8 @@ export default async function PaginaPerfilUsuario({
   // Si es mi propio perfil, puedo redirigir a /perfil o mostrarlo igual
   // Para el TFG, permitimos ver el perfil de cualquiera
 
-  const { data: perfil } = await supabase
+  const admin = crearClienteAdmin();
+  const { data: perfil } = await admin
     .from("profiles")
     .select("id, nombre_usuario, nombre_completo, avatar_url")
     .eq("id", id)
@@ -29,15 +32,46 @@ export default async function PaginaPerfilUsuario({
 
   if (!perfil) notFound();
 
+  const [{ data: favorito }, { data: accesoPorFavorito }, { data: amistadData }] = await Promise.all([
+    admin
+      .from("favoritos")
+      .select("favorito_id")
+      .eq("propietario_id", me.id)
+      .eq("favorito_id", id)
+      .maybeSingle(),
+    admin
+      .from("favoritos")
+      .select("propietario_id")
+      .eq("propietario_id", id)
+      .eq("favorito_id", me.id)
+      .maybeSingle(),
+    admin
+      .from("amistades")
+      .select("solicitante_id, receptor_id, estado")
+      .or(
+        `and(solicitante_id.eq.${me.id},receptor_id.eq.${id}),and(solicitante_id.eq.${id},receptor_id.eq.${me.id})`,
+      )
+      .maybeSingle(),
+  ]);
+
+  const amistad =
+    !amistadData
+      ? ({ estado: "ninguna" } as const)
+      : amistadData.estado === "aceptada"
+        ? ({ estado: "aceptada" } as const)
+        : amistadData.solicitante_id === me.id
+          ? ({ estado: "pendiente_enviada" } as const)
+          : ({ estado: "pendiente_recibida" } as const);
+
   // Obtener documentos visibles de este usuario
   // (Públicos si no soy yo, todos si soy yo - aunque para eso está /mis-documentos)
-  const query = supabase
+  const query = admin
     .from("Documentos")
     .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha")
     .eq("user_id", id)
     .order("fecha", { ascending: false });
 
-  if (me.id !== id) {
+  if (me.id !== id && !accesoPorFavorito) {
     query.eq("confidencialidad", 0);
   }
 
@@ -58,6 +92,13 @@ export default async function PaginaPerfilUsuario({
           </h1>
           <p className="text-mute font-mono text-sm mt-0.5">@{perfil.nombre_usuario}</p>
         </div>
+        {me.id !== id && (
+          <AccionesUsuario
+            usuarioId={id}
+            esFavorito={!!favorito}
+            amistad={amistad}
+          />
+        )}
       </div>
 
       {/* Lista de Documentos */}
