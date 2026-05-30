@@ -13,6 +13,7 @@ export async function crearCarpeta(
 ): Promise<Resultado> {
   const nombre = String(datos.get("nombre") ?? "").trim();
   const orgId = datos.get("org_id") ? String(datos.get("org_id")) : null;
+  const parentId = datos.get("parent_id") ? String(datos.get("parent_id")) : null;
 
   if (!nombre) return { error: "El nombre es obligatorio." };
   if (nombre.length > 100) return { error: "Máximo 100 caracteres." };
@@ -36,9 +37,27 @@ export async function crearCarpeta(
     if (!membresia) return { error: "No autorizado." };
   }
 
-  const { error } = await admin
-    .from("carpetas")
-    .insert({ nombre, user_id: user.id, org_id: orgId });
+  if (parentId) {
+    const { data: padre } = await admin
+      .from("carpetas")
+      .select("id, user_id, org_id")
+      .eq("id", parentId)
+      .single();
+
+    if (!padre || padre.user_id !== user.id || (padre.org_id ?? null) !== orgId) {
+      return { error: "Carpeta padre no valida." };
+    }
+  }
+
+  const nuevaCarpeta: {
+    nombre: string;
+    user_id: string;
+    org_id: string | null;
+    parent_id?: string;
+  } = { nombre, user_id: user.id, org_id: orgId };
+  if (parentId) nuevaCarpeta.parent_id = parentId;
+
+  const { error } = await admin.from("carpetas").insert(nuevaCarpeta);
 
   if (error) {
     console.error("Error creating folder:", error);
@@ -46,6 +65,7 @@ export async function crearCarpeta(
   }
 
   revalidatePath("/carpetas");
+  revalidatePath("/mis-documentos");
   if (orgId) revalidatePath(`/organizaciones/${orgId}`);
   return { ok: "Carpeta creada." };
 }
@@ -68,6 +88,7 @@ export async function renombrarCarpeta(
   const { error } = await admin.from("carpetas").update({ nombre }).eq("id", carpetaId);
   if (error) return { error: error.message };
   revalidatePath("/carpetas");
+  revalidatePath("/mis-documentos");
   return { ok: "Carpeta renombrada." };
 }
 
@@ -86,6 +107,7 @@ export async function eliminarCarpeta(carpetaId: string): Promise<Resultado> {
 
   if (error) return { error: error.message };
   revalidatePath("/carpetas");
+  revalidatePath("/mis-documentos");
   return { ok: "Carpeta eliminada." };
 }
 

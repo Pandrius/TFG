@@ -1,12 +1,28 @@
-import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 
-import { crearClienteAdmin } from "@/lib/supabase/admin";
-import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
+import { crearClienteAdmin } from "@/lib/supabase/admin";
+import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { AccionesUsuario } from "./AccionesUsuario";
 import { AvatarPerfilAmpliable } from "./AvatarPerfilAmpliable";
+
+type CarpetaPerfil = {
+  id: string;
+  nombre: string;
+  parent_id: string | null;
+};
+
+type DocumentoPerfil = {
+  id: string;
+  nombre: string;
+  tipo_archivo: string | null;
+  confidencialidad: number | null;
+  tamano_bytes: number | null;
+  fecha: string;
+  carpeta_id: string | null;
+};
 
 export default async function PaginaPerfilUsuario({
   params,
@@ -20,16 +36,12 @@ export default async function PaginaPerfilUsuario({
   } = await supabase.auth.getUser();
   if (!me) redirect("/login");
 
-  // Si es mi propio perfil, puedo redirigir a /perfil o mostrarlo igual
-  // Para el TFG, permitimos ver el perfil de cualquiera
-
   const admin = crearClienteAdmin();
   const { data: perfil } = await admin
     .from("profiles")
     .select("id, nombre_usuario, nombre_completo, avatar_url")
     .eq("id", id)
     .single();
-
   if (!perfil) notFound();
 
   const [{ data: favorito }, { data: accesoPorFavorito }, { data: amistadData }] = await Promise.all([
@@ -63,23 +75,34 @@ export default async function PaginaPerfilUsuario({
           ? ({ estado: "pendiente_enviada" } as const)
           : ({ estado: "pendiente_recibida" } as const);
 
-  // Obtener documentos visibles de este usuario
-  // (Públicos si no soy yo, todos si soy yo - aunque para eso está /mis-documentos)
   const query = admin
     .from("Documentos")
-    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha")
+    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, carpeta_id")
     .eq("user_id", id)
     .order("fecha", { ascending: false });
+  if (me.id !== id && !accesoPorFavorito) query.eq("confidencialidad", 0);
 
-  if (me.id !== id && !accesoPorFavorito) {
-    query.eq("confidencialidad", 0);
-  }
+  const [{ data: documentosData }, { data: carpetasData }] = await Promise.all([
+    query,
+    admin
+      .from("carpetas")
+      .select("id, nombre, parent_id")
+      .eq("user_id", id)
+      .is("org_id", null)
+      .order("nombre"),
+  ]);
 
-  const { data: documentos } = await query;
+  const documentos = (documentosData ?? []) as DocumentoPerfil[];
+  const carpetas = (carpetasData ?? []) as CarpetaPerfil[];
+  const puedeVerPrivados = me.id === id || !!accesoPorFavorito;
+  const carpetasVisibles = carpetas
+    .filter((carpeta) => carpeta.parent_id === null && contarVisibles(carpeta.id, carpetas, documentos) > 0)
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  const docsSinCarpeta = documentos.filter((doc) => !doc.carpeta_id);
+  const totalCompartidos = documentos.length;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
-      {/* Cabecera del Perfil */}
       <div className="flex items-center gap-6 bg-paper border border-rule rounded-[20px] p-6 shadow-[var(--shadow-1)]">
         <AvatarPerfilAmpliable
           nombreCompleto={perfil.nombre_completo}
@@ -101,22 +124,47 @@ export default async function PaginaPerfilUsuario({
         )}
       </div>
 
-      {/* Lista de Documentos */}
       <div>
         <h2 className="font-display font-medium text-lg mb-4 flex items-center gap-2">
           Documentos <em className="italic text-accent">compartidos</em>
-          <span className="text-mute font-mono text-xs ml-2">({documentos?.length ?? 0})</span>
+          <span className="text-mute font-mono text-xs ml-2">({totalCompartidos})</span>
         </h2>
 
-        {!documentos?.length ? (
+        {carpetasVisibles.length === 0 && docsSinCarpeta.length === 0 ? (
           <div className="py-12 text-center bg-soft rounded-[14px] border border-dashed border-rule">
             <p className="text-mute text-sm italic font-display">
-              Este usuario aún no ha compartido documentos públicos.
+              Este usuario aun no tiene documentos visibles para ti.
             </p>
           </div>
         ) : (
           <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
-            {documentos.map((doc) => {
+            {carpetasVisibles.map((carpeta) => (
+              <div
+                key={carpeta.id}
+                className="grid grid-cols-[44px_1fr_120px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule text-[13px]"
+              >
+                <span className="w-9 h-9 rounded-[8px] border border-rule bg-card grid place-items-center text-accent font-semibold">
+                  /
+                </span>
+                <div className="min-w-0">
+                  <Link
+                    href={`/carpetas/${carpeta.id}`}
+                    className="font-medium hover:text-accent transition-colors truncate block"
+                  >
+                    {carpeta.nombre}
+                  </Link>
+                  <p className="text-mute text-[11px] font-mono mt-0.5">
+                    {contarVisibles(carpeta.id, carpetas, documentos)} documentos visibles
+                  </p>
+                </div>
+                <Tag variant="pub">carpeta</Tag>
+                <Link href={`/carpetas/${carpeta.id}`}>
+                  <Button variant="ghost" size="sm">Abrir</Button>
+                </Link>
+              </div>
+            ))}
+
+            {docsSinCarpeta.map((doc) => {
               const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
               const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
               const tipo = (doc.tipo_archivo ?? "").toUpperCase();
@@ -138,11 +186,11 @@ export default async function PaginaPerfilUsuario({
                       {doc.nombre}
                     </Link>
                     <p className="text-mute text-[11px] font-mono mt-0.5">
-                      {fecha} {kb ? ` · ${kb} KB` : ""}
+                      {fecha} {kb ? ` - ${kb} KB` : ""}
                     </p>
                   </div>
                   <Tag variant={esPublico ? "pub" : "priv"}>
-                    {esPublico ? "público" : "privado"}
+                    {esPublico ? "publico" : puedeVerPrivados ? "privado accesible" : "privado"}
                   </Tag>
                   <Link href={`/documentos/${doc.id}`}>
                     <Button variant="ghost" size="sm">Ver</Button>
@@ -155,4 +203,25 @@ export default async function PaginaPerfilUsuario({
       </div>
     </div>
   );
+}
+
+function contarVisibles(
+  carpetaId: string,
+  carpetas: CarpetaPerfil[],
+  documentos: DocumentoPerfil[],
+) {
+  const descendientes = new Set([carpetaId]);
+  let cambio = true;
+
+  while (cambio) {
+    cambio = false;
+    for (const carpeta of carpetas) {
+      if (carpeta.parent_id && descendientes.has(carpeta.parent_id) && !descendientes.has(carpeta.id)) {
+        descendientes.add(carpeta.id);
+        cambio = true;
+      }
+    }
+  }
+
+  return documentos.filter((doc) => doc.carpeta_id && descendientes.has(doc.carpeta_id)).length;
 }

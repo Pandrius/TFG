@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 
 export interface ResultadoBusqueda {
@@ -16,9 +17,9 @@ export interface ResultadoBusqueda {
 
 function nombreUsuarioRelacionado(profiles: unknown): string {
   const perfil = Array.isArray(profiles) ? profiles[0] : profiles;
-  if (!perfil || typeof perfil !== "object") return "—";
+  if (!perfil || typeof perfil !== "object") return "-";
   const nombre = (perfil as { nombre_usuario?: unknown }).nombre_usuario;
-  return typeof nombre === "string" && nombre ? nombre : "—";
+  return typeof nombre === "string" && nombre ? nombre : "-";
 }
 
 export async function GET(req: NextRequest) {
@@ -39,36 +40,34 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   const termino = `%${q}%`;
+  const admin = crearClienteAdmin();
 
   const [
     { data: docs },
-    { data: caps },
+    { data: capsCandidatas },
     { data: perfiles },
-    { data: orgs }
+    { data: orgs },
   ] = await Promise.all([
-    // Buscar Documentos Públicos de otros usuarios
-    supabase
+    admin
       .from("Documentos")
       .select("id, nombre, tipo_archivo, profiles!user_id(nombre_usuario)")
       .ilike("nombre", termino)
       .eq("confidencialidad", 0)
       .neq("user_id", user.id)
       .limit(6),
-    // Buscar Carpetas de otros usuarios (suponiendo que haya política de visibilidad o buscamos todas las de otros)
-    supabase
+    admin
       .from("carpetas")
-      .select("id, nombre, profiles!user_id(nombre_usuario)")
+      .select("id, nombre, user_id, parent_id, profiles!user_id(nombre_usuario)")
       .ilike("nombre", termino)
       .neq("user_id", user.id)
-      .limit(4),
-    // Buscar Usuarios
+      .is("org_id", null)
+      .limit(6),
     supabase
       .from("profiles")
       .select("id, nombre_usuario, nombre_completo, avatar_url")
       .or(`nombre_usuario.ilike.${termino},nombre_completo.ilike.${termino}`)
       .neq("id", user.id)
       .limit(5),
-    // Buscar Organizaciones
     supabase
       .from("org_miembros")
       .select("organizaciones ( id, nombre )")
@@ -76,21 +75,39 @@ export async function GET(req: NextRequest) {
       .limit(20),
   ]);
 
-  // Transformar datos para incluir el username de forma plana
-  const docsFormateados = (docs ?? []).map(d => ({
+  const ownerIds = [...new Set((capsCandidatas ?? []).map((c) => c.user_id))];
+  const [{ data: carpetasOwners }, { data: docsPublicosCarpetas }] =
+    ownerIds.length > 0
+      ? await Promise.all([
+          admin
+            .from("carpetas")
+            .select("id, parent_id, user_id")
+            .in("user_id", ownerIds)
+            .is("org_id", null),
+          admin
+            .from("Documentos")
+            .select("id, carpeta_id, user_id")
+            .in("user_id", ownerIds)
+            .eq("confidencialidad", 0),
+        ])
+      : [{ data: [] }, { data: [] }];
+
+  const docsFormateados = (docs ?? []).map((d) => ({
     id: d.id,
     nombre: d.nombre,
     tipo_archivo: d.tipo_archivo,
-    username: nombreUsuarioRelacionado(d.profiles)
+    username: nombreUsuarioRelacionado(d.profiles),
   }));
 
-  const capsFormateadas = (caps ?? []).map(c => ({
-    id: c.id,
-    nombre: c.nombre,
-    username: nombreUsuarioRelacionado(c.profiles)
-  }));
+  const capsFormateadas = (capsCandidatas ?? [])
+    .filter((c) => carpetaTienePublicos(c.id, carpetasOwners ?? [], docsPublicosCarpetas ?? []))
+    .slice(0, 4)
+    .map((c) => ({
+      id: c.id,
+      nombre: c.nombre,
+      username: nombreUsuarioRelacionado(c.profiles),
+    }));
 
-  // Filtrar orgs por nombre
   const todasOrgs = (orgs ?? [])
     .flatMap((m) => {
       const org = Array.isArray(m.organizaciones) ? m.organizaciones[0] : m.organizaciones;
@@ -106,3 +123,25 @@ export async function GET(req: NextRequest) {
     organizaciones: todasOrgs,
   });
 }
+
+function carpetaTienePublicos(
+  carpetaId: string,
+  carpetas: { id: string; parent_id: string | null; user_id: string }[],
+  documentos: { carpeta_id: string | null; user_id: string }[],
+) {
+  const descendientes = new Set([carpetaId]);
+  let cambio = true;
+
+  while (cambio) {
+    cambio = false;
+    for (const carpeta of carpetas) {
+      if (carpeta.parent_id && descendientes.has(carpeta.parent_id) && !descendientes.has(carpeta.id)) {
+        descendientes.add(carpeta.id);
+        cambio = true;
+      }
+    }
+  }
+
+  return documentos.some((doc) => doc.carpeta_id && descendientes.has(doc.carpeta_id));
+}
+

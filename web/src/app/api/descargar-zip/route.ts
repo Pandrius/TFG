@@ -38,9 +38,18 @@ export async function POST(request: NextRequest) {
     .from("Documentos")
     .select("id, nombre, url, user_id, confidencialidad")
     .in("id", ids as string[]);
+  const propietariosIds = [...new Set((docs ?? []).map((d) => d.user_id).filter((id) => id !== user.id))];
+  const { data: accesosFavorito } = propietariosIds.length > 0
+    ? await admin
+        .from("favoritos")
+        .select("propietario_id")
+        .in("propietario_id", propietariosIds)
+        .eq("favorito_id", user.id)
+    : { data: [] };
+  const propietariosConAcceso = new Set(accesosFavorito?.map((f) => f.propietario_id) ?? []);
 
   const docsAccesibles = (docs ?? []).filter(
-    (d) => d.user_id === user.id || d.confidencialidad === 0,
+    (d) => d.user_id === user.id || d.confidencialidad === 0 || propietariosConAcceso.has(d.user_id),
   );
 
   if (docsAccesibles.length === 0) {

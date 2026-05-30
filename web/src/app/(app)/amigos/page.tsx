@@ -72,9 +72,12 @@ export default async function PaginaAmigos() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="font-display italic text-accent text-sm mb-1">— red</p>
-          <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
-            Amigos
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
+              Amigos
+            </h1>
+            <ContadorSolicitudes total={pendientesRecibidas.length} />
+          </div>
           <p className="text-mute text-[13px] mt-1">
             {amigos.length} amigo{amigos.length !== 1 ? "s" : ""}
           </p>
@@ -83,9 +86,12 @@ export default async function PaginaAmigos() {
       </div>
 
       <section className="flex flex-col gap-3">
-        <h2 className="font-display font-medium text-lg tracking-[-0.01em]">
-          Solicitudes recibidas
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="font-display font-medium text-lg tracking-[-0.01em]">
+            Solicitudes recibidas
+          </h2>
+          <ContadorSolicitudes total={pendientesRecibidas.length} />
+        </div>
         <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
           {pendientesRecibidas.length === 0 ? (
             <p className="px-5 py-6 text-center text-mute text-sm">No tienes solicitudes pendientes.</p>
@@ -158,6 +164,20 @@ export default async function PaginaAmigos() {
         </section>
       )}
     </div>
+  );
+}
+
+function ContadorSolicitudes({ total }: { total: number }) {
+  if (total === 0) return null;
+
+  return (
+    <span
+      className="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-danger px-1.5 text-[11px] font-semibold leading-none text-white"
+      aria-label={`${total} solicitud${total !== 1 ? "es" : ""} de amistad pendiente${total !== 1 ? "s" : ""}`}
+      title={`${total} solicitud${total !== 1 ? "es" : ""} de amistad pendiente${total !== 1 ? "s" : ""}`}
+    >
+      {total > 99 ? "99+" : total}
+    </span>
   );
 }
 

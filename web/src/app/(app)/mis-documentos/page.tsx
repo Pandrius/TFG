@@ -5,8 +5,12 @@ import { KpiAnillo } from "@/components/ui/KpiAnillo";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 
+import {
+  ExploradorDocumentos,
+  type CarpetaExplorador,
+  type DocumentoExplorador,
+} from "./ExploradorDocumentos";
 import { PanelSubidas } from "./PanelSubidas";
-import { TablaDocumentos, type DocumentoFila } from "./TablaDocumentos";
 
 const ESPACIO_TOTAL_MB = 500;
 const HOY_INICIO_MS = (() => {
@@ -15,7 +19,13 @@ const HOY_INICIO_MS = (() => {
   return d.getTime();
 })();
 
-export default async function PaginaMisDocumentos() {
+export default async function PaginaMisDocumentos({
+  searchParams,
+}: {
+  searchParams: Promise<{ carpeta?: string }>;
+}) {
+  const { carpeta: carpetaActualParam } = await searchParams;
+  const carpetaActualId = carpetaActualParam || null;
   const supabase = await crearClienteServidor();
   const {
     data: { user },
@@ -25,18 +35,38 @@ export default async function PaginaMisDocumentos() {
   const admin = crearClienteAdmin();
   const { data } = await admin
     .from("Documentos")
-    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha")
+    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, carpeta_id")
     .eq("user_id", user.id)
     .order("fecha", { ascending: false })
     .limit(100);
 
-  const documentos: DocumentoFila[] = data ?? [];
+  const documentos: DocumentoExplorador[] = data ?? [];
 
-  const { data: carpetas } = await supabase
+  const { data: carpetasData, error: carpetasConParentError } = await admin
     .from("carpetas")
-    .select("id, nombre")
+    .select("id, nombre, parent_id")
     .eq("user_id", user.id)
+    .is("org_id", null)
     .order("nombre");
+  let carpetas: CarpetaExplorador[] = carpetasData ?? [];
+  if (carpetasConParentError) {
+    const { data: carpetasPlanas } = await admin
+      .from("carpetas")
+      .select("id, nombre")
+      .eq("user_id", user.id)
+      .is("org_id", null)
+      .order("nombre");
+    carpetas =
+      carpetasPlanas?.map((carpeta) => ({
+        ...carpeta,
+        parent_id: null,
+      })) ?? [];
+  }
+  const carpetaActualSegura =
+    carpetaActualId && carpetas.some((carpeta) => carpeta.id === carpetaActualId)
+      ? carpetaActualId
+      : null;
+
   const { data: objetosStorage } = await admin.storage
     .from("almacen_documentos")
     .list(user.id, { limit: 1000 });
@@ -57,9 +87,7 @@ export default async function PaginaMisDocumentos() {
   const hoyN = documentos.filter(
     (d) => new Date(d.fecha).getTime() >= HOY_INICIO_MS,
   ).length;
-  const ultima = documentos[0]
-    ? new Date(documentos[0].fecha)
-    : null;
+  const ultima = documentos[0] ? new Date(documentos[0].fecha) : null;
   const ultimaTexto = ultima ? formatoTiempoRelativo(ultima) : null;
 
   return (
@@ -67,15 +95,16 @@ export default async function PaginaMisDocumentos() {
       <header className="flex items-end justify-between">
         <div>
           <p className="font-display italic text-accent text-sm m-0">
-            — tu archivo personal
+            - tu unidad personal
           </p>
           <h1 className="font-display font-medium text-4xl tracking-[-0.02em] m-0 mt-1">
             Mis <em className="italic text-accent">documentos</em>
           </h1>
           <p className="text-mute text-sm font-display italic mt-2">
-            {total} documento{total === 1 ? "" : "s"} ·{" "}
+            {total} documento{total === 1 ? "" : "s"} -{" "}
+            {carpetas.length} carpeta{carpetas.length === 1 ? "" : "s"} -{" "}
             {espacioMB.toFixed(1)} MB
-            {ultimaTexto ? ` · última subida ${ultimaTexto}` : ""}
+            {ultimaTexto ? ` - ultima subida ${ultimaTexto}` : ""}
           </p>
         </div>
       </header>
@@ -89,27 +118,15 @@ export default async function PaginaMisDocumentos() {
         />
         <Kpi
           label="Privados"
-          valor={
-            <>
-              <em className="italic text-accent font-medium">{privados}</em>
-            </>
-          }
-          pista={total > 0 ? `${Math.round((privados / total) * 100)}% del total` : "—"}
-          visual={
-            total > 0 ? <KpiAnillo porcentaje={(privados / total) * 100} /> : undefined
-          }
+          valor={<em className="italic text-accent font-medium">{privados}</em>}
+          pista={total > 0 ? `${Math.round((privados / total) * 100)}% del total` : "-"}
+          visual={total > 0 ? <KpiAnillo porcentaje={(privados / total) * 100} /> : undefined}
         />
         <Kpi
-          label="Públicos"
-          valor={
-            <>
-              <em className="italic text-accent font-medium">{publicos}</em>
-            </>
-          }
-          pista={total > 0 ? `${Math.round((publicos / total) * 100)}% del total` : "—"}
-          visual={
-            total > 0 ? <KpiAnillo porcentaje={(publicos / total) * 100} /> : undefined
-          }
+          label="Publicos"
+          valor={<em className="italic text-accent font-medium">{publicos}</em>}
+          pista={total > 0 ? `${Math.round((publicos / total) * 100)}% del total` : "-"}
+          visual={total > 0 ? <KpiAnillo porcentaje={(publicos / total) * 100} /> : undefined}
         />
         <Kpi
           label="Espacio"
@@ -126,23 +143,23 @@ export default async function PaginaMisDocumentos() {
 
       <PanelSubidas />
 
-      {documentos.length === 0 ? (
-        <div className="rounded-[14px] border border-dashed border-rule bg-paper p-12 text-center">
-          <div className="w-14 h-14 mx-auto rounded-[16px] bg-accent-tint text-accent grid place-items-center font-display italic font-semibold text-[26px] mb-4">
-            ∅
-          </div>
+      {documentos.length === 0 && carpetas.length === 0 && (
+        <div className="rounded-[14px] border border-dashed border-rule bg-paper p-8 text-center">
           <h4 className="font-display font-medium text-[22px] tracking-[-0.01em] m-0 mb-1.5">
-            Aún no hay <em className="italic text-accent">documentos</em>
+            Aun no hay <em className="italic text-accent">documentos</em>
           </h4>
-          <p className="text-mute text-[13px] max-w-sm mx-auto mb-[18px] leading-[1.55]">
-            Sube tu primer archivo arrastrándolo al área superior. La plataforma
-            lo clasificará automáticamente en pocos segundos.
+          <p className="text-mute text-[13px] max-w-sm mx-auto leading-[1.55]">
+            Sube tu primer archivo o crea una carpeta desde el explorador para
+            organizar tu unidad.
           </p>
         </div>
-      ) : (
-        <TablaDocumentos documentos={documentos} carpetas={carpetas ?? []} />
       )}
 
+      <ExploradorDocumentos
+        documentos={documentos}
+        carpetas={carpetas}
+        carpetaActualId={carpetaActualSegura}
+      />
     </div>
   );
 }
@@ -156,7 +173,7 @@ function formatoTiempoRelativo(d: Date): string {
   const h = Math.floor(min / 60);
   if (h < 24) return `hace ${h} h`;
   const dias = Math.floor(h / 24);
-  if (dias < 7) return `hace ${dias} días`;
+  if (dias < 7) return `hace ${dias} dias`;
   return d.toLocaleDateString("es-ES");
 }
 

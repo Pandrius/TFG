@@ -25,7 +25,7 @@ export default async function PaginaDocumento({
   const admin = crearClienteAdmin();
   const { data: doc } = await admin
     .from("Documentos")
-    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, user_id, probabilidad")
+    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, user_id, probabilidad, url")
     .eq("id", id)
     .single();
 
@@ -101,9 +101,16 @@ export default async function PaginaDocumento({
     .from("descargas_documentos")
     .select("id", { count: "exact", head: true })
     .eq("documento_id", id);
+  const { data: previewUrlData } = await admin.storage
+    .from("almacen_documentos")
+    .createSignedUrl(doc.url, 300);
+  const previewUrl = previewUrlData?.signedUrl ?? null;
+  const textoPreview = previewUrl
+    ? await obtenerTextoPreview(previewUrl, tipo, doc.tamano_bytes)
+    : null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col gap-8">
+    <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col gap-8">
       {/* Breadcrumb */}
       <Link href="/mis-documentos" className="text-mute text-sm hover:text-ink transition-colors inline-flex items-center gap-1">
         ‹ Mis documentos
@@ -165,6 +172,17 @@ export default async function PaginaDocumento({
         </div>
       </div>
 
+      <VistaPreviaDocumento
+        nombre={doc.nombre}
+        tipo={tipo}
+        fecha={fecha}
+        kb={kb}
+        esPublico={esPublico}
+        previewUrl={previewUrl}
+        textoPreview={textoPreview}
+        descargaHref={`/api/documentos/${id}/url`}
+      />
+
       {/* Permisos (solo propietario) */}
       {esPropietario && (
         <section className="flex flex-col gap-4">
@@ -217,4 +235,128 @@ export default async function PaginaDocumento({
       )}
     </div>
   );
+}
+
+function VistaPreviaDocumento({
+  nombre,
+  tipo,
+  fecha,
+  kb,
+  esPublico,
+  previewUrl,
+  textoPreview,
+  descargaHref,
+}: {
+  nombre: string;
+  tipo: string;
+  fecha: string;
+  kb: number | null;
+  esPublico: boolean;
+  previewUrl: string | null;
+  textoPreview: string | null;
+  descargaHref: string;
+}) {
+  const tipoNormalizado = tipo.toLowerCase();
+  const esPdf = tipoNormalizado === "pdf";
+  const esImagen = ["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(tipoNormalizado);
+
+  return (
+    <section className="rounded-[14px] border border-rule bg-paper overflow-hidden">
+      <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-rule">
+        <h2 className="font-display font-medium text-lg tracking-[-0.01em]">
+          Vista <em className="italic text-accent">previa</em>
+        </h2>
+        <a href={descargaHref}>
+          <Button variant="ghost" size="sm">Descargar</Button>
+        </a>
+      </div>
+
+      {!previewUrl ? (
+        <MarkdownFallback
+          nombre={nombre}
+          tipo={tipo}
+          fecha={fecha}
+          kb={kb}
+          esPublico={esPublico}
+        />
+      ) : esPdf ? (
+        <iframe
+          src={previewUrl}
+          title={`Vista previa de ${nombre}`}
+          className="w-full h-[72vh] min-h-[520px] bg-card"
+        />
+      ) : esImagen ? (
+        <div className="bg-card p-4 grid place-items-center min-h-[360px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={previewUrl}
+            alt={nombre}
+            className="max-h-[72vh] max-w-full rounded-[8px] border border-rule object-contain"
+          />
+        </div>
+      ) : textoPreview ? (
+        <pre className="bg-card p-5 overflow-auto max-h-[72vh] text-[13px] leading-6 whitespace-pre-wrap font-mono">
+          {textoPreview}
+        </pre>
+      ) : (
+        <MarkdownFallback
+          nombre={nombre}
+          tipo={tipo}
+          fecha={fecha}
+          kb={kb}
+          esPublico={esPublico}
+        />
+      )}
+    </section>
+  );
+}
+
+function MarkdownFallback({
+  nombre,
+  tipo,
+  fecha,
+  kb,
+  esPublico,
+}: {
+  nombre: string;
+  tipo: string;
+  fecha: string;
+  kb: number | null;
+  esPublico: boolean;
+}) {
+  return (
+    <div className="bg-card p-5">
+      <div className="rounded-[10px] border border-rule bg-paper p-5 font-mono text-[13px] leading-6 text-ink-soft">
+        <p className="font-semibold text-ink"># {nombre}</p>
+        <p>- Tipo: {tipo || "sin extension"}</p>
+        <p>- Fecha: {fecha}</p>
+        <p>- Tamano: {kb !== null ? `${kb} KB` : "no disponible"}</p>
+        <p>- Visibilidad: {esPublico ? "publico" : "privado"}</p>
+        <p className="mt-4 text-mute">
+          Este formato no se puede previsualizar directamente en el navegador.
+          Usa Descargar para abrir el archivo original.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+async function obtenerTextoPreview(
+  url: string,
+  tipo: string,
+  tamanoBytes: number | null,
+) {
+  const tipoNormalizado = tipo.toLowerCase();
+  const esTexto = ["txt", "md", "markdown", "csv", "json", "log"].includes(tipoNormalizado);
+  if (!esTexto) return null;
+  if (tamanoBytes && tamanoBytes > 1024 * 1024) return null;
+
+  try {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) return null;
+    const texto = await res.text();
+    return texto.length > 50000 ? `${texto.slice(0, 50000)}\n\n...` : texto;
+  } catch {
+    return null;
+  }
 }

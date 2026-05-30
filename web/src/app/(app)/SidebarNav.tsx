@@ -8,7 +8,6 @@ const grupos = [
     label: "Personal",
     items: [
       { href: "/mis-documentos", label: "Mis documentos" },
-      { href: "/carpetas", label: "Carpetas" },
     ],
   },
   {

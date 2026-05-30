@@ -115,6 +115,7 @@ export async function moverDocumentoACarpeta(
     .eq("id", docId);
   if (error) return { error: error.message };
   revalidatePath("/mis-documentos");
+  if (carpetaId) revalidatePath(`/mis-documentos?carpeta=${carpetaId}`);
   return { ok: carpetaId ? "Documento movido a la carpeta." : "Documento sin carpeta." };
 }
 
