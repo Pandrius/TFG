@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import { Tag } from "@/components/ui/Tag";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -20,6 +21,7 @@ type DocumentoCompartido = {
   tamano_bytes: number | null;
   fecha: string;
   user_id: string;
+  probabilidad: number | null;
 };
 
 type Perfil = {
@@ -66,7 +68,7 @@ export default async function PaginaCompartidos() {
   if (idsConPermiso.length > 0) {
     const { data } = await admin
       .from("Documentos")
-      .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, user_id")
+      .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, user_id, probabilidad")
       .neq("user_id", user.id)
       .in("id", idsConPermiso)
       .order("fecha", { ascending: false });
@@ -178,12 +180,19 @@ export default async function PaginaCompartidos() {
                         {tipo.slice(0, 3) || "?"}
                       </span>
                       <div className="min-w-0">
-                        <Link
-                          href={`/documentos/${doc.id}`}
-                          className="font-medium hover:text-accent transition-colors truncate block"
-                        >
-                          {doc.nombre}
-                        </Link>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Link
+                            href={`/documentos/${doc.id}`}
+                            className="min-w-0 font-medium hover:text-accent transition-colors truncate block"
+                          >
+                            {doc.nombre}
+                          </Link>
+                          <FiabilidadModelo
+                            probabilidad={doc.probabilidad}
+                            tipoArchivo={doc.tipo_archivo}
+                            confidencialidad={doc.confidencialidad}
+                          />
+                        </div>
                         <p className="text-mute text-[11px] font-mono mt-0.5">
                           de {autor} - {fecha}{kb ? ` - ${kb} KB` : ""}
                         </p>

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import { Modal } from "@/components/ui/Modal";
 import { Tag } from "@/components/ui/Tag";
 import { useToast } from "@/components/ui/Toast";
@@ -15,6 +16,7 @@ export interface DocumentoDisponibleCarpeta {
   tipo_archivo: string | null;
   confidencialidad: number | null;
   tamano_bytes: number | null;
+  probabilidad?: number | null;
 }
 
 interface Props {
@@ -78,7 +80,14 @@ export function AgregarDocumentosCarpeta({ carpetaId, documentos }: Props) {
                       {tipo.slice(0, 3) || "?"}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium truncate">{doc.nombre}</p>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <p className="min-w-0 font-medium truncate">{doc.nombre}</p>
+                        <FiabilidadModelo
+                          probabilidad={doc.probabilidad}
+                          tipoArchivo={doc.tipo_archivo}
+                          confidencialidad={doc.confidencialidad}
+                        />
+                      </div>
                       <p className="text-mute text-[11px] font-mono">
                         {kb !== null ? `${kb} KB` : "sin tamaÃ±o"}
                       </p>

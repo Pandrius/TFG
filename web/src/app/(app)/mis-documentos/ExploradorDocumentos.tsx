@@ -5,6 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { Tag } from "@/components/ui/Tag";
@@ -14,6 +15,7 @@ import {
   eliminarCarpeta,
   renombrarCarpeta,
 } from "../carpetas/acciones";
+import { subirDocumentoAOrganizacion } from "../organizaciones/acciones";
 import { actualizarConfidencialidad } from "./acciones";
 import { ModalEliminar } from "./ModalEliminar";
 import { ModalHacerPublico } from "./ModalHacerPublico";
@@ -31,6 +33,7 @@ export interface DocumentoExplorador {
   tamano_bytes: number | null;
   fecha: string;
   carpeta_id: string | null;
+  probabilidad: number | null;
 }
 
 export interface CarpetaExplorador {
@@ -39,11 +42,25 @@ export interface CarpetaExplorador {
   parent_id: string | null;
 }
 
+export interface OrganizacionDestino {
+  id: string;
+  nombre: string;
+}
+
+export interface CarpetaOrganizacionDestino {
+  id: string;
+  nombre: string;
+  parent_id: string | null;
+  org_id: string;
+}
+
 interface Props {
   documentos: DocumentoExplorador[];
   carpetas: CarpetaExplorador[];
   carpetaActualId: string | null;
   usuariosInvitables: UsuarioInvitable[];
+  organizaciones: OrganizacionDestino[];
+  carpetasOrganizacion: CarpetaOrganizacionDestino[];
 }
 
 type Filtro = "todos" | "privados" | "publicos";
@@ -61,6 +78,8 @@ export function ExploradorDocumentos({
   carpetas,
   carpetaActualId,
   usuariosInvitables,
+  organizaciones,
+  carpetasOrganizacion,
 }: Props) {
   const router = useRouter();
   const { mostrar } = useToast();
@@ -69,6 +88,10 @@ export function ExploradorDocumentos({
   const [modalBorrar, setModalBorrar] = useState<DocumentoExplorador | null>(null);
   const [modalMover, setModalMover] = useState<DocumentoExplorador | null>(null);
   const [modalEnviar, setModalEnviar] = useState<DocumentoExplorador | null>(null);
+  const [modalOrganizacion, setModalOrganizacion] = useState<DocumentoExplorador | null>(null);
+  const [orgDestino, setOrgDestino] = useState("");
+  const [carpetaOrgDestino, setCarpetaOrgDestino] = useState("");
+  const [subiendoOrg, setSubiendoOrg] = useState(false);
   const [menuDoc, setMenuDoc] = useState<MenuDoc>(null);
   const [menuCarpeta, setMenuCarpeta] = useState<MenuCarpeta>(null);
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
@@ -260,6 +283,42 @@ export function ExploradorDocumentos({
     } finally {
       setDescargando(false);
     }
+  };
+
+  const abrirSubirOrganizacion = (doc: DocumentoExplorador) => {
+    const primeraOrg = organizaciones[0]?.id ?? "";
+    setOrgDestino(primeraOrg);
+    setCarpetaOrgDestino("");
+    setModalOrganizacion(doc);
+    setMenuDoc(null);
+  };
+
+  const subirAOrganizacion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modalOrganizacion || !orgDestino) return;
+    setSubiendoOrg(true);
+    const fd = new FormData();
+    fd.append("documento_id", modalOrganizacion.id);
+    fd.append("org_id", orgDestino);
+    fd.append("carpeta_id", carpetaOrgDestino);
+    const res = await subirDocumentoAOrganizacion(undefined, fd);
+    setSubiendoOrg(false);
+    if (res && "ok" in res) {
+      mostrar({ variant: "ok", titulo: res.ok });
+      setModalOrganizacion(null);
+      router.refresh();
+    } else if (res && "error" in res) {
+      mostrar({ variant: "err", titulo: res.error });
+    }
+  };
+
+  const carpetasDestinoOrg = carpetasOrganizacion.filter(
+    (carpeta) => carpeta.org_id === orgDestino,
+  );
+  const carpetasDestinoPorId = new Map(carpetasDestinoOrg.map((carpeta) => [carpeta.id, carpeta]));
+  const nombreRutaCarpetaOrg = (carpeta: CarpetaOrganizacionDestino): string => {
+    const padre = carpeta.parent_id ? carpetasDestinoPorId.get(carpeta.parent_id) : null;
+    return padre ? `${nombreRutaCarpetaOrg(padre)} / ${carpeta.nombre}` : carpeta.nombre;
   };
 
   return (
@@ -471,7 +530,16 @@ export function ExploradorDocumentos({
                   {tipo.slice(0, 3) || "?"}
                 </span>
                 <div className="min-w-0">
-                  <RenombrarInline docId={doc.id} nombre={doc.nombre} />
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <RenombrarInline docId={doc.id} nombre={doc.nombre} />
+                    </div>
+                    <FiabilidadModelo
+                      probabilidad={doc.probabilidad}
+                      tipoArchivo={doc.tipo_archivo}
+                      confidencialidad={doc.confidencialidad}
+                    />
+                  </div>
                   <div className="text-mute text-[11px] font-mono mt-0.5">
                     {carpetaActual ? carpetaActual.nombre : "Mi unidad"} - {tipo.toLowerCase() || "-"}
                   </div>
@@ -532,6 +600,14 @@ export function ExploradorDocumentos({
                           className="block w-full text-left px-3 py-1.5 text-[13px] hover:bg-soft"
                         >
                           Mover a carpeta
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => abrirSubirOrganizacion(doc)}
+                          className="block w-full text-left px-3 py-1.5 text-[13px] hover:bg-soft disabled:text-mute disabled:cursor-not-allowed"
+                          disabled={organizaciones.length === 0}
+                        >
+                          Subir a organizacion
                         </button>
                         <button
                           type="button"
@@ -642,6 +718,72 @@ export function ExploradorDocumentos({
               onEnviado={() => setModalEnviar(null)}
             />
           </div>
+        </Modal>
+      )}
+      {modalOrganizacion && (
+        <Modal
+          abierto={modalOrganizacion !== null}
+          onClose={() => setModalOrganizacion(null)}
+          titulo="Subir a organizacion"
+          acciones={
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setModalOrganizacion(null)}
+                disabled={subiendoOrg}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                form="form-subir-organizacion"
+                variant="primary"
+                loading={subiendoOrg}
+                disabled={!orgDestino || subiendoOrg}
+              >
+                Subir
+              </Button>
+            </>
+          }
+        >
+          <form id="form-subir-organizacion" onSubmit={subirAOrganizacion} className="flex flex-col gap-4">
+            <p className="text-mute text-[13px]">
+              Subir <span className="font-medium text-ink">{modalOrganizacion.nombre}</span> a:
+            </p>
+            <label className="flex flex-col gap-1.5 text-[13px]">
+              <span className="text-mute">Organizacion</span>
+              <select
+                value={orgDestino}
+                onChange={(e) => {
+                  setOrgDestino(e.target.value);
+                  setCarpetaOrgDestino("");
+                }}
+                className="rounded-[10px] border border-rule bg-card px-3 py-2 outline-none focus:ring-3 focus:ring-accent-tint"
+              >
+                {organizaciones.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="flex flex-col gap-1.5 text-[13px]">
+              <span className="text-mute">Carpeta destino</span>
+              <select
+                value={carpetaOrgDestino}
+                onChange={(e) => setCarpetaOrgDestino(e.target.value)}
+                className="rounded-[10px] border border-rule bg-card px-3 py-2 outline-none focus:ring-3 focus:ring-accent-tint"
+              >
+                <option value="">Sin carpeta</option>
+                {carpetasDestinoOrg.map((carpeta) => (
+                  <option key={carpeta.id} value={carpeta.id}>
+                    {nombreRutaCarpetaOrg(carpeta)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </form>
         </Modal>
       )}
 

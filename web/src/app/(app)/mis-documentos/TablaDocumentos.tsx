@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import { Tag } from "@/components/ui/Tag";
 import { useToast } from "@/components/ui/Toast";
 
@@ -19,6 +20,7 @@ export interface DocumentoFila {
   confidencialidad: number | null;
   tamano_bytes: number | null;
   fecha: string;
+  probabilidad?: number | null;
 }
 
 interface Props {
@@ -203,7 +205,16 @@ export function TablaDocumentos({ documentos, carpetas }: Props) {
                     {tipo.slice(0, 3) || "?"}
                   </span>
                   <div className="min-w-0">
-                    <RenombrarInline docId={doc.id} nombre={doc.nombre} />
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">
+                        <RenombrarInline docId={doc.id} nombre={doc.nombre} />
+                      </div>
+                      <FiabilidadModelo
+                        probabilidad={doc.probabilidad}
+                        tipoArchivo={doc.tipo_archivo}
+                        confidencialidad={doc.confidencialidad}
+                      />
+                    </div>
                     <div className="text-mute text-[11px] font-mono mt-0.5">
                       /personal · {tipo.toLowerCase() || "—"}
                     </div>

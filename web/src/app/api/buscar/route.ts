@@ -4,7 +4,14 @@ import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 
 export interface ResultadoBusqueda {
-  documentos: { id: string; nombre: string; tipo_archivo: string | null; username: string }[];
+  documentos: {
+    id: string;
+    nombre: string;
+    tipo_archivo: string | null;
+    confidencialidad: number | null;
+    probabilidad: number | null;
+    username: string;
+  }[];
   carpetas: { id: string; nombre: string; username: string }[];
   usuarios: {
     id: string;
@@ -50,7 +57,7 @@ export async function GET(req: NextRequest) {
   ] = await Promise.all([
     admin
       .from("Documentos")
-      .select("id, nombre, tipo_archivo, profiles!user_id(nombre_usuario)")
+      .select("id, nombre, tipo_archivo, confidencialidad, probabilidad, profiles!user_id(nombre_usuario)")
       .ilike("nombre", termino)
       .eq("confidencialidad", 0)
       .neq("user_id", user.id)
@@ -96,6 +103,8 @@ export async function GET(req: NextRequest) {
     id: d.id,
     nombre: d.nombre,
     tipo_archivo: d.tipo_archivo,
+    confidencialidad: d.confidencialidad,
+    probabilidad: d.probabilidad,
     username: nombreUsuarioRelacionado(d.profiles),
   }));
 
@@ -144,4 +153,3 @@ function carpetaTienePublicos(
 
   return documentos.some((doc) => doc.carpeta_id && descendientes.has(doc.carpeta_id));
 }
-

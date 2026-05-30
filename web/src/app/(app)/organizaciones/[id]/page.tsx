@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import {
@@ -85,7 +86,7 @@ export default async function PaginaOrganizacion({
   // Documentos vinculados a la org
   const { data: orgDocs } = await admin
     .from("org_documentos")
-    .select("documento_id, Documentos ( id, nombre, tipo_archivo, carpeta_id )")
+    .select("documento_id, Documentos ( id, nombre, tipo_archivo, carpeta_id, confidencialidad, probabilidad )")
     .eq("org_id", id);
 
   const totalCarpetas = carpetas?.length ?? 0;
@@ -104,7 +105,7 @@ export default async function PaginaOrganizacion({
   const vinculadosIds = new Set(orgDocs?.map((od) => od.documento_id) ?? []);
   const { data: misDocumentos } = await admin
     .from("Documentos")
-    .select("id, nombre, tipo_archivo")
+    .select("id, nombre, tipo_archivo, confidencialidad, probabilidad")
     .eq("user_id", user.id)
     .order("nombre");
 
@@ -252,7 +253,14 @@ export default async function PaginaOrganizacion({
                     {tipo.slice(0, 3) || "?"}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{doc.nombre}</p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="min-w-0 truncate font-medium">{doc.nombre}</p>
+                      <FiabilidadModelo
+                        probabilidad={doc.probabilidad}
+                        tipoArchivo={doc.tipo_archivo}
+                        confidencialidad={doc.confidencialidad}
+                      />
+                    </div>
                     {doc.carpeta_id && (
                       <p className="text-mute text-[10px] font-mono">
                         en carpeta: {carpetas?.find(c => c.id === doc.carpeta_id)?.nombre || "..."}
@@ -293,7 +301,14 @@ export default async function PaginaOrganizacion({
                     <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px] shrink-0">
                       {tipo.slice(0, 3) || "?"}
                     </span>
-                    <p className="min-w-0 flex-1 truncate">{doc.nombre}</p>
+                    <div className="min-w-0 flex-1 flex items-center gap-2">
+                      <p className="min-w-0 truncate">{doc.nombre}</p>
+                      <FiabilidadModelo
+                        probabilidad={doc.probabilidad}
+                        tipoArchivo={doc.tipo_archivo}
+                        confidencialidad={doc.confidencialidad}
+                      />
+                    </div>
                     <form
                       action={async () => {
                         "use server";

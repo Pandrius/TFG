@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import { Tag } from "@/components/ui/Tag";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -24,6 +25,7 @@ type Documento = {
   tamano_bytes: number | null;
   fecha: string;
   carpeta_id: string | null;
+  probabilidad: number | null;
 };
 
 export default async function PaginaCarpeta({
@@ -39,15 +41,43 @@ export default async function PaginaCarpeta({
   if (!user) redirect("/login");
 
   const admin = crearClienteAdmin();
-  const { data: carpeta } = await admin
+  const { data: carpetaConParent, error: carpetaParentError } = await admin
     .from("carpetas")
     .select("id, nombre, user_id, parent_id, org_id")
     .eq("id", id)
     .single();
+  const { data: carpetaSinParent } = carpetaParentError
+    ? await admin
+        .from("carpetas")
+        .select("id, nombre, user_id, org_id")
+        .eq("id", id)
+        .single()
+    : { data: null };
+  const carpeta = carpetaConParent ?? (carpetaSinParent ? { ...carpetaSinParent, parent_id: null } : null);
   if (!carpeta) notFound();
 
   if (carpeta.user_id === user.id && !carpeta.org_id) {
     redirect(`/mis-documentos?carpeta=${id}`);
+  }
+
+  let org: { id: string; nombre: string } | null = null;
+  if (carpeta.org_id) {
+    const [{ data: membresia }, { data: orgData }] = await Promise.all([
+      admin
+        .from("org_miembros")
+        .select("user_id")
+        .eq("org_id", carpeta.org_id)
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      admin
+        .from("organizaciones")
+        .select("id, nombre")
+        .eq("id", carpeta.org_id)
+        .single(),
+    ]);
+
+    if (!membresia) redirect("/organizaciones");
+    org = orgData ?? null;
   }
 
   const { data: perfil } = await admin
@@ -56,34 +86,55 @@ export default async function PaginaCarpeta({
     .eq("id", carpeta.user_id)
     .single();
 
-  const { data: carpetasData } = await admin
+  let carpetasQuery = admin
     .from("carpetas")
-    .select("id, nombre, user_id, parent_id, org_id")
-    .eq("user_id", carpeta.user_id)
-    .is("org_id", null);
-  const carpetas = (carpetasData ?? []) as Carpeta[];
+    .select("id, nombre, user_id, parent_id, org_id");
+  carpetasQuery = carpeta.org_id
+    ? carpetasQuery.eq("org_id", carpeta.org_id)
+    : carpetasQuery.eq("user_id", carpeta.user_id).is("org_id", null);
+  const { data: carpetasData, error: carpetasParentError } = await carpetasQuery;
+  let carpetas = (carpetasData ?? []) as Carpeta[];
+  if (carpetasParentError) {
+    let carpetasPlanasQuery = admin
+      .from("carpetas")
+      .select("id, nombre, user_id, org_id");
+    carpetasPlanasQuery = carpeta.org_id
+      ? carpetasPlanasQuery.eq("org_id", carpeta.org_id)
+      : carpetasPlanasQuery.eq("user_id", carpeta.user_id).is("org_id", null);
+    const { data: carpetasPlanas } = await carpetasPlanasQuery;
+    carpetas =
+      carpetasPlanas?.map((item) => ({
+        ...item,
+        parent_id: null,
+      })) ?? [];
+  }
   const idsDescendientes = obtenerIdsDescendientes(carpetas, id);
+
   const { data: accesoPorFavorito } = await admin
     .from("favoritos")
     .select("propietario_id")
     .eq("propietario_id", carpeta.user_id)
     .eq("favorito_id", user.id)
     .maybeSingle();
-  const puedeVerPrivados = carpeta.user_id === user.id || !!accesoPorFavorito;
+  const puedeVerPrivados = !!carpeta.org_id || carpeta.user_id === user.id || !!accesoPorFavorito;
 
   let documentosQuery = admin
     .from("Documentos")
-    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, carpeta_id")
-    .eq("user_id", carpeta.user_id)
+    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, carpeta_id, probabilidad")
     .in("carpeta_id", idsDescendientes)
     .order("fecha", { ascending: false });
+  if (!carpeta.org_id) documentosQuery = documentosQuery.eq("user_id", carpeta.user_id);
   if (!puedeVerPrivados) documentosQuery = documentosQuery.eq("confidencialidad", 0);
   const { data: documentosData } = await documentosQuery;
   const documentos = (documentosData ?? []) as Documento[];
 
   const conteosPublicos = contarDocumentosPorCarpeta(carpetas, documentos);
   const subcarpetasVisibles = carpetas
-    .filter((item) => item.parent_id === id && (conteosPublicos.get(item.id) ?? 0) > 0)
+    .filter(
+      (item) =>
+        item.parent_id === id &&
+        (!!carpeta.org_id || (conteosPublicos.get(item.id) ?? 0) > 0),
+    )
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   const documentosDirectos = documentos.filter((doc) => doc.carpeta_id === id);
   const totalVisibles = documentos.length;
@@ -99,16 +150,20 @@ export default async function PaginaCarpeta({
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-7">
       <Link
-        href={`/usuarios/${carpeta.user_id}`}
+        href={carpeta.org_id ? `/organizaciones/${carpeta.org_id}` : `/usuarios/${carpeta.user_id}`}
         className="text-mute text-sm hover:text-ink transition-colors inline-flex items-center gap-1"
       >
-        ‹ Perfil de @{perfil?.nombre_usuario ?? "usuario"}
+        {carpeta.org_id
+          ? `< ${org?.nombre ?? "Organizacion"}`
+          : `< Perfil de @${perfil?.nombre_usuario ?? "usuario"}`}
       </Link>
 
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-display italic text-accent text-sm mb-1">
-            - carpeta compartida de {propietario}
+            {carpeta.org_id
+              ? `- carpeta de ${org?.nombre ?? "organizacion"}`
+              : `- carpeta compartida de ${propietario}`}
           </p>
           <h1 className="font-display font-medium text-[28px] tracking-[-0.02em]">
             {carpeta.nombre}
@@ -169,12 +224,19 @@ export default async function PaginaCarpeta({
               <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
                 {tipo.slice(0, 3) || "?"}
               </span>
-              <Link
-                href={`/documentos/${doc.id}`}
-                className="font-medium hover:text-accent transition-colors truncate"
-              >
-                {doc.nombre}
-              </Link>
+              <div className="flex items-center gap-2 min-w-0">
+                <Link
+                  href={`/documentos/${doc.id}`}
+                  className="min-w-0 font-medium hover:text-accent transition-colors truncate"
+                >
+                  {doc.nombre}
+                </Link>
+                <FiabilidadModelo
+                  probabilidad={doc.probabilidad}
+                  tipoArchivo={doc.tipo_archivo}
+                  confidencialidad={doc.confidencialidad}
+                />
+              </div>
               <Tag variant={esPublico ? "pub" : "priv"}>
                 {esPublico ? "publico" : "privado accesible"}
               </Tag>

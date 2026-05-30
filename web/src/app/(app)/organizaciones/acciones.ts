@@ -334,6 +334,76 @@ export async function vincularDocumento(
   redirect(`/organizaciones/${orgId}`);
 }
 
+export async function subirDocumentoAOrganizacion(
+  _previo: { error: string } | { ok: string } | undefined,
+  datos: FormData,
+): Promise<{ error: string } | { ok: string } | undefined> {
+  const orgId = String(datos.get("org_id") ?? "").trim();
+  const documentoId = String(datos.get("documento_id") ?? "").trim();
+  const carpetaIdRaw = String(datos.get("carpeta_id") ?? "").trim();
+  const carpetaId = carpetaIdRaw || null;
+  if (!orgId || !documentoId) return { error: "Datos incompletos." };
+
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const admin = crearClienteAdmin();
+  const [{ data: membresia }, { data: doc }] = await Promise.all([
+    admin
+      .from("org_miembros")
+      .select("user_id")
+      .eq("org_id", orgId)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    admin
+      .from("Documentos")
+      .select("id, user_id")
+      .eq("id", documentoId)
+      .single(),
+  ]);
+
+  if (!membresia) return { error: "No perteneces a esa organizacion." };
+  if (!doc || doc.user_id !== user.id) return { error: "Documento no encontrado." };
+
+  if (carpetaId) {
+    const { data: carpeta } = await admin
+      .from("carpetas")
+      .select("id, org_id")
+      .eq("id", carpetaId)
+      .eq("org_id", orgId)
+      .single();
+    if (!carpeta) return { error: "Carpeta de organizacion no valida." };
+  }
+
+  const { error: errorVinculo } = await admin.from("org_documentos").upsert(
+    { org_id: orgId, documento_id: documentoId },
+    { onConflict: "org_id,documento_id" },
+  );
+  if (errorVinculo) {
+    console.error("Error linking document to org:", errorVinculo);
+    return { error: "Error al subir el documento a la organizacion." };
+  }
+
+  const { error: errorCarpeta } = await admin
+    .from("Documentos")
+    .update({ carpeta_id: carpetaId })
+    .eq("id", documentoId)
+    .eq("user_id", user.id);
+  if (errorCarpeta) {
+    console.error("Error moving document to org folder:", errorCarpeta);
+    return { error: "Documento vinculado, pero no se pudo asignar carpeta." };
+  }
+
+  revalidatePath("/mis-documentos");
+  revalidatePath("/organizaciones");
+  revalidatePath(`/organizaciones/${orgId}`);
+  if (carpetaId) revalidatePath(`/carpetas/${carpetaId}`);
+  return { ok: "Documento subido a la organizacion." };
+}
+
 export async function desvincularDocumento(
   orgId: string,
   documentoId: string,

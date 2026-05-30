@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { Button } from "@/components/ui/Button";
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import { Input } from "@/components/ui/Input";
 import { Tag } from "@/components/ui/Tag";
 import type { UsuarioInvitable } from "../documentos/[id]/FormularioInvitacion";
@@ -17,6 +18,7 @@ type Doc = {
   tamano_bytes: number | null;
   fecha: string;
   user_id: string;
+  probabilidad: number | null;
 };
 
 type PeriodoExplorar = "dia" | "semana" | "mes" | "historia";
@@ -73,7 +75,7 @@ export default async function PaginaExplorar({
     // Sin búsqueda: feed de documentos públicos de terceros
     const { data } = await supabase
       .from("Documentos")
-      .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, user_id")
+      .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, user_id, probabilidad")
       .eq("confidencialidad", 0)
       .neq("user_id", user.id)
       .order("fecha", { ascending: false })
@@ -186,9 +188,16 @@ export default async function PaginaExplorar({
                       {tipo.slice(0, 3) || "?"}
                     </span>
                     <div className="min-w-0">
-                      <Link href={`/documentos/${doc.id}`} className="font-medium hover:text-accent transition-colors truncate block">
-                        {doc.nombre}
-                      </Link>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Link href={`/documentos/${doc.id}`} className="min-w-0 font-medium hover:text-accent transition-colors truncate block">
+                          {doc.nombre}
+                        </Link>
+                        <FiabilidadModelo
+                          probabilidad={doc.probabilidad}
+                          tipoArchivo={doc.tipo_archivo}
+                          confidencialidad={doc.confidencialidad}
+                        />
+                      </div>
                       <p className="text-mute text-[11px] font-mono mt-0.5">
                         {autor} · {fecha}{kb ? ` · ${kb} KB` : ""}
                       </p>
@@ -234,9 +243,16 @@ export default async function PaginaExplorar({
                   {tipo.slice(0, 3) || "?"}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <Link href={`/documentos/${doc.id}`} className="font-display font-medium text-[15px] hover:text-accent transition-colors truncate block leading-snug">
-                    {doc.nombre}
-                  </Link>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Link href={`/documentos/${doc.id}`} className="min-w-0 font-display font-medium text-[15px] hover:text-accent transition-colors truncate block leading-snug">
+                      {doc.nombre}
+                    </Link>
+                    <FiabilidadModelo
+                      probabilidad={doc.probabilidad}
+                      tipoArchivo={doc.tipo_archivo}
+                      confidencialidad={doc.confidencialidad}
+                    />
+                  </div>
                   <p className="text-mute text-[11px] font-mono mt-0.5 mb-3">
                     {autor}{esAmigo ? " - amigo" : ""} - {fecha}{kb ? ` - ${kb} KB` : ""}
                   </p>

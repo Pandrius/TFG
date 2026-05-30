@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/Button";
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import { Tag } from "@/components/ui/Tag";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -24,6 +25,7 @@ type DocumentoPerfil = {
   tamano_bytes: number | null;
   fecha: string;
   carpeta_id: string | null;
+  probabilidad: number | null;
 };
 
 export default async function PaginaPerfilUsuario({
@@ -79,7 +81,7 @@ export default async function PaginaPerfilUsuario({
 
   const query = admin
     .from("Documentos")
-    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, carpeta_id")
+    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, carpeta_id, probabilidad")
     .eq("user_id", id)
     .order("fecha", { ascending: false });
   if (me.id !== id && !accesoPorFavorito) query.eq("confidencialidad", 0);
@@ -188,12 +190,19 @@ export default async function PaginaPerfilUsuario({
                     {tipo.slice(0, 3) || "?"}
                   </span>
                   <div className="min-w-0">
-                    <Link
-                      href={`/documentos/${doc.id}`}
-                      className="font-medium hover:text-accent transition-colors truncate block"
-                    >
-                      {doc.nombre}
-                    </Link>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Link
+                        href={`/documentos/${doc.id}`}
+                        className="min-w-0 font-medium hover:text-accent transition-colors truncate block"
+                      >
+                        {doc.nombre}
+                      </Link>
+                      <FiabilidadModelo
+                        probabilidad={doc.probabilidad}
+                        tipoArchivo={doc.tipo_archivo}
+                        confidencialidad={doc.confidencialidad}
+                      />
+                    </div>
                     <p className="text-mute text-[11px] font-mono mt-0.5">
                       {fecha} {kb ? ` - ${kb} KB` : ""}
                     </p>

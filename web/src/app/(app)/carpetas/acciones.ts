@@ -44,7 +44,11 @@ export async function crearCarpeta(
       .eq("id", parentId)
       .single();
 
-    if (!padre || padre.user_id !== user.id || (padre.org_id ?? null) !== orgId) {
+    if (
+      !padre ||
+      (padre.org_id ?? null) !== orgId ||
+      (!orgId && padre.user_id !== user.id)
+    ) {
       return { error: "Carpeta padre no valida." };
     }
   }

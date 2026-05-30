@@ -9,6 +9,7 @@ type Carpeta = {
   nombre: string;
   user_id: string;
   parent_id: string | null;
+  org_id: string | null;
 };
 
 type Documento = {
@@ -34,21 +35,57 @@ export async function GET(
   }
 
   const admin = crearClienteAdmin();
-  const { data: carpeta } = await admin
+  const { data: carpetaConParent, error: carpetaParentError } = await admin
     .from("carpetas")
-    .select("id, nombre, user_id, parent_id")
+    .select("id, nombre, user_id, parent_id, org_id")
     .eq("id", id)
     .single();
+  const { data: carpetaSinParent } = carpetaParentError
+    ? await admin
+        .from("carpetas")
+        .select("id, nombre, user_id, org_id")
+        .eq("id", id)
+        .single()
+    : { data: null };
+  const carpeta = carpetaConParent ?? (carpetaSinParent ? { ...carpetaSinParent, parent_id: null } : null);
   if (!carpeta) {
     return Response.json({ error: "Carpeta no encontrada." }, { status: 404 });
   }
 
-  const { data: carpetasData } = await admin
+  if (carpeta.org_id) {
+    const { data: membresia } = await admin
+      .from("org_miembros")
+      .select("user_id")
+      .eq("org_id", carpeta.org_id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!membresia) {
+      return Response.json({ error: "No autorizado." }, { status: 403 });
+    }
+  }
+
+  let carpetasQuery = admin
     .from("carpetas")
-    .select("id, nombre, user_id, parent_id")
-    .eq("user_id", carpeta.user_id)
-    .is("org_id", null);
-  const carpetas = (carpetasData ?? []) as Carpeta[];
+    .select("id, nombre, user_id, parent_id, org_id");
+  carpetasQuery = carpeta.org_id
+    ? carpetasQuery.eq("org_id", carpeta.org_id)
+    : carpetasQuery.eq("user_id", carpeta.user_id).is("org_id", null);
+  const { data: carpetasData, error: carpetasParentError } = await carpetasQuery;
+  let carpetas = (carpetasData ?? []) as Carpeta[];
+  if (carpetasParentError) {
+    let carpetasPlanasQuery = admin
+      .from("carpetas")
+      .select("id, nombre, user_id, org_id");
+    carpetasPlanasQuery = carpeta.org_id
+      ? carpetasPlanasQuery.eq("org_id", carpeta.org_id)
+      : carpetasPlanasQuery.eq("user_id", carpeta.user_id).is("org_id", null);
+    const { data: carpetasPlanas } = await carpetasPlanasQuery;
+    carpetas =
+      carpetasPlanas?.map((item) => ({
+        ...item,
+        parent_id: null,
+      })) ?? [];
+  }
   const idsDescendientes = obtenerIdsDescendientes(carpetas, id);
   const { data: accesoPorFavorito } = await admin
     .from("favoritos")
@@ -56,13 +93,13 @@ export async function GET(
     .eq("propietario_id", carpeta.user_id)
     .eq("favorito_id", user.id)
     .maybeSingle();
-  const tieneAccesoCompleto = carpeta.user_id === user.id || !!accesoPorFavorito;
+  const tieneAccesoCompleto = !!carpeta.org_id || carpeta.user_id === user.id || !!accesoPorFavorito;
 
   let query = admin
     .from("Documentos")
     .select("id, nombre, url, user_id, carpeta_id, confidencialidad")
-    .eq("user_id", carpeta.user_id)
     .in("carpeta_id", idsDescendientes);
+  if (!carpeta.org_id) query = query.eq("user_id", carpeta.user_id);
 
   if (!tieneAccesoCompleto) query = query.eq("confidencialidad", 0);
 

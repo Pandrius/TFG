@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { FiabilidadModelo } from "@/components/ui/FiabilidadModelo";
 import type { ResultadoBusqueda } from "@/app/api/buscar/route";
 
 /* ── icono de tipo de archivo ─────────────────────────────── */
@@ -18,7 +19,15 @@ function iconoTipo(tipo: string | null) {
 
 /* ── tipos de ítem para navegación con teclado ───────────── */
 type Item =
-  | { tipo: "doc"; id: string; nombre: string; ext: string | null; username: string }
+  | {
+      tipo: "doc";
+      id: string;
+      nombre: string;
+      ext: string | null;
+      username: string;
+      confidencialidad: number | null;
+      probabilidad: number | null;
+    }
   | { tipo: "carpeta"; id: string; nombre: string; username: string }
   | {
       tipo: "usuario";
@@ -123,6 +132,8 @@ export function Buscador({ abierto, onCerrar }: Props) {
       nombre: d.nombre,
       ext: d.tipo_archivo,
       username: d.username,
+      confidencialidad: d.confidencialidad,
+      probabilidad: d.probabilidad,
     })),
     ...(resultados?.carpetas ?? []).map((c) => ({
       tipo: "carpeta" as const,
@@ -216,13 +227,30 @@ export function Buscador({ abierto, onCerrar }: Props) {
                     <FilaResultado
                       key={d.id}
                       activo={cursor === idx}
-                      onClick={() => navegar({ tipo: "doc", id: d.id, nombre: d.nombre, ext: d.tipo_archivo, username: d.username })}
+                      onClick={() => navegar({
+                        tipo: "doc",
+                        id: d.id,
+                        nombre: d.nombre,
+                        ext: d.tipo_archivo,
+                        username: d.username,
+                        confidencialidad: d.confidencialidad,
+                        probabilidad: d.probabilidad,
+                      })}
                     >
                       <span className="w-7 h-8 rounded-[5px] bg-card border border-rule grid place-items-center font-display italic text-accent text-xs flex-shrink-0">
                         {iconoTipo(d.tipo_archivo)}
                       </span>
                       <span className="flex-1 min-w-0">
-                        <span className="block font-medium text-[13px] truncate">{d.nombre}</span>
+                        <span className="flex items-center gap-2 min-w-0">
+                          <span className="min-w-0 font-medium text-[13px] truncate">
+                            {d.nombre}
+                          </span>
+                          <FiabilidadModelo
+                            probabilidad={d.probabilidad}
+                            tipoArchivo={d.tipo_archivo}
+                            confidencialidad={d.confidencialidad}
+                          />
+                        </span>
                         <span className="font-mono text-[10px] text-mute truncate block">
                           por @{d.username} {d.tipo_archivo ? `· ${d.tipo_archivo}` : ""}
                         </span>

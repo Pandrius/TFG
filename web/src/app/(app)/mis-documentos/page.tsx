@@ -36,7 +36,7 @@ export default async function PaginaMisDocumentos({
   const admin = crearClienteAdmin();
   const { data } = await admin
     .from("Documentos")
-    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, carpeta_id")
+    .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, carpeta_id, probabilidad")
     .eq("user_id", user.id)
     .order("fecha", { ascending: false })
     .limit(100);
@@ -96,6 +96,39 @@ export default async function PaginaMisDocumentos({
     .neq("id", user.id)
     .order("nombre_usuario");
   const usuariosInvitables: UsuarioInvitable[] = perfilesDisponibles ?? [];
+
+  const { data: membresiasOrg } = await admin
+    .from("org_miembros")
+    .select("org_id, organizaciones ( id, nombre )")
+    .eq("user_id", user.id);
+  const organizacionesDisponibles = (membresiasOrg ?? [])
+    .flatMap((m) => {
+      const org = Array.isArray(m.organizaciones) ? m.organizaciones[0] : m.organizaciones;
+      return org ? [{ id: org.id, nombre: org.nombre }] : [];
+    })
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  const orgIds = organizacionesDisponibles.map((org) => org.id);
+  const { data: carpetasOrgData, error: carpetasOrgParentError } =
+    orgIds.length > 0
+      ? await admin
+          .from("carpetas")
+          .select("id, nombre, parent_id, org_id")
+          .in("org_id", orgIds)
+          .order("nombre")
+      : { data: [], error: null };
+  let carpetasOrganizacion = carpetasOrgData ?? [];
+  if (carpetasOrgParentError && orgIds.length > 0) {
+    const { data: carpetasOrgPlanas } = await admin
+      .from("carpetas")
+      .select("id, nombre, org_id")
+      .in("org_id", orgIds)
+      .order("nombre");
+    carpetasOrganizacion =
+      carpetasOrgPlanas?.map((carpeta) => ({
+        ...carpeta,
+        parent_id: null,
+      })) ?? [];
+  }
 
   return (
     <div className="max-w-6xl mx-auto p-8 flex flex-col gap-7">
@@ -167,6 +200,8 @@ export default async function PaginaMisDocumentos({
         carpetas={carpetas}
         carpetaActualId={carpetaActualSegura}
         usuariosInvitables={usuariosInvitables}
+        organizaciones={organizacionesDisponibles}
+        carpetasOrganizacion={carpetasOrganizacion}
       />
     </div>
   );
