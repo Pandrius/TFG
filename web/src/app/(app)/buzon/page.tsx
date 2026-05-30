@@ -84,7 +84,7 @@ export default async function PaginaBuzon() {
                   return (
                     <div
                       key={solicitud.id}
-                      className="flex items-center gap-3 px-5 py-3 border-b border-rule last:border-b-0"
+                      className="flex flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:items-center sm:px-5 sm:py-3 border-b border-rule last:border-b-0"
                     >
                       <Avatar
                         nombreCompleto={perfil?.nombre_completo ?? null}
@@ -100,12 +100,14 @@ export default async function PaginaBuzon() {
                           @{perfil?.nombre_usuario ?? "usuario"}
                         </p>
                       </div>
-                      <form action={aceptarAmistad.bind(null, solicitud.id)}>
-                        <Button type="submit" variant="primary" size="sm">Aceptar</Button>
-                      </form>
-                      <form action={rechazarAmistad.bind(null, solicitud.id)}>
-                        <Button type="submit" variant="ghost" size="sm">Rechazar</Button>
-                      </form>
+                      <div className="flex gap-2 sm:shrink-0">
+                        <form action={aceptarAmistad.bind(null, solicitud.id)} className="flex-1 sm:flex-none">
+                          <Button type="submit" variant="primary" size="sm" className="w-full justify-center">Aceptar</Button>
+                        </form>
+                        <form action={rechazarAmistad.bind(null, solicitud.id)} className="flex-1 sm:flex-none">
+                          <Button type="submit" variant="ghost" size="sm" className="w-full justify-center">Rechazar</Button>
+                        </form>
+                      </div>
                     </div>
                   );
                 })
@@ -131,7 +133,7 @@ export default async function PaginaBuzon() {
                   return (
                     <div
                       key={invitacion.id}
-                      className="flex items-center gap-3 px-5 py-3 border-b border-rule last:border-b-0"
+                      className="flex flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:items-center sm:px-5 sm:py-3 border-b border-rule last:border-b-0"
                     >
                       <Avatar
                         nombreCompleto={perfil?.nombre_completo ?? null}
@@ -147,12 +149,14 @@ export default async function PaginaBuzon() {
                           invita {perfil?.nombre_completo || perfil?.nombre_usuario || "un admin"}
                         </p>
                       </div>
-                      <form action={aceptarInvitacionOrg.bind(null, invitacion.id)}>
-                        <Button type="submit" variant="primary" size="sm">Aceptar</Button>
-                      </form>
-                      <form action={rechazarInvitacionOrg.bind(null, invitacion.id)}>
-                        <Button type="submit" variant="ghost" size="sm">Rechazar</Button>
-                      </form>
+                      <div className="flex gap-2 sm:shrink-0">
+                        <form action={aceptarInvitacionOrg.bind(null, invitacion.id)} className="flex-1 sm:flex-none">
+                          <Button type="submit" variant="primary" size="sm" className="w-full justify-center">Aceptar</Button>
+                        </form>
+                        <form action={rechazarInvitacionOrg.bind(null, invitacion.id)} className="flex-1 sm:flex-none">
+                          <Button type="submit" variant="ghost" size="sm" className="w-full justify-center">Rechazar</Button>
+                        </form>
+                      </div>
                     </div>
                   );
                 })
@@ -166,4 +170,3 @@ export default async function PaginaBuzon() {
     </div>
   );
 }
-

@@ -161,8 +161,8 @@ export default async function PaginaDocumento({
           <span className="text-mute text-[11px] font-mono">
             {descargas ?? 0} desc.
           </span>
-          <a href={`/api/documentos/${id}/url`}>
-            <Button variant="primary" size="md">
+          <a href={`/api/documentos/${id}/url`} className="w-full sm:w-auto">
+            <Button variant="primary" size="md" className="w-full justify-center sm:w-auto">
               Descargar
             </Button>
           </a>
@@ -273,11 +273,11 @@ function VistaPreviaDocumento({
 
   return (
     <section className="rounded-[14px] border border-rule bg-paper overflow-hidden">
-      <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-rule">
+      <div className="flex flex-col items-stretch gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 border-b border-rule">
         <h2 className="font-display font-medium text-lg tracking-[-0.01em]">
           Vista <em className="italic text-accent">previa</em>
         </h2>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-2">
           {esPublico && (
             <BotonEnviarDocumentoPerfil
               documentoId={documentoId}
@@ -285,8 +285,8 @@ function VistaPreviaDocumento({
               usuarios={usuariosInvitables}
             />
           )}
-          <a href={descargaHref}>
-            <Button variant="ghost" size="sm">Descargar</Button>
+          <a href={descargaHref} className="flex-1 sm:flex-none">
+            <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">Descargar</Button>
           </a>
         </div>
       </div>
@@ -303,7 +303,7 @@ function VistaPreviaDocumento({
         <iframe
           src={previewUrl}
           title={`Vista previa de ${nombre}`}
-          className="w-full h-[72vh] min-h-[520px] bg-card"
+        className="w-full h-[70vh] min-h-[360px] sm:min-h-[520px] bg-card"
         />
       ) : esImagen ? (
         <div className="bg-card p-4 grid place-items-center min-h-[360px]">
@@ -345,8 +345,8 @@ function MarkdownFallback({
   esPublico: boolean;
 }) {
   return (
-    <div className="bg-card p-5">
-      <div className="rounded-[10px] border border-rule bg-paper p-5 font-mono text-[13px] leading-6 text-ink-soft">
+    <div className="bg-card p-4 sm:p-5">
+      <div className="rounded-[10px] border border-rule bg-paper p-4 sm:p-5 font-mono text-[13px] leading-6 text-ink-soft break-words">
         <p className="font-semibold text-ink"># {nombre}</p>
         <p>- Tipo: {tipo || "sin extension"}</p>
         <p>- Fecha: {fecha}</p>

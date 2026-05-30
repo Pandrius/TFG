@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useToast } from "@/components/ui/Toast";
 import { invitarMiembroOrg } from "../acciones";
 
 export interface UsuarioDisponible {
@@ -21,6 +22,7 @@ interface Props {
 
 export default function FormularioMiembro({ orgId, usuarios }: Props) {
   const router = useRouter();
+  const { mostrar } = useToast();
   const accion = invitarMiembroOrg.bind(null, orgId);
   const [estado, dispatch, pending] = useActionState<{ error: string } | { ok: true } | undefined, FormData>(
     accion,
@@ -50,16 +52,22 @@ export default function FormularioMiembro({ orgId, usuarios }: Props) {
 
   useEffect(() => {
     if (estado && "ok" in estado) {
+      mostrar({ variant: "ok", titulo: "Invitacion enviada." });
+      window.setTimeout(() => {
+        setConsulta("");
+        setSeleccionado(null);
+        setAbierto(false);
+      }, 0);
       router.refresh();
     }
-  }, [estado, router]);
+  }, [estado, mostrar, router]);
 
   return (
     <form action={dispatch} className="flex flex-col gap-2">
       <input type="hidden" name="user_id" value={seleccionado?.id ?? ""} />
       <input type="hidden" name="nombre_usuario" value={seleccionado?.nombre_usuario ?? ""} />
 
-      <div className="flex gap-2 items-start">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
         <div className="relative flex-1">
           <Input
             value={consulta}

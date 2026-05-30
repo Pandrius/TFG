@@ -175,14 +175,14 @@ export default async function PaginaCarpeta({
         </div>
 
         {totalVisibles > 0 && (
-          <a href={`/api/carpetas/${id}/descargar`}>
-            <Button variant="primary" size="md">Descargar carpeta</Button>
+          <a href={`/api/carpetas/${id}/descargar`} className="w-full sm:w-auto">
+            <Button variant="primary" size="md" className="w-full justify-center sm:w-auto">Descargar carpeta</Button>
           </a>
         )}
       </header>
 
       <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
-        <div className="grid grid-cols-[44px_1fr_120px_110px_110px_150px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
+        <div className="hidden sm:grid grid-cols-[44px_1fr_120px_110px_110px_150px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
           <div></div>
           <div>Nombre</div>
           <div>Estado</div>
@@ -195,7 +195,7 @@ export default async function PaginaCarpeta({
           <Link
             key={subcarpeta.id}
             href={`/carpetas/${subcarpeta.id}`}
-            className="grid grid-cols-[44px_1fr_120px_110px_110px_150px] items-center px-5 py-3 gap-3 border-b border-rule text-[13px] hover:bg-soft transition-colors"
+            className="flex flex-col items-stretch gap-2 px-4 py-4 sm:grid sm:grid-cols-[44px_1fr_120px_110px_110px_150px] sm:items-center sm:px-5 sm:py-3 sm:gap-3 border-b border-rule text-[13px] hover:bg-soft transition-colors"
           >
             <span className="w-9 h-9 rounded-[8px] border border-rule bg-card grid place-items-center text-accent font-semibold">
               /
@@ -219,7 +219,7 @@ export default async function PaginaCarpeta({
           return (
             <div
               key={doc.id}
-              className="grid grid-cols-[44px_1fr_120px_110px_110px_150px] items-center px-5 py-3 gap-3 border-b border-rule last:border-b-0 text-[13px]"
+              className="flex flex-col items-stretch gap-3 px-4 py-4 sm:grid sm:grid-cols-[44px_1fr_120px_110px_110px_150px] sm:items-center sm:px-5 sm:py-3 sm:gap-3 border-b border-rule last:border-b-0 text-[13px]"
             >
               <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
                 {tipo.slice(0, 3) || "?"}
@@ -244,7 +244,7 @@ export default async function PaginaCarpeta({
                 {kb !== null ? `${kb} KB` : "-"}
               </span>
               <span className="text-mute font-mono text-[12px]">{fecha}</span>
-              <div className="flex items-center justify-end gap-1">
+              <div className="flex items-center justify-stretch gap-2 sm:justify-end">
                 {esPublico && (
                   <BotonEnviarDocumentoPerfil
                     documentoId={doc.id}

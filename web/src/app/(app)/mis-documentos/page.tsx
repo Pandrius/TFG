@@ -131,13 +131,13 @@ export default async function PaginaMisDocumentos({
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-8 flex flex-col gap-7">
-      <header className="flex items-end justify-between">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:p-8 flex flex-col gap-6 sm:gap-7">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-display italic text-accent text-sm m-0">
             - tu unidad personal
           </p>
-          <h1 className="font-display font-medium text-4xl tracking-[-0.02em] m-0 mt-1">
+          <h1 className="font-display font-medium text-3xl sm:text-4xl tracking-[-0.02em] m-0 mt-1">
             Mis <em className="italic text-accent">documentos</em>
           </h1>
           <p className="text-mute text-sm font-display italic mt-2">
@@ -149,7 +149,7 @@ export default async function PaginaMisDocumentos({
         </div>
       </header>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 min-[420px]:grid-cols-2 md:grid-cols-4 gap-3.5">
         <Kpi
           label="Documentos"
           valor={total}

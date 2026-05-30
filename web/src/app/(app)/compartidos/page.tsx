@@ -174,7 +174,7 @@ export default async function PaginaCompartidos() {
                   return (
                     <div
                       key={`${remitenteId}-${doc.id}`}
-                      className="grid grid-cols-[44px_1fr_130px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
+                      className="flex flex-col items-stretch gap-3 px-4 py-4 sm:grid sm:grid-cols-[44px_1fr_130px_auto] sm:items-center sm:px-5 sm:py-3 sm:gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
                     >
                       <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
                         {tipo.slice(0, 3) || "?"}
@@ -205,12 +205,12 @@ export default async function PaginaCompartidos() {
                           enviado
                         </span>
                       </div>
-                      <div className="flex flex-col items-end gap-1">
+                      <div className="flex flex-col items-stretch gap-2 sm:items-end sm:gap-1">
                         <span className="text-mute text-[11px] font-mono">
                           {descargas} desc.
                         </span>
                         <a href={`/api/documentos/${doc.id}/url`}>
-                          <Button variant="ghost" size="sm">Descargar</Button>
+                          <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">Descargar</Button>
                         </a>
                       </div>
                     </div>

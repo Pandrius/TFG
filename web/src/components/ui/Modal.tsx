@@ -48,13 +48,13 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-ink/40 px-4 py-12"
+      className="fixed inset-0 z-50 grid place-items-start sm:place-items-center bg-ink/40 px-3 sm:px-4 py-4 sm:py-12 overflow-y-auto"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
     >
       <div
-        className="w-full max-w-[460px] rounded-[18px] border border-rule bg-card shadow-[var(--shadow-3)] overflow-hidden"
+        className="w-full max-w-[460px] rounded-[18px] border border-rule bg-card shadow-[var(--shadow-3)] overflow-hidden max-h-[calc(100vh-2rem)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="pt-6 px-6 flex items-start gap-4">
@@ -72,8 +72,8 @@ export function Modal({
             {titulo}
           </h3>
         </div>
-        {children && <div className="px-6 pt-5">{children}</div>}
-        <div className="flex justify-end gap-2 px-6 py-5">{acciones}</div>
+        {children && <div className="px-6 pt-5 overflow-y-auto">{children}</div>}
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 px-6 py-5">{acciones}</div>
       </div>
     </div>
   );

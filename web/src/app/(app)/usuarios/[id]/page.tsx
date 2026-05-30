@@ -114,14 +114,14 @@ export default async function PaginaPerfilUsuario({
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
-      <div className="flex items-center gap-6 bg-paper border border-rule rounded-[20px] p-6 shadow-[var(--shadow-1)]">
+      <div className="flex flex-col items-start gap-4 bg-paper border border-rule rounded-[20px] p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6 shadow-[var(--shadow-1)]">
         <AvatarPerfilAmpliable
           nombreCompleto={perfil.nombre_completo}
           nombreUsuario={perfil.nombre_usuario}
           avatarUrl={perfil.avatar_url}
         />
-        <div className="flex-1">
-          <h1 className="font-display font-medium text-2xl tracking-tight">
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display font-medium text-2xl tracking-tight break-words">
             {perfil.nombre_completo || perfil.nombre_usuario}
           </h1>
           <p className="text-mute font-mono text-sm mt-0.5">@{perfil.nombre_usuario}</p>
@@ -152,7 +152,7 @@ export default async function PaginaPerfilUsuario({
             {carpetasVisibles.map((carpeta) => (
               <div
                 key={carpeta.id}
-                className="grid grid-cols-[44px_1fr_120px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule text-[13px]"
+                className="flex flex-col items-stretch gap-3 px-4 py-4 sm:grid sm:grid-cols-[44px_1fr_120px_auto] sm:items-center sm:px-5 sm:py-3 sm:gap-3.5 border-b border-rule text-[13px]"
               >
                 <span className="w-9 h-9 rounded-[8px] border border-rule bg-card grid place-items-center text-accent font-semibold">
                   /
@@ -169,8 +169,8 @@ export default async function PaginaPerfilUsuario({
                   </p>
                 </div>
                 <Tag variant="pub">carpeta</Tag>
-                <Link href={`/carpetas/${carpeta.id}`}>
-                  <Button variant="ghost" size="sm">Abrir</Button>
+                <Link href={`/carpetas/${carpeta.id}`} className="sm:justify-self-end">
+                  <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">Abrir</Button>
                 </Link>
               </div>
             ))}
@@ -184,7 +184,7 @@ export default async function PaginaPerfilUsuario({
               return (
                 <div
                   key={doc.id}
-                  className="grid grid-cols-[44px_1fr_120px_150px] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
+                  className="flex flex-col items-stretch gap-3 px-4 py-4 sm:grid sm:grid-cols-[44px_1fr_120px_150px] sm:items-center sm:px-5 sm:py-3 sm:gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
                 >
                   <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
                     {tipo.slice(0, 3) || "?"}
@@ -210,7 +210,7 @@ export default async function PaginaPerfilUsuario({
                   <Tag variant={esPublico ? "pub" : "priv"}>
                     {esPublico ? "publico" : puedeVerPrivados ? "privado accesible" : "privado"}
                   </Tag>
-                  <div className="flex items-center justify-end gap-1">
+                  <div className="flex items-center justify-stretch gap-2 sm:justify-end">
                     {esPublico && (
                       <BotonEnviarDocumentoPerfil
                         documentoId={doc.id}
@@ -218,8 +218,8 @@ export default async function PaginaPerfilUsuario({
                         usuarios={usuariosInvitables}
                       />
                     )}
-                    <Link href={`/documentos/${doc.id}`}>
-                      <Button variant="ghost" size="sm">Ver</Button>
+                    <Link href={`/documentos/${doc.id}`} className="flex-1 sm:flex-none">
+                      <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">Ver</Button>
                     </Link>
                   </div>
                 </div>

@@ -421,7 +421,192 @@ export function ExploradorDocumentos({
         )}
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="divide-y divide-rule md:hidden">
+        {carpetasActuales.map((carpeta) => (
+          <div key={carpeta.id} className="px-4 py-3">
+            <div className="flex items-start gap-3">
+              <span className="w-9 h-9 rounded-[8px] border border-rule bg-card grid place-items-center text-accent font-semibold shrink-0">
+                /
+              </span>
+              <div className="min-w-0 flex-1">
+                <Link
+                  href={`/mis-documentos?carpeta=${carpeta.id}`}
+                  className="font-medium hover:text-accent transition-colors break-words"
+                >
+                  {carpeta.nombre}
+                </Link>
+                <p className="text-mute font-mono text-[11px] mt-1">
+                  {documentos.filter((doc) => doc.carpeta_id === carpeta.id).length} docs -{" "}
+                  {carpetas.filter((item) => item.parent_id === carpeta.id).length} subcarp.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => abrirMenu(carpeta.id, e.currentTarget, "carpeta")}
+                className="text-mute hover:text-ink px-2 py-1 rounded-[6px] hover:bg-soft shrink-0"
+                aria-label="Mas acciones"
+              >
+                ...
+              </button>
+              {menuCarpeta?.id === carpeta.id && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMenuCarpeta(null)} />
+                  <div
+                    className="fixed z-50 bg-card border border-rule rounded-[10px] shadow-[var(--shadow-2)] py-1 w-44"
+                    style={{ left: menuCarpeta.x, top: menuCarpeta.y }}
+                  >
+                    <Link
+                      href={`/mis-documentos?carpeta=${carpeta.id}`}
+                      className="block px-3 py-1.5 text-[13px] hover:bg-soft"
+                    >
+                      Abrir
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => abrirRenombrarCarpeta(carpeta)}
+                      className="block w-full text-left px-3 py-1.5 text-[13px] hover:bg-soft"
+                    >
+                      Renombrar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void borrarCarpeta(carpeta)}
+                      className="block w-full text-left px-3 py-1.5 text-[13px] text-danger hover:bg-danger-tint"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {documentosFiltrados.map((doc) => {
+          const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+          const esPublico = (doc.confidencialidad ?? 1) === 0;
+          const fecha = new Date(doc.fecha).toLocaleDateString("es-ES");
+          const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
+
+          return (
+            <div key={doc.id} className="px-4 py-3">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={seleccionados.has(doc.id)}
+                  onChange={() => toggleSeleccion(doc.id)}
+                  className="mt-3 w-4 h-4 cursor-pointer accent-[var(--accent)] shrink-0"
+                  aria-label={`Seleccionar ${doc.nombre}`}
+                />
+                <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent shrink-0">
+                  {tipo.slice(0, 3) || "?"}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start gap-2 min-w-0">
+                    <div className="min-w-0 flex-1">
+                      <RenombrarInline docId={doc.id} nombre={doc.nombre} />
+                    </div>
+                    <FiabilidadModelo
+                      probabilidad={doc.probabilidad}
+                      tipoArchivo={doc.tipo_archivo}
+                      confidencialidad={doc.confidencialidad}
+                    />
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {esPublico ? (
+                      <button type="button" onClick={() => void cambiarAPrivado(doc)}>
+                        <Tag variant="pub">publico</Tag>
+                      </button>
+                    ) : (
+                      <button type="button" onClick={() => setModalPublico(doc)}>
+                        <Tag variant="priv">privado</Tag>
+                      </button>
+                    )}
+                    <span className="text-mute text-[11px] font-mono">
+                      {kb !== null ? `${kb} KB` : "-"} - {fecha}
+                    </span>
+                  </div>
+                  <p className="text-mute text-[11px] font-mono mt-1">
+                    {carpetaActual ? carpetaActual.nombre : "Mi unidad"} - {tipo.toLowerCase() || "-"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setModalEnviar(doc)}
+                    className="text-mute hover:text-ink px-2 py-1 rounded-[6px] hover:bg-soft"
+                    aria-label={`Enviar ${doc.nombre}`}
+                    title="Enviar"
+                  >
+                    <IconoEnviar />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => abrirMenu(doc.id, e.currentTarget, "doc")}
+                    className="text-mute hover:text-ink px-2 py-1 rounded-[6px] hover:bg-soft"
+                    aria-label="Mas acciones"
+                  >
+                    ...
+                  </button>
+                  {menuDoc?.id === doc.id && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setMenuDoc(null)} />
+                      <div
+                        className="fixed z-50 bg-card border border-rule rounded-[10px] shadow-[var(--shadow-2)] py-1 w-44"
+                        style={{ left: menuDoc.x, top: menuDoc.y }}
+                      >
+                        <Link
+                          href={`/documentos/${doc.id}`}
+                          className="block px-3 py-1.5 text-[13px] hover:bg-soft"
+                          onClick={() => setMenuDoc(null)}
+                        >
+                          Ver detalle
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setModalMover(doc);
+                            setMenuDoc(null);
+                          }}
+                          className="block w-full text-left px-3 py-1.5 text-[13px] hover:bg-soft"
+                        >
+                          Mover a carpeta
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => abrirSubirOrganizacion(doc)}
+                          className="block w-full text-left px-3 py-1.5 text-[13px] hover:bg-soft disabled:text-mute disabled:cursor-not-allowed"
+                          disabled={organizaciones.length === 0}
+                        >
+                          Subir a organizacion
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setModalBorrar(doc);
+                            setMenuDoc(null);
+                          }}
+                          className="block w-full text-left px-3 py-1.5 text-[13px] text-danger hover:bg-danger-tint"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {carpetasActuales.length === 0 && documentosFiltrados.length === 0 && (
+          <div className="px-5 py-10 text-center text-mute text-sm">
+            Esta ubicacion esta vacia.
+          </div>
+        )}
+      </div>
+
+      <div className="hidden overflow-x-auto md:block">
         <div className="min-w-[860px]">
           <div className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_68px] items-center px-5 py-2.5 gap-3.5 bg-soft text-mute font-display italic text-xs border-b border-rule">
             <div className="flex items-center justify-center">
@@ -788,7 +973,7 @@ export function ExploradorDocumentos({
       )}
 
       {seleccionados.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-card border border-rule rounded-full shadow-[var(--shadow-2)] px-5 py-3 flex items-center gap-4">
+        <div className="fixed bottom-4 left-4 right-4 sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-30 bg-card border border-rule rounded-[14px] sm:rounded-full shadow-[var(--shadow-2)] px-4 sm:px-5 py-3 flex items-center justify-between sm:justify-start gap-3 sm:gap-4">
           <span className="text-[13px] font-medium">
             {seleccionados.size} seleccionado{seleccionados.size !== 1 ? "s" : ""}
           </span>

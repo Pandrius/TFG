@@ -63,7 +63,7 @@ export default function FormularioInvitacion({ documentoId, usuarios, onEnviado 
   };
 
   return (
-    <form onSubmit={enviar} className="relative flex gap-2">
+    <form onSubmit={enviar} className="relative flex flex-col gap-2 sm:flex-row">
       <div className="relative flex-1">
         <Input
           placeholder="Buscar usuario..."

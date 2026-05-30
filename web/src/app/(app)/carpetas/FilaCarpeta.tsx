@@ -48,7 +48,7 @@ export function FilaCarpeta({ carpeta, ndocs }: Props) {
   };
 
   return (
-    <div className="grid grid-cols-[1fr_100px_80px_80px] items-center px-5 py-3 gap-3 border-b border-rule last:border-b-0 text-[13px]">
+    <div className="flex flex-col items-stretch gap-3 px-4 py-4 sm:grid sm:grid-cols-[1fr_100px_80px_80px] sm:items-center sm:px-5 sm:py-3 sm:gap-3 border-b border-rule last:border-b-0 text-[13px]">
       {editando ? (
         <div className="flex gap-1 items-center">
           <input
@@ -93,7 +93,7 @@ export function FilaCarpeta({ carpeta, ndocs }: Props) {
         {ndocs} doc{ndocs !== 1 ? "s" : ""}
       </span>
       <Link href={`/carpetas/${carpeta.id}`}>
-        <Button variant="ghost" size="sm">Ver</Button>
+        <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">Ver</Button>
       </Link>
       <button
         type="button"

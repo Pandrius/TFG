@@ -42,7 +42,7 @@ export default async function PaginaOrganizaciones() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 flex flex-col gap-8">
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="font-display italic text-accent text-sm mb-1">— equipos</p>
           <h1 className="font-display font-medium text-[26px] tracking-[-0.02em]">
@@ -57,9 +57,9 @@ export default async function PaginaOrganizaciones() {
       <FormularioInlineOrg />
 
       <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="min-w-[500px]">
-            <div className="grid grid-cols-[1fr_120px_80px_80px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
+        <div>
+          <div>
+            <div className="hidden sm:grid grid-cols-[1fr_120px_80px_80px] items-center px-5 py-2.5 gap-3 bg-soft text-mute font-display italic text-xs border-b border-rule">
               <div>Organización</div>
               <div>Miembros</div>
               <div></div>
@@ -77,7 +77,7 @@ export default async function PaginaOrganizaciones() {
                 return (
                   <div
                     key={org.id}
-                    className="grid grid-cols-[1fr_120px_80px_80px] items-center px-5 py-3 gap-3 border-b border-rule last:border-b-0 text-[13px]"
+                    className="flex flex-col items-stretch gap-3 px-4 py-4 sm:grid sm:grid-cols-[1fr_120px_80px_80px] sm:items-center sm:px-5 sm:py-3 sm:gap-3 border-b border-rule last:border-b-0 text-[13px]"
                   >
                     <div className="min-w-0">
                       <p className="font-medium truncate">{org.nombre}</p>
@@ -86,8 +86,8 @@ export default async function PaginaOrganizaciones() {
                     <span className="text-mute font-mono text-[12px]">
                       {nmiembros} miembro{nmiembros !== 1 ? "s" : ""}
                     </span>
-                    <Link href={`/organizaciones/${org.id}`}>
-                      <Button variant="ghost" size="sm">Ver</Button>
+                    <Link href={`/organizaciones/${org.id}`} className="sm:justify-self-start">
+                      <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">Ver</Button>
                     </Link>
                     <div></div>
                   </div>

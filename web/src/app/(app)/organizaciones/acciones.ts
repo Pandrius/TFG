@@ -8,6 +8,8 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 
 export type ResultadoOrg = { error: string } | { id: string };
 
+const LIMITE_ORG_BYTES = 500 * 1024 * 1024;
+
 export async function crearOrganizacion(
   _previo: ResultadoOrg | undefined,
   datos: FormData,
@@ -25,6 +27,11 @@ export async function crearOrganizacion(
   // Esto es necesario porque el .select("id") fallaría ya que el usuario
   // aún no es miembro (la policy de SELECT requiere ser miembro).
   const admin = crearClienteAdmin();
+  const yaAdmin = await usuarioEsAdminDeOtraOrganizacion(admin, user.id, null);
+  if (yaAdmin) {
+    return { error: "Ya administras una organizacion. Solo puedes ser admin de una a la vez." };
+  }
+
   const { data: org, error: errorOrg } = await admin
     .from("organizaciones")
     .insert({ nombre })
@@ -143,6 +150,9 @@ export async function invitarMiembroOrg(
   if (error?.code === "23505") return { error: "Ese usuario ya tiene una invitacion pendiente" };
   if (error) {
     console.error("Error creating org invitation:", error);
+    if (esTablaInvitacionesNoDisponible(error)) {
+      return { error: "Falta aplicar la migracion de invitaciones de organizacion en Supabase." };
+    }
     return { error: "Error al enviar la invitacion" };
   }
 
@@ -240,6 +250,84 @@ export async function expulsarMiembro(orgId: string, userId: string): Promise<vo
   redirect(`/organizaciones/${orgId}`);
 }
 
+export async function salirOrganizacion(orgId: string): Promise<void> {
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const admin = crearClienteAdmin();
+  const { data: membresia } = await admin
+    .from("org_miembros")
+    .select("rol")
+    .eq("org_id", orgId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!membresia) redirect("/organizaciones");
+
+  if (membresia.rol === "admin") {
+    const { data: otrosMiembros } = await admin
+      .from("org_miembros")
+      .select("user_id")
+      .eq("org_id", orgId)
+      .neq("user_id", user.id);
+
+    if (!otrosMiembros || otrosMiembros.length === 0) {
+      const { error: errorOrg } = await admin
+        .from("organizaciones")
+        .delete()
+        .eq("id", orgId);
+
+      if (errorOrg) {
+        console.error("Error deleting empty org while leaving:", errorOrg);
+        redirect(`/organizaciones/${orgId}`);
+      }
+
+      revalidatePath("/organizaciones");
+      redirect("/organizaciones");
+    }
+
+    let nuevoAdminId: string | null = null;
+    for (const miembro of otrosMiembros) {
+      const yaAdmin = await usuarioEsAdminDeOtraOrganizacion(admin, miembro.user_id, orgId);
+      if (!yaAdmin) {
+        nuevoAdminId = miembro.user_id;
+        break;
+      }
+    }
+
+    if (!nuevoAdminId) redirect(`/organizaciones/${orgId}`);
+
+    const { error: errorNuevoAdmin } = await admin
+      .from("org_miembros")
+      .update({ rol: "admin" })
+      .eq("org_id", orgId)
+      .eq("user_id", nuevoAdminId);
+
+    if (errorNuevoAdmin) {
+      console.error("Error promoting new admin while leaving:", errorNuevoAdmin);
+      redirect(`/organizaciones/${orgId}`);
+    }
+  }
+
+  const { error } = await admin
+    .from("org_miembros")
+    .delete()
+    .eq("org_id", orgId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Error leaving org:", error);
+    redirect(`/organizaciones/${orgId}`);
+  }
+
+  revalidatePath("/organizaciones");
+  revalidatePath(`/organizaciones/${orgId}`);
+  redirect("/organizaciones");
+}
+
 export async function transferirCreador(
   orgId: string,
   nuevoAdminUserId: string,
@@ -269,6 +357,9 @@ export async function transferirCreador(
     .single();
 
   if (!nuevoAdmin) return;
+
+  const yaAdmin = await usuarioEsAdminDeOtraOrganizacion(admin, nuevoAdminUserId, orgId);
+  if (yaAdmin) return;
 
   const { error: errorNuevoAdmin } = await admin
     .from("org_miembros")
@@ -308,14 +399,30 @@ export async function vincularDocumento(
   if (!user) return;
 
   const admin = crearClienteAdmin();
-  const { data: membresia } = await admin
-    .from("org_miembros")
-    .select("rol")
-    .eq("org_id", orgId)
-    .eq("user_id", user.id)
-    .single();
+  const [{ data: membresia }, { data: doc }] = await Promise.all([
+    admin
+      .from("org_miembros")
+      .select("rol")
+      .eq("org_id", orgId)
+      .eq("user_id", user.id)
+      .single(),
+    admin
+      .from("Documentos")
+      .select("id, tamano_bytes")
+      .eq("id", documentoId)
+      .single(),
+  ]);
 
   if (membresia?.rol !== "admin") return;
+  if (!doc) return;
+
+  const cabe = await documentoCabeEnOrganizacion(
+    admin,
+    orgId,
+    documentoId,
+    Number(doc.tamano_bytes ?? 0),
+  );
+  if (!cabe) return;
 
   const { error } = await admin
     .from("org_documentos")
@@ -360,13 +467,23 @@ export async function subirDocumentoAOrganizacion(
       .maybeSingle(),
     admin
       .from("Documentos")
-      .select("id, user_id")
+      .select("id, user_id, tamano_bytes")
       .eq("id", documentoId)
       .single(),
   ]);
 
   if (!membresia) return { error: "No perteneces a esa organizacion." };
   if (!doc || doc.user_id !== user.id) return { error: "Documento no encontrado." };
+
+  const cabe = await documentoCabeEnOrganizacion(
+    admin,
+    orgId,
+    documentoId,
+    Number(doc.tamano_bytes ?? 0),
+  );
+  if (!cabe) {
+    return { error: "La organizacion no tiene espacio suficiente para ese documento." };
+  }
 
   if (carpetaId) {
     const { data: carpeta } = await admin
@@ -438,4 +555,65 @@ export async function desvincularDocumento(
   revalidatePath("/organizaciones");
   revalidatePath(`/organizaciones/${orgId}`);
   redirect(`/organizaciones/${orgId}`);
+}
+
+async function usuarioEsAdminDeOtraOrganizacion(
+  admin: ReturnType<typeof crearClienteAdmin>,
+  userId: string,
+  orgIdActual: string | null,
+) {
+  let query = admin
+    .from("org_miembros")
+    .select("org_id")
+    .eq("user_id", userId)
+    .eq("rol", "admin")
+    .limit(1);
+
+  if (orgIdActual) query = query.neq("org_id", orgIdActual);
+
+  const { data } = await query;
+  return (data?.length ?? 0) > 0;
+}
+
+function esTablaInvitacionesNoDisponible(error: { code?: string; message?: string }) {
+  const mensaje = error.message?.toLowerCase() ?? "";
+  return (
+    error.code === "42P01" ||
+    error.code === "PGRST106" ||
+    error.code === "PGRST205" ||
+    mensaje.includes("org_invitaciones") && (
+      mensaje.includes("does not exist") ||
+      mensaje.includes("not found") ||
+      mensaje.includes("schema cache")
+    )
+  );
+}
+
+async function documentoCabeEnOrganizacion(
+  admin: ReturnType<typeof crearClienteAdmin>,
+  orgId: string,
+  documentoId: string,
+  tamanoDocumentoBytes: number,
+) {
+  const [{ data: vinculoExistente }, { data: orgDocs }] = await Promise.all([
+    admin
+      .from("org_documentos")
+      .select("documento_id")
+      .eq("org_id", orgId)
+      .eq("documento_id", documentoId)
+      .maybeSingle(),
+    admin
+      .from("org_documentos")
+      .select("Documentos ( id, tamano_bytes )")
+      .eq("org_id", orgId),
+  ]);
+
+  if (vinculoExistente) return true;
+
+  const usado = (orgDocs ?? []).reduce((acc, item) => {
+    const doc = Array.isArray(item.Documentos) ? item.Documentos[0] : item.Documentos;
+    return acc + Number(doc?.tamano_bytes ?? 0);
+  }, 0);
+
+  return usado + tamanoDocumentoBytes <= LIMITE_ORG_BYTES;
 }

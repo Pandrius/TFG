@@ -153,11 +153,11 @@ export default async function PaginaExplorar({
       </div>
 
       {/* Buscador — form GET que ya funciona */}
-      <form method="GET" className="flex gap-2">
+      <form method="GET" className="flex flex-col gap-2 sm:flex-row">
         <Input type="search" name="q" defaultValue={termino} placeholder="Buscar documentos…" className="flex-1" />
-        <Button type="submit" variant="primary" size="md">Buscar</Button>
+        <Button type="submit" variant="primary" size="md" className="justify-center">Buscar</Button>
         {termino && (
-          <a href="/explorar"><Button type="button" variant="ghost" size="md">Limpiar</Button></a>
+          <a href="/explorar"><Button type="button" variant="ghost" size="md" className="w-full justify-center sm:w-auto">Limpiar</Button></a>
         )}
       </form>
 
@@ -172,8 +172,8 @@ export default async function PaginaExplorar({
       ) : termino ? (
         // Lista para búsqueda
         <div className="rounded-[14px] border border-rule bg-paper overflow-hidden">
-          <div className="overflow-x-auto">
-            <div className="min-w-[500px]">
+          <div>
+            <div>
               {documentos.map((doc) => {
                 const perfil = perfilesById[doc.user_id];
                 const autor = doc.user_id === user.id ? "Tú" : (perfil?.nombre_completo || perfil?.nombre_usuario || "—");
@@ -183,7 +183,7 @@ export default async function PaginaExplorar({
                 const esPublico = doc.confidencialidad === 0;
                 const descargas = descargasPorDoc.get(doc.id) ?? 0;
                 return (
-                  <div key={doc.id} className="grid grid-cols-[44px_1fr_120px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]">
+                  <div key={doc.id} className="flex flex-col items-stretch gap-3 px-4 py-4 sm:grid sm:grid-cols-[44px_1fr_120px_auto] sm:items-center sm:px-5 sm:py-3 sm:gap-3.5 border-b border-rule last:border-b-0 text-[13px]">
                     <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
                       {tipo.slice(0, 3) || "?"}
                     </span>
@@ -203,11 +203,11 @@ export default async function PaginaExplorar({
                       </p>
                     </div>
                     <Tag variant={esPublico ? "pub" : "priv"}>{esPublico ? "público" : "privado"}</Tag>
-                    <div className="flex flex-col items-end gap-1">
+                    <div className="flex flex-col items-stretch gap-2 sm:items-end sm:gap-1">
                       <span className="text-mute text-[11px] font-mono">
                         {descargas} desc.
                       </span>
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex flex-wrap items-center justify-stretch gap-2 sm:justify-end">
                         {esPublico && (
                           <BotonEnviarDocumentoPerfil
                             documentoId={doc.id}
@@ -215,8 +215,8 @@ export default async function PaginaExplorar({
                             usuarios={usuariosDisponibles.filter((u) => u.id !== doc.user_id)}
                           />
                         )}
-                        <a href={`/api/documentos/${doc.id}/url`}>
-                          <Button variant="ghost" size="sm">Descargar</Button>
+                        <a href={`/api/documentos/${doc.id}/url`} className="flex-1 sm:flex-none">
+                          <Button variant="ghost" size="sm" className="w-full justify-center sm:w-auto">Descargar</Button>
                         </a>
                       </div>
                     </div>
@@ -256,20 +256,20 @@ export default async function PaginaExplorar({
                   <p className="text-mute text-[11px] font-mono mt-0.5 mb-3">
                     {autor}{esAmigo ? " - amigo" : ""} - {fecha}{kb ? ` - ${kb} KB` : ""}
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center">
                     <Tag variant="pub">público</Tag>
-                    <div className="ml-auto flex flex-col items-end gap-1">
+                    <div className="flex flex-col items-stretch gap-2 min-[420px]:ml-auto min-[420px]:items-end min-[420px]:gap-1">
                       <span className="text-mute text-[11px] font-mono">
                         {descargas} desc.
                       </span>
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex flex-wrap items-center justify-stretch gap-2 min-[420px]:justify-end">
                         <BotonEnviarDocumentoPerfil
                           documentoId={doc.id}
                           nombre={doc.nombre}
                           usuarios={usuariosDisponibles.filter((u) => u.id !== doc.user_id)}
                         />
-                        <a href={`/api/documentos/${doc.id}/url`}>
-                          <Button variant="ghost" size="sm">Descargar</Button>
+                        <a href={`/api/documentos/${doc.id}/url`} className="flex-1 min-[420px]:flex-none">
+                          <Button variant="ghost" size="sm" className="w-full justify-center min-[420px]:w-auto">Descargar</Button>
                         </a>
                       </div>
                     </div>
