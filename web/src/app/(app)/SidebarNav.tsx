@@ -22,7 +22,10 @@ const grupos = [
   },
   {
     label: "Cuenta",
-    items: [{ href: "/perfil", label: "Ajustes" }],
+    items: [
+      { href: "/perfil", label: "Perfil" },
+      { href: "/ajustes", label: "Ajustes" },
+    ],
   },
 ];
 

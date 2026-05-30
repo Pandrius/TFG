@@ -54,6 +54,16 @@ export default async function PaginaCompartidos() {
     documentos = data ?? [];
   }
 
+  let descargasPorDoc = new Map<string, number>();
+  const docIds = documentos.map((doc) => doc.id);
+  if (docIds.length > 0) {
+    const { data: descargas } = await supabase
+      .from("descargas_documentos")
+      .select("documento_id")
+      .in("documento_id", docIds);
+    descargasPorDoc = contarDescargas(descargas ?? []);
+  }
+
   // Perfiles de los propietarios
   const userIds = [...new Set(documentos.map((d) => d.user_id))];
   const perfilesById: Record<
@@ -94,6 +104,7 @@ export default async function PaginaCompartidos() {
             const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
             const tipo = (doc.tipo_archivo ?? "").toUpperCase();
             const esPublico = (doc.confidencialidad ?? 1) === 0;
+            const descargas = descargasPorDoc.get(doc.id) ?? 0;
             return (
               <div
                 key={doc.id}
@@ -116,9 +127,14 @@ export default async function PaginaCompartidos() {
                 <Tag variant={esPublico ? "pub" : "priv"}>
                   {esPublico ? "público" : "privado"}
                 </Tag>
-                <a href={`/api/documentos/${doc.id}/url`}>
-                  <Button variant="ghost" size="sm">Descargar</Button>
-                </a>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="text-mute text-[11px] font-mono">
+                    {descargas} desc.
+                  </span>
+                  <a href={`/api/documentos/${doc.id}/url`}>
+                    <Button variant="ghost" size="sm">Descargar</Button>
+                  </a>
+                </div>
               </div>
             );
           })}
@@ -126,4 +142,12 @@ export default async function PaginaCompartidos() {
       )}
     </div>
   );
+}
+
+function contarDescargas(descargas: { documento_id: string }[]) {
+  const conteo = new Map<string, number>();
+  for (const descarga of descargas) {
+    conteo.set(descarga.documento_id, (conteo.get(descarga.documento_id) ?? 0) + 1);
+  }
+  return conteo;
 }

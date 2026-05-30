@@ -7,6 +7,7 @@ import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { aceptarAmistad, eliminarAmistad, rechazarAmistad } from "../usuarios/acciones";
 import { AgregarAmigo, type UsuarioParaAmistad } from "./AgregarAmigo";
+import { BotonFavoritoAmigo } from "./BotonFavoritoAmigo";
 
 type Perfil = {
   id: string;
@@ -50,6 +51,11 @@ export default async function PaginaAmigos() {
     (r) => r.estado === "pendiente" && r.solicitante_id === user.id,
   );
   const amigos = (relaciones ?? []).filter((r) => r.estado === "aceptada");
+  const { data: favoritos } = await admin
+    .from("favoritos")
+    .select("favorito_id")
+    .eq("propietario_id", user.id);
+  const favoritosIds = new Set(favoritos?.map((f) => f.favorito_id) ?? []);
   const relacionadosIds = new Set([
     user.id,
     ...(relaciones ?? []).flatMap((r) => [r.solicitante_id, r.receptor_id]),
@@ -117,6 +123,10 @@ export default async function PaginaAmigos() {
               if (!perfil) return null;
               return (
                 <FilaPerfil key={relacion.id} perfil={perfil}>
+                  <BotonFavoritoAmigo
+                    usuarioId={otroId}
+                    esFavorito={favoritosIds.has(otroId)}
+                  />
                   <form action={eliminarAmistad.bind(null, otroId)}>
                     <Button type="submit" variant="ghost" size="sm">Eliminar</Button>
                   </form>

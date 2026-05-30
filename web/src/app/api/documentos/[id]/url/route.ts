@@ -66,5 +66,12 @@ export async function GET(
     );
   }
 
+  await admin
+    .from("descargas_documentos")
+    .upsert(
+      { documento_id: id, user_id: user.id },
+      { onConflict: "documento_id,user_id", ignoreDuplicates: true },
+    );
+
   return NextResponse.redirect(urlData.signedUrl);
 }

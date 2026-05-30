@@ -4,7 +4,6 @@ import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 
 import { FormularioPerfil } from "./FormularioPerfil";
-import { PreferenciasApariencia } from "./PreferenciasApariencia";
 
 export default async function PaginaPerfil() {
   const supabase = await crearClienteServidor();
@@ -50,7 +49,6 @@ export default async function PaginaPerfil() {
         nombreCompleto={perfil.nombre_completo}
         avatarUrl={perfil.avatar_url}
       />
-      <PreferenciasApariencia />
     </div>
   );
 }

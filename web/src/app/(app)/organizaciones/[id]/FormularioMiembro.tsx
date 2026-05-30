@@ -90,8 +90,8 @@ export default function FormularioMiembro({ orgId, usuarios }: Props) {
                       className="w-full px-3 py-2 text-left hover:bg-soft flex items-center gap-3"
                     >
                       <Avatar
-                        nombreCompleto={usuario.nombre_completo ?? undefined}
-                        nombreUsuario={usuario.nombre_usuario ?? undefined}
+                        nombreCompleto={usuario.nombre_completo}
+                        nombreUsuario={usuario.nombre_usuario ?? "Usuario"}
                         size="sm"
                       />
                       <span className="min-w-0">

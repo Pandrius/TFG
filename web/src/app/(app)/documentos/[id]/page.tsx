@@ -97,6 +97,10 @@ export default async function PaginaDocumento({
 
   const esPublico = doc.confidencialidad === 0;
   const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+  const { count: descargas } = await admin
+    .from("descargas_documentos")
+    .select("id", { count: "exact", head: true })
+    .eq("documento_id", id);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 flex flex-col gap-8">
@@ -142,6 +146,9 @@ export default async function PaginaDocumento({
 
         {/* Acciones */}
         <div className="flex flex-col gap-2 sm:items-end">
+          <span className="text-mute text-[11px] font-mono">
+            {descargas ?? 0} desc.
+          </span>
           <a href={`/api/documentos/${id}/url`}>
             <Button variant="primary" size="md">
               Descargar
