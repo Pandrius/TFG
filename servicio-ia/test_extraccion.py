@@ -3,6 +3,7 @@ import io
 
 import pytest
 
+import extraccion
 from extraccion import FormatoNoSoportado, extraer_texto
 
 TEXTO = "Informacion confidencial: el DNI es 12345678Z."
@@ -73,6 +74,15 @@ def test_pdf():
     texto, tipo, _, _ = extraer_texto("doc.pdf", buffer.getvalue())
     assert "confidencial" in texto
     assert tipo == "pdf"
+
+
+def test_audio_usa_whisper_antes_de_markitdown(monkeypatch):
+    monkeypatch.setattr(extraccion, "_transcribir_audio_whisper", lambda _ruta: "texto de audio")
+    texto, tipo, truncado, advertencias = extraer_texto("audio.mpeg", b"datos")
+    assert texto == "texto de audio"
+    assert tipo == "mpeg"
+    assert truncado is False
+    assert advertencias == []
 
 
 def test_formato_no_soportado():

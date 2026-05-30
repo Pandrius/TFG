@@ -172,7 +172,7 @@ def clasificar(texto: str) -> tuple[int, float | None, str]:
     - modo: 'modelo' o 'placeholder'.
     """
     if not texto or not texto.strip():
-        return CONFIDENCIAL, None, _modo
+        return CONFIDENCIAL, 1.0, _modo
 
     if _modo == "modelo":
         etiqueta, probabilidad = _clasificar_modelo(texto)

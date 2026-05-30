@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+import threading
 from markitdown import MarkItDown
 
 # Tope de caracteres que se conservan para la clasificacion.
@@ -23,6 +24,47 @@ FORMATOS_SOPORTADOS = [
 ]
 
 FORMATOS_AUDIO = {"wav", "mp3", "mpeg", "m4a", "mp4", "aiff", "flac"}
+
+_whisper_lock = threading.Lock()
+_whisper_model = None
+
+
+def _obtener_whisper():
+    """Carga Whisper una sola vez. Es opcional para no romper formatos no audio."""
+    global _whisper_model
+    if _whisper_model is not None:
+        return _whisper_model
+
+    try:
+        from faster_whisper import WhisperModel
+    except ImportError:
+        return None
+
+    with _whisper_lock:
+        if _whisper_model is None:
+            nombre_modelo = os.environ.get("WHISPER_MODEL", "tiny")
+            compute_type = os.environ.get("WHISPER_COMPUTE_TYPE", "int8")
+            _whisper_model = WhisperModel(
+                nombre_modelo,
+                device="cpu",
+                compute_type=compute_type,
+            )
+    return _whisper_model
+
+
+def _transcribir_audio_whisper(ruta: str) -> str:
+    modelo = _obtener_whisper()
+    if modelo is None:
+        return ""
+
+    idioma = os.environ.get("WHISPER_LANGUAGE", "es")
+    segmentos, _info = modelo.transcribe(
+        ruta,
+        language=idioma,
+        vad_filter=True,
+        beam_size=1,
+    )
+    return " ".join(segmento.text.strip() for segmento in segmentos).strip()
 
 def extraer_texto(nombre_archivo: str, datos: bytes) -> tuple[str, str, bool, list[str]]:
     """Extrae el texto de un documento convirtiendolo a Markdown.
@@ -44,8 +86,16 @@ def extraer_texto(nombre_archivo: str, datos: bytes) -> tuple[str, str, bool, li
             tmp_path = tmp.name
 
         try:
-            resultado = md.convert(tmp_path)
-            texto = (resultado.text_content or "").strip()
+            texto = ""
+            if extension in FORMATOS_AUDIO:
+                try:
+                    texto = _transcribir_audio_whisper(tmp_path)
+                except Exception as e:  # noqa: BLE001
+                    advertencias.append(f"Whisper no pudo transcribir el audio: {e}.")
+
+            if not texto:
+                resultado = md.convert(tmp_path)
+                texto = (resultado.text_content or "").strip()
 
             if extension == "zip" and not texto:
                 advertencias.append("No se encontro contenido procesable dentro del archivo ZIP.")

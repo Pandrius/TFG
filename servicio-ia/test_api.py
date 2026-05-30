@@ -45,6 +45,7 @@ def test_procesar_sin_texto_clasifica_privado():
     assert respuesta.status_code == 200
     cuerpo = respuesta.json()
     assert cuerpo["confidencialidad"] == 1
+    assert cuerpo["probabilidad"] == 1.0
     assert cuerpo["texto_extraido"] == ""
     assert any("No se pudo extraer texto" in aviso for aviso in cuerpo["advertencias"])
 

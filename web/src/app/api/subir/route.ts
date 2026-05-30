@@ -23,6 +23,7 @@ const FORMATOS_PERMITIDOS = new Set([
   "flac",
 ]);
 const TAMANO_MAX = 10 * 1024 * 1024;
+const FORMATOS_AUDIO = new Set(["wav", "mp3", "mpeg", "m4a", "mp4", "aiff", "flac"]);
 
 /**
  * Convierte el nombre del archivo en un slug seguro para Supabase Storage
@@ -92,10 +93,11 @@ export async function POST(request: NextRequest) {
           try {
             const iaForm = new FormData();
             iaForm.append("archivo", archivo);
+            const esAudio = FORMATOS_AUDIO.has(extension);
             const iaResp = await fetch(`${iaUrl}/procesar`, {
               method: "POST",
               body: iaForm,
-              signal: AbortSignal.timeout(30_000),
+              signal: AbortSignal.timeout(esAudio ? 300_000 : 30_000),
             });
             if (iaResp.ok) {
               const iaData = await iaResp.json();
@@ -109,11 +111,36 @@ export async function POST(request: NextRequest) {
                 );
               }
             } else {
+              if (esAudio) {
+                let detalle = "";
+                try {
+                  const errorData = await iaResp.json();
+                  detalle =
+                    typeof errorData?.detail === "string" ? ` ${errorData.detail}` : "";
+                } catch {
+                  // La respuesta de error no siempre es JSON.
+                }
+                emit({
+                  fase: "error",
+                  error:
+                    `El servicio IA no puede transcribir este audio ahora mismo.${detalle}`.trim(),
+                });
+                return;
+              }
               console.warn(
                 `[/api/subir] servicio IA respondio ${iaResp.status} · archivo="${nombreActual}" · fail-safe a confidencial`,
               );
             }
           } catch (err) {
+            if (FORMATOS_AUDIO.has(extension)) {
+              const detalle = err instanceof Error ? ` (${err.message})` : "";
+              emit({
+                fase: "error",
+                error:
+                  `No se pudo conectar con el servicio IA para transcribir el audio${detalle}. Intentalo de nuevo cuando el servicio este disponible.`,
+              });
+              return;
+            }
             console.warn(
               `[/api/subir] llamada al servicio IA fallo · archivo="${nombreActual}" · ${
                 err instanceof Error ? err.message : String(err)
@@ -126,6 +153,7 @@ export async function POST(request: NextRequest) {
 
         if (textoExtraido !== null && textoExtraido.trim().length === 0) {
           confidencialidad = 1;
+          probabilidad = probabilidad ?? 1;
           if (advertencias.length === 0) {
             advertencias.push("No se pudo extraer texto. Clasificado como privado por seguridad.");
           }

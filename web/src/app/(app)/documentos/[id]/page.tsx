@@ -99,6 +99,9 @@ export default async function PaginaDocumento({
 
   const esPublico = doc.confidencialidad === 0;
   const tipo = (doc.tipo_archivo ?? "").toUpperCase();
+  const esAudio = ["WAV", "MP3", "MPEG", "M4A", "MP4", "AIFF", "FLAC"].includes(tipo);
+  const probabilidadMostrada =
+    doc.probabilidad ?? (!esPublico && esAudio ? 1 : null);
   const { count: descargas } = await admin
     .from("descargas_documentos")
     .select("id", { count: "exact", head: true })
@@ -138,15 +141,15 @@ export default async function PaginaDocumento({
               {esPublico ? "Público" : "Privado"}
             </Tag>
           </div>
-          {doc.probabilidad !== null && (
+          {probabilidadMostrada !== null && (
             <div className="flex flex-col gap-1">
               <p className="text-mute text-[11px]">
-                Confianza del modelo: {Math.round(doc.probabilidad * 100)} %
+                Confianza de clasificacion: {Math.round(probabilidadMostrada * 100)} %
               </p>
               <div className="h-1 bg-rule rounded-full overflow-hidden w-48">
                 <div
                   className="h-full bg-accent rounded-full"
-                  style={{ width: `${Math.round(doc.probabilidad * 100)}%` }}
+                  style={{ width: `${Math.round(probabilidadMostrada * 100)}%` }}
                 />
               </div>
             </div>
