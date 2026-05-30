@@ -15,15 +15,16 @@ interface Props {
     avatar_url: string | null;
   } | null;
   userEmail: string;
+  pendientesBuzon: number;
 }
 
-export function AppLayoutClient({ children, perfil, userEmail }: Props) {
+export function AppLayoutClient({ children, perfil, userEmail, pendientesBuzon }: Props) {
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
   const nombreMostrado =
     perfil?.nombre_completo ?? perfil?.nombre_usuario ?? userEmail;
 
-  const SidebarContent = () => (
+  const renderSidebarContent = () => (
     <>
       <div className="flex items-center justify-between mb-[22px] px-1">
         <Link
@@ -57,7 +58,10 @@ export function AppLayoutClient({ children, perfil, userEmail }: Props) {
       <BuscadorTrigger />
 
       <div className="flex-1 overflow-y-auto">
-        <SidebarNav onItemClick={() => setSidebarAbierto(false)} />
+        <SidebarNav
+          onItemClick={() => setSidebarAbierto(false)}
+          pendientesBuzon={pendientesBuzon}
+        />
       </div>
 
       {/* ── Usuario / pie de sidebar ── */}
@@ -123,7 +127,7 @@ export function AppLayoutClient({ children, perfil, userEmail }: Props) {
 
       {/* ── Sidebar (Desktop) ────────────────────────── */}
       <aside className="hidden md:flex sticky top-0 h-screen overflow-y-auto bg-paper border-r border-rule flex-col px-4 py-[22px]">
-        <SidebarContent />
+        {renderSidebarContent()}
       </aside>
 
       {/* ── Sidebar (Mobile Overlay) ─────────────────── */}
@@ -134,7 +138,7 @@ export function AppLayoutClient({ children, perfil, userEmail }: Props) {
             onClick={() => setSidebarAbierto(false)}
           />
           <aside className="fixed inset-y-0 left-0 w-[280px] bg-paper z-50 md:hidden flex flex-col px-4 py-[22px] shadow-xl animate-in slide-in-from-left duration-300">
-            <SidebarContent />
+            {renderSidebarContent()}
           </aside>
         </>
       )}

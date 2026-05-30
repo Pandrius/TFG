@@ -12,6 +12,8 @@ def test_salud():
     cuerpo = respuesta.json()
     assert cuerpo["estado"] == "ok"
     assert "txt" in cuerpo["formatos_soportados"]
+    assert "mp3" in cuerpo["formatos_soportados"]
+    assert "mpeg" in cuerpo["formatos_soportados"]
 
 
 def test_clasificar_publico():

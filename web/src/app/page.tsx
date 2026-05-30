@@ -9,7 +9,7 @@ const COOKIE_SESION_CACHE = "dres_sesion";
 export default async function PaginaPrincipal() {
   const store = await cookies();
   if (store.get(COOKIE_SESION_CACHE)?.value === "1") {
-    redirect("/inicio");
+    redirect("/mis-documentos");
   }
 
   return (

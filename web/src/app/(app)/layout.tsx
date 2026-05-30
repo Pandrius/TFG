@@ -24,9 +24,28 @@ export default async function LayoutApp({
     .eq("id", user.id)
     .single();
 
+  const [{ count: solicitudesAmistad }, { count: invitacionesOrg }] = await Promise.all([
+    admin
+      .from("amistades")
+      .select("id", { count: "exact", head: true })
+      .eq("receptor_id", user.id)
+      .eq("estado", "pendiente"),
+    admin
+      .from("org_invitaciones")
+      .select("id", { count: "exact", head: true })
+      .eq("invitado_id", user.id)
+      .eq("estado", "pendiente"),
+  ]);
+
+  const pendientesBuzon = (solicitudesAmistad ?? 0) + (invitacionesOrg ?? 0);
+
   return (
     <ToastProvider>
-      <AppLayoutClient perfil={perfil} userEmail={user.email ?? ""}>
+      <AppLayoutClient
+        perfil={perfil}
+        userEmail={user.email ?? ""}
+        pendientesBuzon={pendientesBuzon}
+      >
         {children}
       </AppLayoutClient>
     </ToastProvider>

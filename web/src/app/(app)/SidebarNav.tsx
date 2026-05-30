@@ -3,16 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const grupos = [
+type NavItem = {
+  href: string;
+  label: string;
+  badgeKey?: "buzon";
+};
+
+const grupos: { label: string; items: NavItem[] }[] = [
   {
     label: "Personal",
-    items: [
-      { href: "/mis-documentos", label: "Mis documentos" },
-    ],
+    items: [{ href: "/mis-documentos", label: "Mis documentos" }],
   },
   {
-    label: "Colaboración",
+    label: "Colaboracion",
     items: [
+      { href: "/buzon", label: "Buzon", badgeKey: "buzon" },
       { href: "/compartidos", label: "Compartidos" },
       { href: "/amigos", label: "Amigos" },
       { href: "/organizaciones", label: "Organizaciones" },
@@ -28,7 +33,13 @@ const grupos = [
   },
 ];
 
-export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
+export function SidebarNav({
+  onItemClick,
+  pendientesBuzon = 0,
+}: {
+  onItemClick?: () => void;
+  pendientesBuzon?: number;
+}) {
   const pathname = usePathname();
 
   return (
@@ -53,7 +64,34 @@ export function SidebarNav({ onItemClick }: { onItemClick?: () => void }) {
                     : "text-ink-soft hover:bg-soft hover:text-ink",
                 ].join(" ")}
               >
-                {item.label}
+                <span className="flex items-center gap-2 min-w-0">
+                  {item.badgeKey === "buzon" && (
+                    <span aria-hidden="true" className="w-4 h-4 grid place-items-center">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+                        <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+                      </svg>
+                    </span>
+                  )}
+                  <span className="truncate">{item.label}</span>
+                </span>
+                {item.badgeKey === "buzon" && pendientesBuzon > 0 && (
+                  <span
+                    className="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-mono font-semibold leading-[18px] text-center"
+                    aria-label={`${pendientesBuzon} pendientes`}
+                  >
+                    {pendientesBuzon > 99 ? "99+" : pendientesBuzon}
+                  </span>
+                )}
               </Link>
             );
           })}

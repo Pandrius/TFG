@@ -18,8 +18,11 @@ class FormatoNoSoportado(Exception):
 # Extensiones que MarkItDown maneja nativamente de forma robusta.
 FORMATOS_SOPORTADOS = [
     "pdf", "docx", "xlsx", "pptx", "csv", "txt",
-    "html", "json", "xml", "zip"
+    "html", "json", "xml", "zip",
+    "wav", "mp3", "mpeg", "m4a", "mp4", "aiff", "flac"
 ]
+
+FORMATOS_AUDIO = {"wav", "mp3", "mpeg", "m4a", "mp4", "aiff", "flac"}
 
 def extraer_texto(nombre_archivo: str, datos: bytes) -> tuple[str, str, bool, list[str]]:
     """Extrae el texto de un documento convirtiendolo a Markdown.
@@ -46,6 +49,8 @@ def extraer_texto(nombre_archivo: str, datos: bytes) -> tuple[str, str, bool, li
 
             if extension == "zip" and not texto:
                 advertencias.append("No se encontro contenido procesable dentro del archivo ZIP.")
+            if extension in FORMATOS_AUDIO and not texto:
+                advertencias.append("No se detecto voz transcribible en el archivo de audio.")
 
         finally:
             if os.path.exists(tmp_path):

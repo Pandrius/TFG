@@ -55,13 +55,24 @@ export default async function PaginaOrganizacion({
     .eq("org_id", id);
 
   const miembroIds = new Set(miembros?.map((m) => m.user_id) ?? []);
+  const { data: invitacionesPendientes } = await admin
+    .from("org_invitaciones")
+    .select("invitado_id")
+    .eq("org_id", id)
+    .eq("estado", "pendiente");
+
+  const invitadosPendientesIds = new Set(
+    invitacionesPendientes?.map((invitacion) => invitacion.invitado_id) ?? [],
+  );
   const { data: perfiles } = await admin
     .from("profiles")
     .select("id, nombre_usuario, nombre_completo")
     .order("nombre_usuario");
 
   const usuariosDisponibles =
-    perfiles?.filter((perfil) => !miembroIds.has(perfil.id)) ?? [];
+    perfiles?.filter(
+      (perfil) => !miembroIds.has(perfil.id) && !invitadosPendientesIds.has(perfil.id),
+    ) ?? [];
   const perfilesPorId = new Map((perfiles ?? []).map((perfil) => [perfil.id, perfil]));
 
   // Carpetas de la org

@@ -7,8 +7,44 @@ import { DropZone } from "@/components/ui/DropZone";
 import { PipelineRow, type EstadoArchivo } from "@/components/ui/PipelineRow";
 import { useToast } from "@/components/ui/Toast";
 
-const FORMATOS = [".pdf", ".docx", ".txt", ".xlsx", ".csv", ".pptx", ".html", ".json", ".xml", ".zip"];
-const FORMATOS_OK = new Set(["pdf", "docx", "txt", "xlsx", "csv", "pptx", "html", "json", "xml", "zip"]);
+const FORMATOS = [
+  ".pdf",
+  ".docx",
+  ".txt",
+  ".xlsx",
+  ".csv",
+  ".pptx",
+  ".html",
+  ".json",
+  ".xml",
+  ".zip",
+  ".wav",
+  ".mp3",
+  ".mpeg",
+  ".m4a",
+  ".mp4",
+  ".aiff",
+  ".flac",
+];
+const FORMATOS_OK = new Set([
+  "pdf",
+  "docx",
+  "txt",
+  "xlsx",
+  "csv",
+  "pptx",
+  "html",
+  "json",
+  "xml",
+  "zip",
+  "wav",
+  "mp3",
+  "mpeg",
+  "m4a",
+  "mp4",
+  "aiff",
+  "flac",
+]);
 const TAMANO_MAX = 10 * 1024 * 1024; // 10 MB
 const MAX_POR_TANDA = 10;
 const CONCURRENCIA = 3;
@@ -265,7 +301,7 @@ export function PanelSubidas() {
       mostrar({
         variant: "err",
         titulo: `${descartadosFormato} archivo${descartadosFormato === 1 ? "" : "s"} con formato no soportado.`,
-        detalle: "Formatos: PDF, DOCX, TXT, XLSX, CSV, PPTX, HTML, JSON, XML o ZIP.",
+        detalle: "Formatos: PDF, DOCX, TXT, XLSX, CSV, PPTX, HTML, JSON, XML, ZIP, WAV, MP3, MPEG, M4A, MP4, AIFF o FLAC.",
       });
     }
     if (descartadosTamano > 0) {
@@ -331,7 +367,7 @@ export function PanelSubidas() {
           o haz click para seleccionarlos. Puedes subir varios a la vez.
         </div>
         <div className="font-mono text-[10px] text-mute uppercase tracking-[0.08em] mt-3.5">
-          PDF · DOCX · TXT · XLSX · CSV · PPTX · HTML · JSON · XML · ZIP · hasta 10 MB · máx {MAX_POR_TANDA} a la vez
+          PDF · DOCX · TXT · XLSX · CSV · PPTX · HTML · JSON · XML · ZIP · audio WAV/MP3/MPEG/M4A/MP4/AIFF/FLAC · hasta 10 MB · máx {MAX_POR_TANDA} a la vez
         </div>
       </DropZone>
 

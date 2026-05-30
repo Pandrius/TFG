@@ -94,6 +94,118 @@ export async function agregarMiembro(
   return { ok: true };
 }
 
+export async function invitarMiembroOrg(
+  orgId: string,
+  _previo: { error: string } | { ok: true } | undefined,
+  datos: FormData,
+): Promise<{ error: string } | { ok: true } | undefined> {
+  const userId = String(datos.get("user_id") ?? "").trim();
+  const nombreUsuario = String(datos.get("nombre_usuario") ?? "").trim();
+  if (!userId && !nombreUsuario) return { error: "Selecciona un usuario" };
+
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const admin = crearClienteAdmin();
+  const { data: miMembresia } = await admin
+    .from("org_miembros")
+    .select("rol")
+    .eq("org_id", orgId)
+    .eq("user_id", user.id)
+    .single();
+  if (miMembresia?.rol !== "admin") return { error: "No autorizado" };
+
+  let query = admin.from("profiles").select("id, nombre_usuario");
+  query = userId ? query.eq("id", userId) : query.eq("nombre_usuario", nombreUsuario);
+  const { data: perfil } = await query.single();
+
+  if (!perfil) return { error: "Usuario no encontrado" };
+  if (perfil.id === user.id) return { error: "Ya eres miembro de esta organizacion" };
+
+  const { data: miembroExistente } = await admin
+    .from("org_miembros")
+    .select("user_id")
+    .eq("org_id", orgId)
+    .eq("user_id", perfil.id)
+    .maybeSingle();
+  if (miembroExistente) return { error: "Ese usuario ya es miembro" };
+
+  const { error } = await admin.from("org_invitaciones").insert({
+    org_id: orgId,
+    invitado_id: perfil.id,
+    invitador_id: user.id,
+    estado: "pendiente",
+  });
+
+  if (error?.code === "23505") return { error: "Ese usuario ya tiene una invitacion pendiente" };
+  if (error) {
+    console.error("Error creating org invitation:", error);
+    return { error: "Error al enviar la invitacion" };
+  }
+
+  revalidatePath("/buzon");
+  revalidatePath("/organizaciones");
+  revalidatePath(`/organizaciones/${orgId}`);
+  return { ok: true };
+}
+
+export async function aceptarInvitacionOrg(invitacionId: string): Promise<void> {
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const admin = crearClienteAdmin();
+  const { data: invitacion } = await admin
+    .from("org_invitaciones")
+    .select("id, org_id, invitado_id, estado")
+    .eq("id", invitacionId)
+    .eq("invitado_id", user.id)
+    .eq("estado", "pendiente")
+    .single();
+  if (!invitacion) return;
+
+  const { error: errorMiembro } = await admin
+    .from("org_miembros")
+    .insert({ org_id: invitacion.org_id, user_id: user.id, rol: "miembro" });
+  if (errorMiembro && errorMiembro.code !== "23505") {
+    console.error("Error accepting org invitation:", errorMiembro);
+    return;
+  }
+
+  await admin
+    .from("org_invitaciones")
+    .update({ estado: "aceptada", fecha_respuesta: new Date().toISOString() })
+    .eq("id", invitacionId)
+    .eq("invitado_id", user.id);
+
+  revalidatePath("/buzon");
+  revalidatePath("/organizaciones");
+  revalidatePath(`/organizaciones/${invitacion.org_id}`);
+}
+
+export async function rechazarInvitacionOrg(invitacionId: string): Promise<void> {
+  const supabase = await crearClienteServidor();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const admin = crearClienteAdmin();
+  await admin
+    .from("org_invitaciones")
+    .update({ estado: "rechazada", fecha_respuesta: new Date().toISOString() })
+    .eq("id", invitacionId)
+    .eq("invitado_id", user.id)
+    .eq("estado", "pendiente");
+
+  revalidatePath("/buzon");
+}
+
 export async function expulsarMiembro(orgId: string, userId: string): Promise<void> {
   const supabase = await crearClienteServidor();
   const {

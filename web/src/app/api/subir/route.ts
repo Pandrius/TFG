@@ -14,6 +14,13 @@ const FORMATOS_PERMITIDOS = new Set([
   "json",
   "xml",
   "zip",
+  "wav",
+  "mp3",
+  "mpeg",
+  "m4a",
+  "mp4",
+  "aiff",
+  "flac",
 ]);
 const TAMANO_MAX = 10 * 1024 * 1024;
 

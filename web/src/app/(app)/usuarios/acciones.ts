@@ -114,6 +114,7 @@ export async function solicitarAmistad(receptorId: string): Promise<ResultadoUsu
   }
 
   revalidatePath("/amigos");
+  revalidatePath("/buzon");
   revalidatePath(`/usuarios/${receptorId}`);
   return { ok: true };
 }
@@ -130,6 +131,7 @@ export async function aceptarAmistad(solicitudId: string) {
     .eq("estado", "pendiente");
 
   revalidatePath("/amigos");
+  revalidatePath("/buzon");
 }
 
 export async function rechazarAmistad(solicitudId: string) {
@@ -143,6 +145,7 @@ export async function rechazarAmistad(solicitudId: string) {
     .or(`solicitante_id.eq.${user.id},receptor_id.eq.${user.id}`);
 
   revalidatePath("/amigos");
+  revalidatePath("/buzon");
 }
 
 export async function eliminarAmistad(usuarioId: string) {

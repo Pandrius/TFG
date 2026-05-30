@@ -8,6 +8,7 @@ ENV PYTHONUNBUFFERED=1
 # Instalar dependencias del sistema necesarias para algunas librerías de ML y extracción
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Crear y establecer el directorio de trabajo

@@ -31,7 +31,6 @@ type Perfil = {
 type EntradaCompartida = {
   doc: DocumentoCompartido;
   remitenteId: string;
-  origen: "permiso" | "favorito";
 };
 
 export default async function PaginaCompartidos() {
@@ -61,33 +60,21 @@ export default async function PaginaCompartidos() {
       })) ?? [];
   }
 
-  const { data: favoritosData } = await admin
-    .from("favoritos")
-    .select("propietario_id")
-    .eq("favorito_id", user.id);
-  const propietariosQueMeFavorecen = favoritosData?.map((f) => f.propietario_id) ?? [];
   const idsConPermiso = permisos.map((p) => p.documento_id);
 
   let documentos: DocumentoCompartido[] = [];
-  if (idsConPermiso.length > 0 || propietariosQueMeFavorecen.length > 0) {
-    const filtros: string[] = [];
-    if (idsConPermiso.length > 0) filtros.push(`id.in.(${idsConPermiso.join(",")})`);
-    if (propietariosQueMeFavorecen.length > 0) {
-      filtros.push(`user_id.in.(${propietariosQueMeFavorecen.join(",")})`);
-    }
-
+  if (idsConPermiso.length > 0) {
     const { data } = await admin
       .from("Documentos")
       .select("id, nombre, tipo_archivo, confidencialidad, tamano_bytes, fecha, user_id")
       .neq("user_id", user.id)
-      .or(filtros.join(","))
+      .in("id", idsConPermiso)
       .order("fecha", { ascending: false });
 
     documentos = data ?? [];
   }
 
   const documentosPorId = new Map(documentos.map((doc) => [doc.id, doc]));
-  const permisoPorDoc = new Map(permisos.map((permiso) => [permiso.documento_id, permiso]));
   const entradas: EntradaCompartida[] = [];
 
   for (const permiso of permisos) {
@@ -96,17 +83,6 @@ export default async function PaginaCompartidos() {
     entradas.push({
       doc,
       remitenteId: permiso.sender_id ?? doc.user_id,
-      origen: "permiso",
-    });
-  }
-
-  for (const doc of documentos) {
-    if (permisoPorDoc.has(doc.id)) continue;
-    if (!propietariosQueMeFavorecen.includes(doc.user_id)) continue;
-    entradas.push({
-      doc,
-      remitenteId: doc.user_id,
-      origen: "favorito",
     });
   }
 
@@ -183,7 +159,7 @@ export default async function PaginaCompartidos() {
                   </div>
                 </div>
 
-                {documentosGrupo.map(({ doc, origen }) => {
+                {documentosGrupo.map(({ doc }) => {
                   const propietario = perfilesById[doc.user_id];
                   const autor =
                     propietario?.nombre_completo || propietario?.nombre_usuario || "Autor";
@@ -217,7 +193,7 @@ export default async function PaginaCompartidos() {
                           {esPublico ? "publico" : "privado"}
                         </Tag>
                         <span className="text-mute text-[10px] font-mono">
-                          {origen === "favorito" ? "por favoritos" : "enviado"}
+                          enviado
                         </span>
                       </div>
                       <div className="flex flex-col items-end gap-1">
@@ -261,4 +237,3 @@ function contarDescargas(descargas: { documento_id: string }[]) {
   }
   return conteo;
 }
-

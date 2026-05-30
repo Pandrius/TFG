@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { agregarMiembro } from "../acciones";
+import { invitarMiembroOrg } from "../acciones";
 
 export interface UsuarioDisponible {
   id: string;
@@ -21,7 +21,7 @@ interface Props {
 
 export default function FormularioMiembro({ orgId, usuarios }: Props) {
   const router = useRouter();
-  const accion = agregarMiembro.bind(null, orgId);
+  const accion = invitarMiembroOrg.bind(null, orgId);
   const [estado, dispatch, pending] = useActionState<{ error: string } | { ok: true } | undefined, FormData>(
     accion,
     undefined,
@@ -122,11 +122,11 @@ export default function FormularioMiembro({ orgId, usuarios }: Props) {
           loading={pending}
           disabled={!seleccionado || pending}
         >
-          Anadir miembro
+          Enviar invitacion
         </Button>
       </div>
       {usuarios.length === 0 && (
-        <p className="text-mute text-[13px]">No hay usuarios disponibles para anadir.</p>
+        <p className="text-mute text-[13px]">No hay usuarios disponibles para invitar.</p>
       )}
       {estado && "error" in estado && (
         <p className="text-danger text-[13px]">{estado.error}</p>

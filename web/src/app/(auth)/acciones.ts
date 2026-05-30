@@ -72,7 +72,7 @@ export async function registrarse(
   if (error) return { error: traducirError(error.message) };
 
   await guardarCacheSesion(true);
-  redirect("/inicio");
+  redirect("/mis-documentos");
 }
 
 export async function iniciarSesion(
@@ -91,7 +91,7 @@ export async function iniciarSesion(
   if (error) return { error: traducirError(error.message) };
 
   await guardarCacheSesion(true);
-  redirect("/inicio");
+  redirect("/mis-documentos");
 }
 
 export async function cerrarSesion() {

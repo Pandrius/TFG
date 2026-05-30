@@ -3,7 +3,9 @@
 fastapi
 uvicorn[standard]
 python-multipart        # subida de archivos en FastAPI
-markitdown[pdf,docx,xlsx]  # extraccion estructurada a Markdown (Microsoft)
+markitdown[pdf,docx,xlsx,audio-transcription]  # extraccion estructurada a Markdown (Microsoft)
+SpeechRecognition        # transcripcion de audio usada por MarkItDown
+pydub                    # conversion de audio para MP3/M4A/MP4
 
 # Extraccion de texto
 pypdf                   # .pdf
