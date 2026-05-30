@@ -25,14 +25,34 @@ export async function invitarUsuario(
 
   const admin = crearClienteAdmin();
 
-  // Verificar propiedad
   const { data: doc } = await admin
     .from("Documentos")
-    .select("id")
+    .select("id, user_id, confidencialidad")
     .eq("id", documentoId)
-    .eq("user_id", user.id)
     .single();
-  if (!doc) return { error: "No tienes permiso para gestionar este documento" };
+  if (!doc) return { error: "Documento no encontrado" };
+
+  const [{ data: permisoActual }, { data: favoritoActual }] = await Promise.all([
+    admin
+      .from("Permisos")
+      .select("id")
+      .eq("documento_id", documentoId)
+      .eq("inv_user_id", user.id)
+      .maybeSingle(),
+    admin
+      .from("favoritos")
+      .select("propietario_id")
+      .eq("propietario_id", doc.user_id)
+      .eq("favorito_id", user.id)
+      .maybeSingle(),
+  ]);
+
+  const puedeCompartir =
+    doc.user_id === user.id ||
+    doc.confidencialidad === 0 ||
+    !!permisoActual ||
+    !!favoritoActual;
+  if (!puedeCompartir) return { error: "No tienes permiso para enviar este documento" };
 
   // Buscar el usuario invitado por id seleccionado o nombre exacto.
   let query = admin
@@ -46,12 +66,23 @@ export async function invitarUsuario(
 
   const { error } = await admin
     .from("Permisos")
-    .insert({ documento_id: documentoId, inv_user_id: perfil.id });
+    .insert({ documento_id: documentoId, inv_user_id: perfil.id, sender_id: user.id });
 
   if (error?.code === "23505") return { error: "Ese usuario ya tiene acceso" };
+  if (error?.code === "PGRST204") {
+    const { error: fallbackError } = await admin
+      .from("Permisos")
+      .insert({ documento_id: documentoId, inv_user_id: perfil.id });
+    if (fallbackError?.code === "23505") return { error: "Ese usuario ya tiene acceso" };
+    if (fallbackError) return { error: "Error al conceder el permiso" };
+    revalidatePath(`/documentos/${documentoId}`);
+    revalidatePath("/compartidos");
+    return { ok: true };
+  }
   if (error) return { error: "Error al conceder el permiso" };
 
   revalidatePath(`/documentos/${documentoId}`);
+  revalidatePath("/compartidos");
   return { ok: true };
 }
 

@@ -6,6 +6,8 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Tag } from "@/components/ui/Tag";
+import type { UsuarioInvitable } from "../documentos/[id]/FormularioInvitacion";
+import { BotonEnviarDocumentoPerfil } from "../usuarios/[id]/BotonEnviarDocumentoPerfil";
 
 type Doc = {
   id: string;
@@ -126,6 +128,12 @@ export default async function PaginaExplorar({
       .in("id", userIds);
     for (const p of perfiles ?? []) perfilesById[p.id] = p;
   }
+  const { data: perfilesDisponibles } = await supabase
+    .from("profiles")
+    .select("id, nombre_usuario, nombre_completo, avatar_url")
+    .neq("id", user.id)
+    .order("nombre_usuario");
+  const usuariosDisponibles: UsuarioInvitable[] = perfilesDisponibles ?? [];
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
@@ -190,9 +198,18 @@ export default async function PaginaExplorar({
                       <span className="text-mute text-[11px] font-mono">
                         {descargas} desc.
                       </span>
-                      <a href={`/api/documentos/${doc.id}/url`}>
-                        <Button variant="ghost" size="sm">Descargar</Button>
-                      </a>
+                      <div className="flex items-center justify-end gap-1">
+                        {esPublico && (
+                          <BotonEnviarDocumentoPerfil
+                            documentoId={doc.id}
+                            nombre={doc.nombre}
+                            usuarios={usuariosDisponibles.filter((u) => u.id !== doc.user_id)}
+                          />
+                        )}
+                        <a href={`/api/documentos/${doc.id}/url`}>
+                          <Button variant="ghost" size="sm">Descargar</Button>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 );
@@ -229,9 +246,16 @@ export default async function PaginaExplorar({
                       <span className="text-mute text-[11px] font-mono">
                         {descargas} desc.
                       </span>
-                      <a href={`/api/documentos/${doc.id}/url`}>
-                        <Button variant="ghost" size="sm">Descargar</Button>
-                      </a>
+                      <div className="flex items-center justify-end gap-1">
+                        <BotonEnviarDocumentoPerfil
+                          documentoId={doc.id}
+                          nombre={doc.nombre}
+                          usuarios={usuariosDisponibles.filter((u) => u.id !== doc.user_id)}
+                        />
+                        <a href={`/api/documentos/${doc.id}/url`}>
+                          <Button variant="ghost" size="sm">Descargar</Button>
+                        </a>
+                      </div>
                     </div>
                   </div>
                 </div>

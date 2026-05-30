@@ -19,6 +19,9 @@ import { ModalEliminar } from "./ModalEliminar";
 import { ModalHacerPublico } from "./ModalHacerPublico";
 import { ModalMoverACarpeta } from "./ModalMoverACarpeta";
 import { RenombrarInline } from "./RenombrarInline";
+import FormularioInvitacion, {
+  type UsuarioInvitable,
+} from "../documentos/[id]/FormularioInvitacion";
 
 export interface DocumentoExplorador {
   id: string;
@@ -40,6 +43,7 @@ interface Props {
   documentos: DocumentoExplorador[];
   carpetas: CarpetaExplorador[];
   carpetaActualId: string | null;
+  usuariosInvitables: UsuarioInvitable[];
 }
 
 type Filtro = "todos" | "privados" | "publicos";
@@ -56,6 +60,7 @@ export function ExploradorDocumentos({
   documentos,
   carpetas,
   carpetaActualId,
+  usuariosInvitables,
 }: Props) {
   const router = useRouter();
   const { mostrar } = useToast();
@@ -63,6 +68,7 @@ export function ExploradorDocumentos({
   const [modalPublico, setModalPublico] = useState<DocumentoExplorador | null>(null);
   const [modalBorrar, setModalBorrar] = useState<DocumentoExplorador | null>(null);
   const [modalMover, setModalMover] = useState<DocumentoExplorador | null>(null);
+  const [modalEnviar, setModalEnviar] = useState<DocumentoExplorador | null>(null);
   const [menuDoc, setMenuDoc] = useState<MenuDoc>(null);
   const [menuCarpeta, setMenuCarpeta] = useState<MenuCarpeta>(null);
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
@@ -358,7 +364,7 @@ export function ExploradorDocumentos({
 
       <div className="overflow-x-auto">
         <div className="min-w-[860px]">
-          <div className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_30px] items-center px-5 py-2.5 gap-3.5 bg-soft text-mute font-display italic text-xs border-b border-rule">
+          <div className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_68px] items-center px-5 py-2.5 gap-3.5 bg-soft text-mute font-display italic text-xs border-b border-rule">
             <div className="flex items-center justify-center">
               <input
                 type="checkbox"
@@ -379,7 +385,7 @@ export function ExploradorDocumentos({
           {carpetasActuales.map((carpeta) => (
             <div
               key={carpeta.id}
-              className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_30px] items-center px-5 py-3 gap-3.5 border-b border-rule text-[13px]"
+              className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_68px] items-center px-5 py-3 gap-3.5 border-b border-rule text-[13px]"
             >
               <div />
               <span className="w-9 h-9 rounded-[8px] border border-rule bg-card grid place-items-center text-accent font-semibold">
@@ -450,7 +456,7 @@ export function ExploradorDocumentos({
             return (
               <div
                 key={doc.id}
-                className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_30px] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
+              className="grid grid-cols-[28px_44px_1fr_120px_100px_120px_68px] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
               >
                 <div className="flex items-center justify-center">
                   <input
@@ -485,7 +491,16 @@ export function ExploradorDocumentos({
                   {kb !== null ? `${kb} KB` : "-"}
                 </div>
                 <div className="text-mute font-mono text-[12px]">{fecha}</div>
-                <div className="relative">
+                <div className="relative flex items-center justify-end gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setModalEnviar(doc)}
+                    className="text-mute hover:text-ink px-1.5 py-1 rounded-[6px] hover:bg-soft"
+                    aria-label={`Enviar ${doc.nombre}`}
+                    title="Enviar"
+                  >
+                    <IconoEnviar />
+                  </button>
                   <button
                     type="button"
                     onClick={(e) => abrirMenu(doc.id, e.currentTarget, "doc")}
@@ -606,6 +621,29 @@ export function ExploradorDocumentos({
           carpetas={rutasCarpetas}
         />
       )}
+      {modalEnviar && (
+        <Modal
+          abierto={modalEnviar !== null}
+          onClose={() => setModalEnviar(null)}
+          titulo="Enviar documento"
+          acciones={
+            <Button type="button" variant="ghost" onClick={() => setModalEnviar(null)}>
+              Cerrar
+            </Button>
+          }
+        >
+          <div className="flex flex-col gap-3">
+            <p className="text-mute text-[13px]">
+              Enviar <span className="font-medium text-ink">{modalEnviar.nombre}</span> a:
+            </p>
+            <FormularioInvitacion
+              documentoId={modalEnviar.id}
+              usuarios={usuariosInvitables}
+              onEnviado={() => setModalEnviar(null)}
+            />
+          </div>
+        </Modal>
+      )}
 
       {seleccionados.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 bg-card border border-rule rounded-full shadow-[var(--shadow-2)] px-5 py-3 flex items-center gap-4">
@@ -634,3 +672,21 @@ export function ExploradorDocumentos({
   );
 }
 
+function IconoEnviar() {
+  return (
+    <svg
+      aria-hidden
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M22 2L11 13" />
+      <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+    </svg>
+  );
+}

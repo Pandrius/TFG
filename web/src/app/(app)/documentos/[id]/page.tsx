@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import FormularioInvitacion, { type UsuarioInvitable } from "./FormularioInvitacion";
 import { quitarPermiso } from "./acciones";
 import AccionesClasificacion from "./AccionesClasificacion";
+import { BotonEnviarDocumentoPerfil } from "../../usuarios/[id]/BotonEnviarDocumentoPerfil";
 
 export default async function PaginaDocumento({
   params,
@@ -56,12 +57,13 @@ export default async function PaginaDocumento({
   if (!tieneAcceso) redirect("/mis-documentos");
 
   const esPropietario = doc.user_id === user.id;
+  const puedeEnviar = !!tieneAcceso;
   const kb = doc.tamano_bytes ? Math.round(doc.tamano_bytes / 1024) : null;
   const fecha = new Date(doc.fecha).toLocaleDateString("es-ES", {
     day: "numeric", month: "long", year: "numeric",
   });
 
-  // Permisos actuales (solo para el propietario)
+  // Permisos actuales y usuarios disponibles para reenviar el documento.
   let permisos: { id: string; inv_user_id: string }[] = [];
   const perfilesById: Record<
     string,
@@ -69,7 +71,7 @@ export default async function PaginaDocumento({
   > = {};
   let usuariosInvitables: UsuarioInvitable[] = [];
 
-  if (esPropietario) {
+  if (puedeEnviar) {
     const { data: permisosData } = await admin
       .from("Permisos")
       .select("id, inv_user_id")
@@ -86,7 +88,7 @@ export default async function PaginaDocumento({
       for (const p of perfilesData ?? []) perfilesById[p.id] = p;
     }
 
-    const excluidos = new Set([user.id, ...invitadoIds]);
+    const excluidos = new Set([user.id, doc.user_id, ...invitadoIds]);
     const { data: perfilesDisponibles } = await admin
       .from("profiles")
       .select("id, nombre_usuario, nombre_completo, avatar_url")
@@ -173,6 +175,7 @@ export default async function PaginaDocumento({
       </div>
 
       <VistaPreviaDocumento
+        documentoId={doc.id}
         nombre={doc.nombre}
         tipo={tipo}
         fecha={fecha}
@@ -181,6 +184,7 @@ export default async function PaginaDocumento({
         previewUrl={previewUrl}
         textoPreview={textoPreview}
         descargaHref={`/api/documentos/${id}/url`}
+        usuariosInvitables={usuariosInvitables}
       />
 
       {/* Permisos (solo propietario) */}
@@ -238,6 +242,7 @@ export default async function PaginaDocumento({
 }
 
 function VistaPreviaDocumento({
+  documentoId,
   nombre,
   tipo,
   fecha,
@@ -246,7 +251,9 @@ function VistaPreviaDocumento({
   previewUrl,
   textoPreview,
   descargaHref,
+  usuariosInvitables,
 }: {
+  documentoId: string;
   nombre: string;
   tipo: string;
   fecha: string;
@@ -255,6 +262,7 @@ function VistaPreviaDocumento({
   previewUrl: string | null;
   textoPreview: string | null;
   descargaHref: string;
+  usuariosInvitables: UsuarioInvitable[];
 }) {
   const tipoNormalizado = tipo.toLowerCase();
   const esPdf = tipoNormalizado === "pdf";
@@ -266,9 +274,18 @@ function VistaPreviaDocumento({
         <h2 className="font-display font-medium text-lg tracking-[-0.01em]">
           Vista <em className="italic text-accent">previa</em>
         </h2>
-        <a href={descargaHref}>
-          <Button variant="ghost" size="sm">Descargar</Button>
-        </a>
+        <div className="flex items-center gap-1">
+          {esPublico && (
+            <BotonEnviarDocumentoPerfil
+              documentoId={documentoId}
+              nombre={nombre}
+              usuarios={usuariosInvitables}
+            />
+          )}
+          <a href={descargaHref}>
+            <Button variant="ghost" size="sm">Descargar</Button>
+          </a>
+        </div>
       </div>
 
       {!previewUrl ? (

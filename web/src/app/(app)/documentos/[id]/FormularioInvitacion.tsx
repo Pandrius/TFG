@@ -19,9 +19,10 @@ export interface UsuarioInvitable {
 interface Props {
   documentoId: string;
   usuarios: UsuarioInvitable[];
+  onEnviado?: () => void;
 }
 
-export default function FormularioInvitacion({ documentoId, usuarios }: Props) {
+export default function FormularioInvitacion({ documentoId, usuarios, onEnviado }: Props) {
   const [consulta, setConsulta] = useState("");
   const [seleccionado, setSeleccionado] = useState<UsuarioInvitable | null>(null);
   const [abierto, setAbierto] = useState(false);
@@ -50,10 +51,11 @@ export default function FormularioInvitacion({ documentoId, usuarios }: Props) {
     const res = await invitarUsuario(documentoId, undefined, fd);
     setEnviando(false);
     if (res && "ok" in res) {
-      mostrar({ variant: "ok", titulo: "Permiso concedido." });
+      mostrar({ variant: "ok", titulo: "Documento enviado." });
       setConsulta("");
       setSeleccionado(null);
       setAbierto(false);
+      onEnviado?.();
       router.refresh();
     } else if (res && "error" in res) {
       mostrar({ variant: "err", titulo: res.error });
@@ -72,12 +74,16 @@ export default function FormularioInvitacion({ documentoId, usuarios }: Props) {
             setAbierto(true);
           }}
           onFocus={() => setAbierto(true)}
-          disabled={enviando || usuarios.length === 0}
+          disabled={enviando}
           className="w-full"
         />
-        {abierto && !seleccionado && usuarios.length > 0 && (
+        {abierto && !seleccionado && (
           <div className="absolute left-0 right-0 top-full mt-1 z-30 max-h-64 overflow-y-auto rounded-[10px] border border-rule bg-card shadow-[var(--shadow-2)] py-1">
-            {resultados.length > 0 ? (
+            {usuarios.length === 0 ? (
+              <p className="px-3 py-3 text-[13px] text-mute">
+                No hay usuarios disponibles para enviar este documento.
+              </p>
+            ) : resultados.length > 0 ? (
               resultados.map((usuario) => (
                 <button
                   key={usuario.id}
@@ -121,7 +127,7 @@ export default function FormularioInvitacion({ documentoId, usuarios }: Props) {
         loading={enviando}
         disabled={!seleccionado || enviando}
       >
-        Invitar
+        Enviar
       </Button>
     </form>
   );

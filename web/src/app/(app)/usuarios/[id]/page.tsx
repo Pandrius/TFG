@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/Button";
 import { Tag } from "@/components/ui/Tag";
 import { crearClienteAdmin } from "@/lib/supabase/admin";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import type { UsuarioInvitable } from "../../documentos/[id]/FormularioInvitacion";
 import { AccionesUsuario } from "./AccionesUsuario";
 import { AvatarPerfilAmpliable } from "./AvatarPerfilAmpliable";
+import { BotonEnviarDocumentoPerfil } from "./BotonEnviarDocumentoPerfil";
 
 type CarpetaPerfil = {
   id: string;
@@ -100,6 +102,13 @@ export default async function PaginaPerfilUsuario({
     .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   const docsSinCarpeta = documentos.filter((doc) => !doc.carpeta_id);
   const totalCompartidos = documentos.length;
+  const { data: perfilesDisponibles } = await admin
+    .from("profiles")
+    .select("id, nombre_usuario, nombre_completo, avatar_url")
+    .neq("id", me.id)
+    .neq("id", id)
+    .order("nombre_usuario");
+  const usuariosInvitables: UsuarioInvitable[] = perfilesDisponibles ?? [];
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-8">
@@ -173,7 +182,7 @@ export default async function PaginaPerfilUsuario({
               return (
                 <div
                   key={doc.id}
-                  className="grid grid-cols-[44px_1fr_120px_auto] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
+                  className="grid grid-cols-[44px_1fr_120px_150px] items-center px-5 py-3 gap-3.5 border-b border-rule last:border-b-0 text-[13px]"
                 >
                   <span className="w-9 h-11 rounded-[6px] border border-rule bg-card grid place-items-center font-display italic text-accent text-[11px]">
                     {tipo.slice(0, 3) || "?"}
@@ -192,9 +201,18 @@ export default async function PaginaPerfilUsuario({
                   <Tag variant={esPublico ? "pub" : "priv"}>
                     {esPublico ? "publico" : puedeVerPrivados ? "privado accesible" : "privado"}
                   </Tag>
-                  <Link href={`/documentos/${doc.id}`}>
-                    <Button variant="ghost" size="sm">Ver</Button>
-                  </Link>
+                  <div className="flex items-center justify-end gap-1">
+                    {esPublico && (
+                      <BotonEnviarDocumentoPerfil
+                        documentoId={doc.id}
+                        nombre={doc.nombre}
+                        usuarios={usuariosInvitables}
+                      />
+                    )}
+                    <Link href={`/documentos/${doc.id}`}>
+                      <Button variant="ghost" size="sm">Ver</Button>
+                    </Link>
+                  </div>
                 </div>
               );
             })}

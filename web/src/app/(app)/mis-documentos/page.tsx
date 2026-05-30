@@ -10,6 +10,7 @@ import {
   type CarpetaExplorador,
   type DocumentoExplorador,
 } from "./ExploradorDocumentos";
+import type { UsuarioInvitable } from "../documentos/[id]/FormularioInvitacion";
 import { PanelSubidas } from "./PanelSubidas";
 
 const ESPACIO_TOTAL_MB = 500;
@@ -89,6 +90,12 @@ export default async function PaginaMisDocumentos({
   ).length;
   const ultima = documentos[0] ? new Date(documentos[0].fecha) : null;
   const ultimaTexto = ultima ? formatoTiempoRelativo(ultima) : null;
+  const { data: perfilesDisponibles } = await admin
+    .from("profiles")
+    .select("id, nombre_usuario, nombre_completo, avatar_url")
+    .neq("id", user.id)
+    .order("nombre_usuario");
+  const usuariosInvitables: UsuarioInvitable[] = perfilesDisponibles ?? [];
 
   return (
     <div className="max-w-6xl mx-auto p-8 flex flex-col gap-7">
@@ -159,6 +166,7 @@ export default async function PaginaMisDocumentos({
         documentos={documentos}
         carpetas={carpetas}
         carpetaActualId={carpetaActualSegura}
+        usuariosInvitables={usuariosInvitables}
       />
     </div>
   );
